@@ -1,11 +1,5 @@
 import React, { useState } from "react";
-import {
-  ScrollView,
-  StyleSheet,
-  Text,
-  TouchableOpacity,
-  View,
-} from "react-native";
+import { ScrollView, StyleSheet, Text, View } from "react-native";
 import { NewWCSPattern, WCSPattern } from "@/components/types/WCSPattern";
 import { defaultPatterns } from "@/components/data/DefaultPatterns";
 import PatternList from "@/components/PatternList";
@@ -40,6 +34,12 @@ const PatternListManager = () => {
     if (selectedPattern?.id === id) setSelectedPattern(null);
   };
 
+  // New handler for edit icon
+  const handleEditPattern = (pattern: WCSPattern) => {
+    setSelectedPattern(pattern);
+    setIsEditing(true);
+  };
+
   return (
     <ScrollView style={styles.container}>
       <View style={styles.innerContainer}>
@@ -55,20 +55,6 @@ const PatternListManager = () => {
               Dance Pattern Mapper
             </Text>
           </View>
-        </View>
-        <View style={styles.headerActionsRow}>
-          <TouchableOpacity
-            onPress={() => setIsAddingNew(!isAddingNew)}
-            style={styles.buttonGreen}
-          >
-            <Text style={styles.buttonText}>Add Pattern</Text>
-          </TouchableOpacity>
-          <TouchableOpacity
-            onPress={() => setIsEditing(!isEditing)}
-            style={styles.buttonGreen}
-          >
-            <Text style={styles.buttonText}>Edit Pattern</Text>
-          </TouchableOpacity>
         </View>
         {isAddingNew && (
           <EditPatternForm
@@ -90,6 +76,8 @@ const PatternListManager = () => {
             patterns={patterns}
             onSelect={setSelectedPattern}
             onDelete={deletePattern}
+            onAdd={() => setIsAddingNew(!isAddingNew)}
+            onEdit={handleEditPattern}
           />
 
           <View style={styles.patternDetailsContainer}>
@@ -129,7 +117,7 @@ const styles = StyleSheet.create({
     flexDirection: "row",
     gap: 8,
     marginBottom: 24,
-    marginTop: 16,
+    marginTop: 0,
     justifyContent: "flex-start",
   },
   buttonGreen: {

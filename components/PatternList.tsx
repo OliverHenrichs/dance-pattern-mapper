@@ -7,17 +7,29 @@ import {
   View,
 } from "react-native";
 import { WCSPattern } from "@/components/types/WCSPattern";
+import Icon from "react-native-vector-icons/MaterialCommunityIcons";
 
 type PatternListProps = {
   patterns: WCSPattern[];
   selectedPattern?: WCSPattern;
   onSelect: (pattern: WCSPattern) => void;
   onDelete: (id?: number) => void;
+  onAdd: () => void;
+  onEdit: (pattern: WCSPattern) => void;
 };
 
 const PatternList: React.FC<PatternListProps> = (props) => (
   <View>
-    <Text style={styles.sectionTitle}>Pattern List</Text>
+    <View style={styles.headerRow}>
+      <Text style={styles.sectionTitle}>Pattern List</Text>
+      <TouchableOpacity
+        onPress={props.onAdd}
+        style={styles.plusButton}
+        accessibilityLabel="Add Pattern"
+      >
+        <Icon name="plus-circle" size={28} color="#22c55e" />
+      </TouchableOpacity>
+    </View>
     <ScrollView style={styles.patternListScroll}>
       {props.patterns.map((pattern) =>
         mapPatternToScrollViewItem(pattern, props),
@@ -49,8 +61,20 @@ function mapPatternToScrollViewItem(
         <TouchableOpacity
           onPress={(e) => {
             e.stopPropagation?.();
+            props.onEdit(pattern);
+          }}
+          style={styles.iconButton}
+          accessibilityLabel="Edit Pattern"
+        >
+          <Icon name="pencil" size={20} color="#6366f1" />
+        </TouchableOpacity>
+        <TouchableOpacity
+          onPress={(e) => {
+            e.stopPropagation?.();
             props.onDelete(pattern.id);
           }}
+          style={styles.iconButton}
+          accessibilityLabel="Delete Pattern"
         >
           <Text style={styles.deleteIcon}>🗑️</Text>
         </TouchableOpacity>
@@ -60,11 +84,22 @@ function mapPatternToScrollViewItem(
 }
 
 const styles = StyleSheet.create({
+  headerRow: {
+    flexDirection: "row",
+    alignItems: "center",
+    justifyContent: "space-between",
+    marginTop: 16,
+    marginBottom: 8,
+  },
   sectionTitle: {
     fontSize: 18,
     fontWeight: "bold",
     color: "#1e293b",
-    marginBottom: 8,
+  },
+  plusButton: {
+    marginLeft: 8,
+    padding: 4,
+    borderRadius: 16,
   },
   patternListScroll: { maxHeight: 400 },
   patternItem: {
@@ -78,6 +113,10 @@ const styles = StyleSheet.create({
   patternItemHeader: { flexDirection: "row", alignItems: "center" },
   patternName: { fontWeight: "bold", fontSize: 16, color: "#1e293b" },
   deleteIcon: { fontSize: 20, color: "#ef4444", marginLeft: 8 },
+  iconButton: {
+    paddingHorizontal: 4,
+    paddingVertical: 2,
+  },
 });
 
 export default PatternList;
