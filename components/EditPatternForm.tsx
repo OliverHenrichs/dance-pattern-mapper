@@ -53,7 +53,9 @@ const EditPatternForm: React.FC<EditPatternFormProps> = ({
 
   return (
     <View style={styles.addPatternContainer}>
-      <Text style={styles.sectionTitle}>Add New Pattern</Text>
+      <Text style={styles.sectionTitle}>
+        {existing ? "Edit" : "Add New"} Pattern
+      </Text>
       <View style={styles.inputRow}>
         <TextInput
           placeholder="Pattern Name"
