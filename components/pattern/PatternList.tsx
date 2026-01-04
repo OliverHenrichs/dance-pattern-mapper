@@ -36,12 +36,6 @@ const PatternList: React.FC<PatternListProps> = (props) => (
       {props.patterns.map((pattern) => (
         <View key={pattern.id}>
           {mapPatternToScrollViewItem(pattern, props)}
-          {props.selectedPattern?.id === pattern.id && (
-            <PatternDetails
-              selectedPattern={pattern}
-              patterns={props.patterns}
-            />
-          )}
         </View>
       ))}
     </ScrollView>
@@ -50,7 +44,7 @@ const PatternList: React.FC<PatternListProps> = (props) => (
 
 function mapPatternToScrollViewItem(
   pattern: WCSPattern,
-  props: Omit<PatternListProps, "patterns">,
+  props: PatternListProps,
 ) {
   return (
     <TouchableOpacity
@@ -86,6 +80,9 @@ function mapPatternToScrollViewItem(
           <Text style={styles.deleteIcon}>🗑️</Text>
         </TouchableOpacity>
       </View>
+      {props.selectedPattern?.id === pattern.id && (
+        <PatternDetails selectedPattern={pattern} patterns={props.patterns} />
+      )}
     </TouchableOpacity>
   );
 }
@@ -116,7 +113,10 @@ const styles = StyleSheet.create({
   },
   patternItemSelected: { borderColor: "#6366f1", backgroundColor: "#eef2ff" },
   patternItemUnselected: { borderColor: "#d1d5db", backgroundColor: "#fff" },
-  patternItemHeader: { flexDirection: "row", alignItems: "center" },
+  patternItemHeader: {
+    flexDirection: "row",
+    alignItems: "center",
+  },
   patternName: { fontWeight: "bold", fontSize: 16, color: "#1e293b" },
   deleteIcon: { fontSize: 20, color: "#ef4444", marginLeft: 8 },
   iconButton: {

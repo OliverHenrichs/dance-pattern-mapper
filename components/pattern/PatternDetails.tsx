@@ -13,8 +13,6 @@ const PatternDetails: React.FC<PatternDetailsProps> = ({
 }) => {
   return (
     <View style={styles.patternDetails}>
-      <Text style={styles.sectionTitle}>Pattern Details</Text>
-      <Text style={styles.patternDetailsName}>{selectedPattern.name}</Text>
       <Text style={styles.patternDetailsDesc}>
         {selectedPattern.description}
       </Text>
@@ -138,6 +136,7 @@ const styles = StyleSheet.create({
     borderWidth: 2,
     borderColor: "#6366f1",
     padding: 16,
+    marginTop: 8,
   },
   patternDetailsName: {
     fontSize: 20,
