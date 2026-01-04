@@ -4,7 +4,7 @@ import {
   WCSPatternType,
 } from "@/components/pattern/types/WCSPatternEnums";
 
-export const defaultPatterns: WCSPattern[] = [
+export const defaultWCSPatterns: WCSPattern[] = [
   {
     id: 0,
     name: "Sugar Push",

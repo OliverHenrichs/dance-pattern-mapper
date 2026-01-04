@@ -9,6 +9,7 @@ import {
 import { WCSPattern } from "@/components/pattern/types/WCSPattern";
 import Icon from "react-native-vector-icons/MaterialCommunityIcons";
 import handleDelete from "@/components/common/DeleteConfirmationDialog";
+import PatternDetails from "@/components/pattern/PatternDetails";
 
 type PatternListProps = {
   patterns: WCSPattern[];
@@ -31,10 +32,18 @@ const PatternList: React.FC<PatternListProps> = (props) => (
         <Icon name="plus-circle" size={28} color="#22c55e" />
       </TouchableOpacity>
     </View>
-    <ScrollView style={styles.patternListScroll}>
-      {props.patterns.map((pattern) =>
-        mapPatternToScrollViewItem(pattern, props),
-      )}
+    <ScrollView>
+      {props.patterns.map((pattern) => (
+        <View key={pattern.id}>
+          {mapPatternToScrollViewItem(pattern, props)}
+          {props.selectedPattern?.id === pattern.id && (
+            <PatternDetails
+              selectedPattern={pattern}
+              patterns={props.patterns}
+            />
+          )}
+        </View>
+      ))}
     </ScrollView>
   </View>
 );
@@ -99,7 +108,6 @@ const styles = StyleSheet.create({
     padding: 4,
     borderRadius: 16,
   },
-  patternListScroll: { maxHeight: 400 },
   patternItem: {
     padding: 12,
     borderRadius: 8,

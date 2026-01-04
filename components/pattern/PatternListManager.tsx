@@ -4,17 +4,16 @@ import {
   NewWCSPattern,
   WCSPattern,
 } from "@/components/pattern/types/WCSPattern";
-import { defaultPatterns } from "@/components/pattern/data/DefaultPatterns";
+import { defaultWCSPatterns } from "@/components/pattern/data/DefaultWCSPatterns";
 import PatternList from "@/components/pattern/PatternList";
 import EditPatternForm from "@/components/pattern/EditPatternForm";
-import PatternDetails from "@/components/pattern/PatternDetails";
 import Icon from "react-native-vector-icons/MaterialCommunityIcons";
 
 const PatternListManager = () => {
-  const [patterns, setPatterns] = useState<WCSPattern[]>(defaultPatterns);
-  const [selectedPattern, setSelectedPattern] = useState<WCSPattern | null>(
-    null,
-  );
+  const [patterns, setPatterns] = useState<WCSPattern[]>(defaultWCSPatterns);
+  const [selectedPattern, setSelectedPattern] = useState<
+    WCSPattern | undefined
+  >(undefined);
   const [isAddingNew, setIsAddingNew] = useState(false);
   const [isEditing, setIsEditing] = useState(false);
 
@@ -34,7 +33,7 @@ const PatternListManager = () => {
 
   const deletePattern = (id?: number) => {
     setPatterns(patterns.filter((p) => p.id !== id));
-    if (selectedPattern?.id === id) setSelectedPattern(null);
+    if (selectedPattern?.id === id) setSelectedPattern(undefined);
   };
 
   // New handler for edit icon
@@ -81,23 +80,8 @@ const PatternListManager = () => {
             onDelete={deletePattern}
             onAdd={() => setIsAddingNew(!isAddingNew)}
             onEdit={handleEditPattern}
+            selectedPattern={selectedPattern}
           />
-
-          <View style={styles.patternDetailsContainer}>
-            {selectedPattern ? (
-              <PatternDetails
-                selectedPattern={selectedPattern}
-                patterns={patterns}
-              />
-            ) : (
-              <View style={styles.patternDetailsEmpty}>
-                <Text style={styles.emptyIcon}>🌐</Text>
-                <Text style={styles.patternDetailsDesc}>
-                  Select a pattern to view details and dependencies
-                </Text>
-              </View>
-            )}
-          </View>
         </View>
       </View>
     </ScrollView>

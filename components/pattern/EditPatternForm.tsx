@@ -15,7 +15,7 @@ import {
   WCSPatternLevel,
   WCSPatternType,
 } from "@/components/pattern/types/WCSPatternEnums";
-import { defaultNewPattern } from "@/components/pattern/data/DefaultPatterns";
+import { defaultNewPattern } from "@/components/pattern/data/DefaultWCSPatterns";
 
 type EditPatternFormProps = {
   patterns: WCSPattern[];
