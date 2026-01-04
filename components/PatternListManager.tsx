@@ -9,21 +9,30 @@ import {
 import { NewWCSPattern, WCSPattern } from "@/components/types/WCSPattern";
 import { defaultPatterns } from "@/components/data/DefaultPatterns";
 import PatternList from "@/components/PatternList";
-import AddPatternForm from "@/components/AddPatternForm";
+import EditPatternForm from "@/components/EditPatternForm";
 import PatternDetails from "@/components/PatternDetails";
 import Icon from "react-native-vector-icons/MaterialCommunityIcons";
 
-const WCSPatternGraph = () => {
+const PatternListManager = () => {
   const [patterns, setPatterns] = useState<WCSPattern[]>(defaultPatterns);
   const [selectedPattern, setSelectedPattern] = useState<WCSPattern | null>(
     null,
   );
   const [isAddingNew, setIsAddingNew] = useState(false);
+  const [isEditing, setIsEditing] = useState(false);
 
   const addPattern = (pattern: NewWCSPattern) => {
     if (!pattern.name.trim()) return;
     setPatterns([...patterns, { ...pattern, id: patterns.length + 1 }]);
     setIsAddingNew(false);
+  };
+  const isWCSPattern = (p: any): p is WCSPattern => typeof p.id === "number";
+  const editPattern = (pattern: WCSPattern | NewWCSPattern) => {
+    if (!pattern.name.trim() || !isWCSPattern(pattern)) return;
+    setPatterns(
+      patterns.map((p) => (p.id === pattern.id ? { ...pattern } : p)),
+    );
+    setIsEditing(false);
   };
 
   const deletePattern = (id?: number) => {
@@ -54,13 +63,26 @@ const WCSPatternGraph = () => {
           >
             <Text style={styles.buttonText}>Add Pattern</Text>
           </TouchableOpacity>
+          <TouchableOpacity
+            onPress={() => setIsEditing(!isEditing)}
+            style={styles.buttonGreen}
+          >
+            <Text style={styles.buttonText}>Edit Pattern</Text>
+          </TouchableOpacity>
         </View>
-
         {isAddingNew && (
-          <AddPatternForm
+          <EditPatternForm
             patterns={patterns}
-            onAdd={addPattern}
+            onAccepted={addPattern}
             onCancel={() => setIsAddingNew(false)}
+          />
+        )}
+        {isEditing && selectedPattern != null && (
+          <EditPatternForm
+            patterns={patterns}
+            onAccepted={editPattern}
+            onCancel={() => setIsEditing(false)}
+            existing={selectedPattern}
           />
         )}
         <View>
@@ -131,4 +153,4 @@ const styles = StyleSheet.create({
   emptyIcon: { fontSize: 48, color: "#d1d5db", marginBottom: 8 },
 });
 
-export default WCSPatternGraph;
+export default PatternListManager;

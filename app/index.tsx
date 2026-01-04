@@ -1,5 +1,5 @@
-import WCSPatternGraph from "@/components/WCSPatternGraph";
+import PatternListManager from "@/components/PatternListManager";
 
 export default function Index() {
-  return <WCSPatternGraph />;
+  return <PatternListManager />;
 }

@@ -14,22 +14,25 @@ import {
 } from "@/components/types/WCSPatternEnums";
 import { defaultNewPattern } from "@/components/data/DefaultPatterns";
 
-type AddPatternFormProps = {
+type EditPatternFormProps = {
   patterns: WCSPattern[];
-  onAdd: (pattern: NewWCSPattern) => void;
+  onAccepted: (pattern: NewWCSPattern | WCSPattern) => void;
   onCancel: () => void;
+  existing?: WCSPattern | null;
 };
 
 const patternTypes = Object.values(WCSPatternType);
 const levels = Object.values(WCSPatternLevel);
 
-const AddPatternForm: React.FC<AddPatternFormProps> = ({
+const EditPatternForm: React.FC<EditPatternFormProps> = ({
   patterns,
-  onAdd,
+  onAccepted,
   onCancel,
+  existing,
 }) => {
-  const [newPattern, setNewPattern] =
-    useState<NewWCSPattern>(defaultNewPattern);
+  const [newPattern, setNewPattern] = useState<NewWCSPattern>(
+    existing ?? defaultNewPattern,
+  );
   const [tagInput, setTagInput] = useState("");
 
   const addTag = () => {
@@ -42,8 +45,8 @@ const AddPatternForm: React.FC<AddPatternFormProps> = ({
     }
   };
 
-  const handleAdd = () => {
-    onAdd(newPattern);
+  const handleFinish = () => {
+    onAccepted(newPattern);
     setNewPattern(defaultNewPattern);
     setTagInput("");
   };
@@ -179,7 +182,7 @@ const AddPatternForm: React.FC<AddPatternFormProps> = ({
         </View>
       </View>
       <View style={styles.buttonRow}>
-        <TouchableOpacity onPress={handleAdd} style={styles.buttonIndigo}>
+        <TouchableOpacity onPress={handleFinish} style={styles.buttonIndigo}>
           <Text style={styles.buttonText}>Save Pattern</Text>
         </TouchableOpacity>
         <TouchableOpacity onPress={onCancel} style={styles.buttonGray}>
@@ -261,4 +264,4 @@ const styles = StyleSheet.create({
   buttonText: { color: "#fff", fontWeight: "bold" },
 });
 
-export default AddPatternForm;
+export default EditPatternForm;
