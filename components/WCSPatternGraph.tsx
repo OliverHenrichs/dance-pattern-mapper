@@ -10,6 +10,7 @@ import { NewWCSPattern, WCSPattern } from "@/components/types/WCSPattern";
 import { defaultPatterns } from "@/components/data/DefaultPatterns";
 import PatternList from "@/components/PatternList";
 import AddPatternForm from "@/components/AddPatternForm";
+import Icon from "react-native-vector-icons/MaterialCommunityIcons";
 
 const WCSPatternGraph = () => {
   const [patterns, setPatterns] = useState<WCSPattern[]>(defaultPatterns);
@@ -38,8 +39,13 @@ const WCSPatternGraph = () => {
       <View style={styles.innerContainer}>
         <View style={styles.header}>
           <View style={styles.headerLeft}>
-            {/* Using a dancing figure emoji as a placeholder for a vector icon */}
-            <Text style={styles.headerIcon}>💃</Text>
+            {/* Using a dancing figure icon from react-native-vector-icons */}
+            <Icon
+              name="dance-ballroom"
+              size={32}
+              color="#6366f1"
+              style={styles.headerIcon}
+            />
             <Text style={[styles.headerTitle, { fontSize: 18 }]}>
               Dance Pattern Mapper
             </Text>
