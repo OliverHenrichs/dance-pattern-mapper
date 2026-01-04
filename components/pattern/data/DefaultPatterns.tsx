@@ -1,8 +1,8 @@
-import { WCSPattern } from "@/components/types/WCSPattern";
+import { WCSPattern } from "@/components/pattern/types/WCSPattern";
 import {
   WCSPatternLevel,
   WCSPatternType,
-} from "@/components/types/WCSPatternEnums";
+} from "@/components/pattern/types/WCSPatternEnums";
 
 export const defaultPatterns: WCSPattern[] = [
   {

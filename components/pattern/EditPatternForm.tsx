@@ -7,12 +7,15 @@ import {
   TouchableOpacity,
   View,
 } from "react-native";
-import { NewWCSPattern, WCSPattern } from "@/components/types/WCSPattern";
+import {
+  NewWCSPattern,
+  WCSPattern,
+} from "@/components/pattern/types/WCSPattern";
 import {
   WCSPatternLevel,
   WCSPatternType,
-} from "@/components/types/WCSPatternEnums";
-import { defaultNewPattern } from "@/components/data/DefaultPatterns";
+} from "@/components/pattern/types/WCSPatternEnums";
+import { defaultNewPattern } from "@/components/pattern/data/DefaultPatterns";
 
 type EditPatternFormProps = {
   patterns: WCSPattern[];

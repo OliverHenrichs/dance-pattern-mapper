@@ -1,6 +1,6 @@
 import React from "react";
 import { StyleSheet, Text, View } from "react-native";
-import { WCSPattern } from "@/components/types/WCSPattern";
+import { WCSPattern } from "@/components/pattern/types/WCSPattern";
 
 type PatternDetailsProps = {
   selectedPattern: WCSPattern;

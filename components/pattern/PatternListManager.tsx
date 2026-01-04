@@ -1,10 +1,13 @@
 import React, { useState } from "react";
 import { ScrollView, StyleSheet, Text, View } from "react-native";
-import { NewWCSPattern, WCSPattern } from "@/components/types/WCSPattern";
-import { defaultPatterns } from "@/components/data/DefaultPatterns";
-import PatternList from "@/components/PatternList";
-import EditPatternForm from "@/components/EditPatternForm";
-import PatternDetails from "@/components/PatternDetails";
+import {
+  NewWCSPattern,
+  WCSPattern,
+} from "@/components/pattern/types/WCSPattern";
+import { defaultPatterns } from "@/components/pattern/data/DefaultPatterns";
+import PatternList from "@/components/pattern/PatternList";
+import EditPatternForm from "@/components/pattern/EditPatternForm";
+import PatternDetails from "@/components/pattern/PatternDetails";
 import Icon from "react-native-vector-icons/MaterialCommunityIcons";
 
 const PatternListManager = () => {

@@ -6,8 +6,9 @@ import {
   TouchableOpacity,
   View,
 } from "react-native";
-import { WCSPattern } from "@/components/types/WCSPattern";
+import { WCSPattern } from "@/components/pattern/types/WCSPattern";
 import Icon from "react-native-vector-icons/MaterialCommunityIcons";
+import handleDelete from "@/components/common/DeleteConfirmationDialog";
 
 type PatternListProps = {
   patterns: WCSPattern[];
@@ -69,10 +70,7 @@ function mapPatternToScrollViewItem(
           <Icon name="pencil" size={20} color="#6366f1" />
         </TouchableOpacity>
         <TouchableOpacity
-          onPress={(e) => {
-            e.stopPropagation?.();
-            props.onDelete(pattern.id);
-          }}
+          onPress={handleDelete(pattern.id, pattern.name, props.onDelete)}
           style={styles.iconButton}
           accessibilityLabel="Delete Pattern"
         >

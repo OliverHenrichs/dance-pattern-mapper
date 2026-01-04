@@ -1,7 +1,7 @@
 import {
   WCSPatternLevel,
   WCSPatternType,
-} from "@/components/types/WCSPatternEnums";
+} from "@/components/pattern/types/WCSPatternEnums";
 
 export type NewWCSPattern = BasePattern & WCSSpecificPattern;
 export type WCSPattern = IdBasePattern & WCSSpecificPattern;
