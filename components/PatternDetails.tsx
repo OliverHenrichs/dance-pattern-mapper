@@ -11,9 +11,6 @@ const PatternDetails: React.FC<PatternDetailsProps> = ({
   selectedPattern,
   patterns,
 }) => {
-  const getDependents = (id: number) => {
-    return patterns.filter((p) => p.prerequisites.includes(id));
-  };
   return (
     <View style={styles.patternDetails}>
       <Text style={styles.sectionTitle}>Pattern Details</Text>
@@ -39,56 +36,83 @@ const PatternDetails: React.FC<PatternDetailsProps> = ({
           </Text>
         </View>
       </View>
-      {selectedPattern.tags.length > 0 && (
-        <View style={styles.tagsRow}>
-          <Text style={styles.label}>Tags:</Text>
-          <View style={styles.tagsRow}>
-            {selectedPattern.tags.map((tag, idx) => (
-              <Text key={idx} style={styles.tagText}>
-                {tag}
-              </Text>
-            ))}
-          </View>
-        </View>
-      )}
-      <View style={styles.prereqContainer}>
-        <Text style={styles.label}>Prerequisites:</Text>
-        {selectedPattern.prerequisites.length === 0 ? (
-          <Text style={styles.patternDetailsDesc}>
-            None (foundational pattern)
-          </Text>
-        ) : (
-          <View>
-            {selectedPattern.prerequisites.map((preqId) => {
-              const preq = patterns.find((p) => p.id === preqId);
-              return preq ? (
-                <Text key={preqId} style={styles.prereqItem}>
-                  {preq.name}
-                </Text>
-              ) : null;
-            })}
-          </View>
-        )}
-      </View>
-      <View style={styles.prereqContainer}>
-        <Text style={styles.label}>Builds into:</Text>
-        {getDependents(selectedPattern.id).length === 0 ? (
-          <Text style={styles.patternDetailsDesc}>
-            No dependent patterns yet
-          </Text>
-        ) : (
-          <View>
-            {getDependents(selectedPattern.id).map((dep) => (
-              <Text key={dep.id} style={styles.prereqItem}>
-                {dep.name}
-              </Text>
-            ))}
-          </View>
-        )}
-      </View>
+      {selectedPattern.tags.length > 0 && getTagView(selectedPattern)}
+      {getPrerequisiteView(selectedPattern, patterns)}
+      {getBuildsIntoView(selectedPattern, patterns)}
     </View>
   );
 };
+
+function getPrerequisiteView(
+  selectedPattern: WCSPattern,
+  patterns: WCSPattern[],
+) {
+  return (
+    <View style={styles.prereqContainer}>
+      <Text style={styles.label}>Prerequisites:</Text>
+      {selectedPattern.prerequisites.length === 0 ? (
+        <Text style={styles.patternDetailsDesc}>
+          None (foundational pattern)
+        </Text>
+      ) : (
+        <View>{getPrerequisites(selectedPattern, patterns)}</View>
+      )}
+    </View>
+  );
+}
+
+function getPrerequisites(selectedPattern: WCSPattern, patterns: WCSPattern[]) {
+  return (
+    <>
+      {selectedPattern.prerequisites.map((preRequisiteId: number) => {
+        const prerequisite = patterns.find((p) => p.id === preRequisiteId);
+        return prerequisite ? (
+          <Text key={preRequisiteId} style={styles.prereqItem}>
+            {prerequisite.name}
+          </Text>
+        ) : null;
+      })}
+    </>
+  );
+}
+
+function getTagView(selectedPattern: WCSPattern) {
+  return (
+    <View style={styles.tagsRow}>
+      <Text style={styles.label}>Tags:</Text>
+      <View style={styles.tagsRow}>
+        {selectedPattern.tags.map((tag, idx) => (
+          <Text key={idx} style={styles.tagText}>
+            {tag}
+          </Text>
+        ))}
+      </View>
+    </View>
+  );
+}
+
+function getBuildsIntoView(
+  selectedPattern: WCSPattern,
+  patterns: WCSPattern[],
+) {
+  const dependents = patterns.filter((pattern) =>
+    pattern.prerequisites.includes(selectedPattern.id),
+  );
+  if (dependents.length === 0) {
+    return (
+      <Text style={styles.patternDetailsDesc}>No dependent patterns yet</Text>
+    );
+  }
+  return (
+    <View>
+      {dependents.map((dep) => (
+        <Text key={dep.id} style={styles.prereqItem}>
+          {dep.name}
+        </Text>
+      ))}
+    </View>
+  );
+}
 
 const styles = StyleSheet.create({
   sectionTitle: {

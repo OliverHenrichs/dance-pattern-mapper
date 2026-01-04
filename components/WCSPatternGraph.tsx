@@ -36,7 +36,6 @@ const WCSPatternGraph = () => {
       <View style={styles.innerContainer}>
         <View style={styles.header}>
           <View style={styles.headerLeft}>
-            {/* Using a dancing figure icon from react-native-vector-icons */}
             <Icon
               name="dance-ballroom"
               size={32}
