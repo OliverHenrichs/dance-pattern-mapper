@@ -11,6 +11,7 @@ interface WCSSpecificPattern {
   level?: WCSPatternLevel;
   type: WCSPatternType;
   tags: string[];
+  videoUrl?: string; // Optional field for video content
 }
 
 export interface IdBasePattern extends BasePattern {

@@ -16,6 +16,9 @@ const PatternDetails: React.FC<PatternDetailsProps> = ({
       <Text style={styles.patternDetailsDesc}>
         {selectedPattern.description}
       </Text>
+      {selectedPattern.videoUrl ? (
+        <Text style={styles.videoUrl}>Video: {selectedPattern.videoUrl}</Text>
+      ) : null}
       <View style={styles.patternDetailsRow}>
         <View style={styles.patternDetailsCol}>
           <Text style={styles.label}>Counts:</Text>
@@ -148,6 +151,7 @@ const styles = StyleSheet.create({
   patternDetailsRow: { flexDirection: "row", gap: 16, marginBottom: 8 },
   patternDetailsCol: { flex: 1 },
   patternDetailsValue: { fontSize: 16, fontWeight: "bold", color: "#1e293b" },
+  videoUrl: { color: "#1e90ff", marginBottom: 8 },
 });
 
 export default PatternDetails;

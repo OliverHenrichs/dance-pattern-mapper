@@ -122,6 +122,15 @@ const EditPatternForm: React.FC<EditPatternFormProps> = ({
         style={styles.textarea}
         multiline
       />
+      {/* Video URL input for future video support */}
+      <TextInput
+        placeholder="Video URL (optional)"
+        value={newPattern.videoUrl || ""}
+        onChangeText={(text) =>
+          setNewPattern({ ...newPattern, videoUrl: text })
+        }
+        style={styles.input}
+      />
       <View style={styles.prereqContainer}>
         <Text style={styles.label}>Prerequisites</Text>
         <ScrollView horizontal>

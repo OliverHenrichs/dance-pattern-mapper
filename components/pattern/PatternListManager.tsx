@@ -1,5 +1,6 @@
-import React, { useState } from "react";
+import React, { useEffect, useState } from "react";
 import { ScrollView, StyleSheet, Text, View } from "react-native";
+import AsyncStorage from "@react-native-async-storage/async-storage";
 import {
   NewWCSPattern,
   WCSPattern,
@@ -9,6 +10,8 @@ import PatternList from "@/components/pattern/PatternList";
 import EditPatternForm from "@/components/pattern/EditPatternForm";
 import Icon from "react-native-vector-icons/MaterialCommunityIcons";
 
+const STORAGE_KEY = "@patterns";
+
 const PatternListManager = () => {
   const [patterns, setPatterns] = useState<WCSPattern[]>(defaultWCSPatterns);
   const [selectedPattern, setSelectedPattern] = useState<
@@ -17,9 +20,36 @@ const PatternListManager = () => {
   const [isAddingNew, setIsAddingNew] = useState(false);
   const [isEditing, setIsEditing] = useState(false);
 
+  // Load patterns from storage on mount
+  useEffect(() => {
+    (async () => {
+      try {
+        const stored = await AsyncStorage.getItem(STORAGE_KEY);
+        if (stored) {
+          setPatterns(JSON.parse(stored));
+        }
+        // eslint-disable-next-line @typescript-eslint/no-unused-vars
+      } catch (e) {
+        // fallback to defaults
+      }
+    })();
+  }, []);
+
+  // Save patterns to storage whenever they change
+  useEffect(() => {
+    AsyncStorage.setItem(STORAGE_KEY, JSON.stringify(patterns));
+  }, [patterns]);
+
   const addPattern = (pattern: NewWCSPattern) => {
     if (!pattern.name.trim()) return;
-    setPatterns([...patterns, { ...pattern, id: patterns.length + 1 }]);
+    setPatterns([
+      ...patterns,
+      {
+        ...pattern,
+        id:
+          patterns.length > 0 ? Math.max(...patterns.map((p) => p.id)) + 1 : 1,
+      },
+    ]);
     setIsAddingNew(false);
   };
   const isWCSPattern = (p: any): p is WCSPattern => typeof p.id === "number";
