@@ -1,12 +1,5 @@
 import React, { useEffect, useState } from "react";
-import {
-  Modal,
-  ScrollView,
-  StyleSheet,
-  Text,
-  TouchableOpacity,
-  View,
-} from "react-native";
+import { Modal, ScrollView, StyleSheet, View } from "react-native";
 import {
   NewWCSPattern,
   WCSPattern,
@@ -14,17 +7,13 @@ import {
 import { foundationalWCSPatterns } from "@/components/pattern/data/DefaultWCSPatterns";
 import PatternList from "@/components/pattern/PatternList";
 import EditPatternForm from "@/components/pattern/EditPatternForm";
-import Icon from "react-native-vector-icons/MaterialCommunityIcons";
 import {
   loadPatterns,
   savePatterns,
 } from "@/components/pattern/PatternStorage";
-import { useTranslation } from "react-i18next";
-import { DrawerActions, useNavigation } from "@react-navigation/native";
+import AppHeader from "@/components/common/AppHeader";
 
 const PatternListManager = () => {
-  const { t } = useTranslation();
-  const navigation = useNavigation();
   const [patterns, setPatterns] = useState<WCSPattern[]>(
     foundationalWCSPatterns,
   );
@@ -84,28 +73,9 @@ const PatternListManager = () => {
 
   return (
     <View style={{ flex: 1 }}>
+      <AppHeader />
       <ScrollView style={styles.container}>
         <View style={styles.innerContainer}>
-          <View style={styles.header}>
-            <View style={styles.headerLeft}>
-              <Icon
-                name="dance-ballroom"
-                size={32}
-                color="#6366f1"
-                style={styles.headerIcon}
-              />
-              <Text style={[styles.headerTitle, { fontSize: 18 }]}>
-                {t("appTitle")}
-              </Text>
-            </View>
-            <TouchableOpacity
-              onPress={() => navigation.dispatch(DrawerActions.openDrawer())}
-              style={styles.hamburgerButton}
-              accessibilityLabel={t("openMenu")}
-            >
-              <Icon name="menu" size={28} color="#6366f1" />
-            </TouchableOpacity>
-          </View>
           <Modal
             visible={isAddingNew}
             animationType="slide"
