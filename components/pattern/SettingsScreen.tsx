@@ -1,7 +1,8 @@
 import React from "react";
-import { StyleSheet, Text, View } from "react-native";
+import { ScrollView, StyleSheet, Text, View } from "react-native";
 import { useTranslation } from "react-i18next";
 import AppHeader from "@/components/common/AppHeader";
+import { CommonStyles } from "@/components/common/CommonStyles";
 
 const LANGUAGES = [
   { code: "en", label: "English" },
@@ -13,48 +14,51 @@ const SettingsScreen: React.FC = () => {
   const currentLang = i18n.language;
 
   return (
-    <View style={styles.container}>
+    <View style={styles.outerContainer}>
       <AppHeader />
-      <Text style={styles.sectionTitle}>{t("language")}</Text>
-      <View style={styles.languageRow}>
-        {LANGUAGES.map((lang) => (
-          <View
-            key={lang.code}
-            style={[
-              styles.langButton,
-              currentLang === lang.code && styles.langButtonSelected,
-            ]}
-          >
-            <Text
+      <ScrollView
+        style={styles.container}
+        contentContainerStyle={styles.contentContainer}
+      >
+        <Text style={CommonStyles.sectionTitle}>{t("language")}</Text>
+        <View style={styles.languageRow}>
+          {LANGUAGES.map((lang) => (
+            <View
+              key={lang.code}
               style={[
-                styles.langButtonText,
-                currentLang === lang.code && styles.langButtonTextSelected,
+                styles.langButton,
+                currentLang === lang.code && styles.langButtonSelected,
               ]}
-              onPress={() => i18n.changeLanguage(lang.code)}
             >
-              {lang.label}
-            </Text>
-          </View>
-        ))}
-      </View>
-      {/* Theme and export options will go here */}
+              <Text
+                style={[
+                  styles.langButtonText,
+                  currentLang === lang.code && styles.langButtonTextSelected,
+                ]}
+                onPress={() => i18n.changeLanguage(lang.code)}
+              >
+                {lang.label}
+              </Text>
+            </View>
+          ))}
+        </View>
+        {/* Theme and export options will go here */}
+      </ScrollView>
     </View>
   );
 };
 
 const styles = StyleSheet.create({
+  outerContainer: {
+    flex: 1,
+    backgroundColor: "#f5f3ff",
+  },
   container: {
     flex: 1,
-    backgroundColor: "#fff",
+  },
+  contentContainer: {
     padding: 24,
     justifyContent: "flex-start",
-  },
-  sectionTitle: {
-    fontSize: 16,
-    fontWeight: "bold",
-    color: "#6366f1",
-    marginBottom: 12,
-    marginTop: 16,
   },
   languageRow: {
     flexDirection: "row",

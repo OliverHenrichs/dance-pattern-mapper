@@ -36,7 +36,9 @@ const styles = StyleSheet.create({
     flexDirection: "row",
     alignItems: "center",
     marginBottom: 0,
+    marginLeft: 8,
     justifyContent: "space-between",
+    backgroundColor: "#f5f3ff", // Ensure consistent background
   },
   headerLeft: { flexDirection: "row", alignItems: "center" },
   headerIcon: { fontSize: 32, marginRight: 8 },

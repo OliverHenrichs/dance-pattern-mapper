@@ -11,6 +11,7 @@ import Icon from "react-native-vector-icons/MaterialCommunityIcons";
 import handleDelete from "@/components/common/DeleteConfirmationDialog";
 import PatternDetails from "@/components/pattern/PatternDetails";
 import { useTranslation } from "react-i18next";
+import { CommonStyles } from "@/components/common/CommonStyles";
 
 type PatternListProps = {
   patterns: WCSPattern[];
@@ -26,7 +27,7 @@ const PatternList: React.FC<PatternListProps> = (props) => {
   return (
     <View>
       <View style={styles.headerRow}>
-        <Text style={styles.sectionTitle}>{t("patternList")}</Text>
+        <Text style={CommonStyles.sectionTitle}>{t("patternList")}</Text>
         <TouchableOpacity
           onPress={props.onAdd}
           style={styles.plusButton}
@@ -104,11 +105,6 @@ const styles = StyleSheet.create({
     justifyContent: "space-between",
     marginTop: 16,
     marginBottom: 8,
-  },
-  sectionTitle: {
-    fontSize: 18,
-    fontWeight: "bold",
-    color: "#1e293b",
   },
   plusButton: {
     marginLeft: 8,
