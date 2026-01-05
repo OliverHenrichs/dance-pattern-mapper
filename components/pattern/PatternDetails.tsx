@@ -1,6 +1,7 @@
 import React from "react";
 import { StyleSheet, Text, View } from "react-native";
 import { WCSPattern } from "@/components/pattern/types/WCSPattern";
+import { useTranslation } from "react-i18next";
 
 type PatternDetailsProps = {
   selectedPattern: WCSPattern;
@@ -11,35 +12,38 @@ const PatternDetails: React.FC<PatternDetailsProps> = ({
   selectedPattern,
   patterns,
 }) => {
+  const { t } = useTranslation();
   return (
     <View style={styles.patternDetails}>
       <Text style={styles.patternDetailsDesc}>
         {selectedPattern.description}
       </Text>
       {selectedPattern.videoUrl ? (
-        <Text style={styles.videoUrl}>Video: {selectedPattern.videoUrl}</Text>
+        <Text style={styles.videoUrl}>
+          {t("video")}: {selectedPattern.videoUrl}
+        </Text>
       ) : null}
       <View style={styles.patternDetailsRow}>
         <View style={styles.patternDetailsCol}>
-          <Text style={styles.label}>Counts:</Text>
+          <Text style={styles.label}>{t("counts")}:</Text>
           <Text style={styles.patternDetailsValue}>
             {selectedPattern.counts}
           </Text>
         </View>
         <View style={styles.patternDetailsCol}>
-          <Text style={styles.label}>Type:</Text>
+          <Text style={styles.label}>{t("type")}:</Text>
           <Text style={styles.patternDetailsValue}>{selectedPattern.type}</Text>
         </View>
         <View style={styles.patternDetailsCol}>
-          <Text style={styles.label}>Level:</Text>
+          <Text style={styles.label}>{t("level")}:</Text>
           <Text style={styles.patternDetailsValue}>
             {selectedPattern.level}
           </Text>
         </View>
       </View>
-      {selectedPattern.tags.length > 0 && getTagView(selectedPattern)}
-      {getPrerequisiteView(selectedPattern, patterns)}
-      {getBuildsIntoView(selectedPattern, patterns)}
+      {selectedPattern.tags.length > 0 && getTagView(selectedPattern, t)}
+      {getPrerequisiteView(selectedPattern, patterns, t)}
+      {getBuildsIntoView(selectedPattern, patterns, t)}
     </View>
   );
 };
@@ -47,13 +51,14 @@ const PatternDetails: React.FC<PatternDetailsProps> = ({
 function getPrerequisiteView(
   selectedPattern: WCSPattern,
   patterns: WCSPattern[],
+  t: any,
 ) {
   return (
     <View style={styles.prereqContainer}>
-      <Text style={styles.label}>Prerequisites:</Text>
+      <Text style={styles.label}>{t("prerequisites")}:</Text>
       {selectedPattern.prerequisites.length === 0 ? (
         <Text style={styles.patternDetailsDesc}>
-          None (foundational pattern)
+          {t("patternDetailsNoPrerequisites")}
         </Text>
       ) : (
         <View>{getPrerequisites(selectedPattern, patterns)}</View>
@@ -77,10 +82,10 @@ function getPrerequisites(selectedPattern: WCSPattern, patterns: WCSPattern[]) {
   );
 }
 
-function getTagView(selectedPattern: WCSPattern) {
+function getTagView(selectedPattern: WCSPattern, t: any) {
   return (
     <View style={styles.tagsRow}>
-      <Text style={styles.label}>Tags:</Text>
+      <Text style={styles.label}>{t("tags")}:</Text>
       <View style={styles.tagsRow}>
         {selectedPattern.tags.map((tag, idx) => (
           <Text key={idx} style={styles.tagText}>
@@ -95,17 +100,24 @@ function getTagView(selectedPattern: WCSPattern) {
 function getBuildsIntoView(
   selectedPattern: WCSPattern,
   patterns: WCSPattern[],
+  t: any,
 ) {
   const dependents = patterns.filter((pattern) =>
     pattern.prerequisites.includes(selectedPattern.id),
   );
   if (dependents.length === 0) {
     return (
-      <Text style={styles.patternDetailsDesc}>No dependent patterns yet</Text>
+      <View>
+        <Text style={styles.label}>{t("buildsInto")}:</Text>
+        <Text style={styles.patternDetailsDesc}>
+          {t("noDependentPatterns")}
+        </Text>
+      </View>
     );
   }
   return (
     <View>
+      <Text style={styles.label}>{t("buildsInto")}:</Text>
       {dependents.map((dep) => (
         <Text key={dep.id} style={styles.prereqItem}>
           {dep.name}

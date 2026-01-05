@@ -10,6 +10,7 @@ import { WCSPattern } from "@/components/pattern/types/WCSPattern";
 import Icon from "react-native-vector-icons/MaterialCommunityIcons";
 import handleDelete from "@/components/common/DeleteConfirmationDialog";
 import PatternDetails from "@/components/pattern/PatternDetails";
+import { useTranslation } from "react-i18next";
 
 type PatternListProps = {
   patterns: WCSPattern[];
@@ -20,31 +21,35 @@ type PatternListProps = {
   onEdit: (pattern: WCSPattern) => void;
 };
 
-const PatternList: React.FC<PatternListProps> = (props) => (
-  <View>
-    <View style={styles.headerRow}>
-      <Text style={styles.sectionTitle}>Pattern List</Text>
-      <TouchableOpacity
-        onPress={props.onAdd}
-        style={styles.plusButton}
-        accessibilityLabel="Add Pattern"
-      >
-        <Icon name="plus-circle" size={28} color="#22c55e" />
-      </TouchableOpacity>
+const PatternList: React.FC<PatternListProps> = (props) => {
+  const { t } = useTranslation();
+  return (
+    <View>
+      <View style={styles.headerRow}>
+        <Text style={styles.sectionTitle}>{t("patternList")}</Text>
+        <TouchableOpacity
+          onPress={props.onAdd}
+          style={styles.plusButton}
+          accessibilityLabel={t("addPattern")}
+        >
+          <Icon name="plus-circle" size={28} color="#22c55e" />
+        </TouchableOpacity>
+      </View>
+      <ScrollView>
+        {props.patterns.map((pattern) => (
+          <View key={pattern.id}>
+            {mapPatternToScrollViewItem(pattern, props, t)}
+          </View>
+        ))}
+      </ScrollView>
     </View>
-    <ScrollView>
-      {props.patterns.map((pattern) => (
-        <View key={pattern.id}>
-          {mapPatternToScrollViewItem(pattern, props)}
-        </View>
-      ))}
-    </ScrollView>
-  </View>
-);
+  );
+};
 
 function mapPatternToScrollViewItem(
   pattern: WCSPattern,
   props: PatternListProps,
+  t: any,
 ) {
   return (
     <TouchableOpacity
@@ -68,14 +73,14 @@ function mapPatternToScrollViewItem(
             props.onEdit(pattern);
           }}
           style={styles.iconButton}
-          accessibilityLabel="Edit Pattern"
+          accessibilityLabel={t("editPattern")}
         >
           <Icon name="pencil" size={20} color="#6366f1" />
         </TouchableOpacity>
         <TouchableOpacity
           onPress={handleDelete(pattern.id, pattern.name, props.onDelete)}
           style={styles.iconButton}
-          accessibilityLabel="Delete Pattern"
+          accessibilityLabel={t("deletePattern")}
         >
           <Text style={styles.deleteIcon}>🗑️</Text>
         </TouchableOpacity>

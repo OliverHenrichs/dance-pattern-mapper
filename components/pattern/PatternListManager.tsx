@@ -4,7 +4,7 @@ import {
   NewWCSPattern,
   WCSPattern,
 } from "@/components/pattern/types/WCSPattern";
-import { defaultWCSPatterns } from "@/components/pattern/data/DefaultWCSPatterns";
+import { foundationalWCSPatterns } from "@/components/pattern/data/DefaultWCSPatterns";
 import PatternList from "@/components/pattern/PatternList";
 import EditPatternForm from "@/components/pattern/EditPatternForm";
 import Icon from "react-native-vector-icons/MaterialCommunityIcons";
@@ -12,9 +12,13 @@ import {
   loadPatterns,
   savePatterns,
 } from "@/components/pattern/PatternStorage";
+import { useTranslation } from "react-i18next";
 
 const PatternListManager = () => {
-  const [patterns, setPatterns] = useState<WCSPattern[]>(defaultWCSPatterns);
+  const { t } = useTranslation();
+  const [patterns, setPatterns] = useState<WCSPattern[]>(
+    foundationalWCSPatterns,
+  );
   const [selectedPattern, setSelectedPattern] = useState<
     WCSPattern | undefined
   >(undefined);
@@ -81,8 +85,12 @@ const PatternListManager = () => {
               style={styles.headerIcon}
             />
             <Text style={[styles.headerTitle, { fontSize: 18 }]}>
-              Dance Pattern Mapper
+              {t("appTitle")}
             </Text>
+          </View>
+          <View style={styles.swipeHintContainer}>
+            <Icon name="gesture-swipe-right" size={20} color="#6366f1" />
+            <Text style={styles.swipeHintText}>{t("swipeHint")}</Text>
           </View>
         </View>
         {isAddingNew && (
@@ -153,6 +161,16 @@ const styles = StyleSheet.create({
     justifyContent: "center",
   },
   emptyIcon: { fontSize: 48, color: "#d1d5db", marginBottom: 8 },
+  swipeHintContainer: {
+    flexDirection: "row",
+    alignItems: "center",
+    marginLeft: 12,
+  },
+  swipeHintText: {
+    color: "#6366f1",
+    marginLeft: 4,
+    fontSize: 12,
+  },
 });
 
 export default PatternListManager;

@@ -16,6 +16,7 @@ import {
   WCSPatternType,
 } from "@/components/pattern/types/WCSPatternEnums";
 import { defaultNewPattern } from "@/components/pattern/data/DefaultWCSPatterns";
+import { useTranslation } from "react-i18next";
 
 type EditPatternFormProps = {
   patterns: WCSPattern[];
@@ -33,6 +34,7 @@ const EditPatternForm: React.FC<EditPatternFormProps> = ({
   onCancel,
   existing,
 }) => {
+  const { t } = useTranslation();
   const [newPattern, setNewPattern] = useState<NewWCSPattern>(
     existing ?? defaultNewPattern,
   );
@@ -57,17 +59,17 @@ const EditPatternForm: React.FC<EditPatternFormProps> = ({
   return (
     <View style={styles.addPatternContainer}>
       <Text style={styles.sectionTitle}>
-        {existing ? "Edit" : "Add New"} Pattern
+        {existing ? t("editPattern") : t("addPattern")}
       </Text>
       <View style={styles.inputRow}>
         <TextInput
-          placeholder="Pattern Name"
+          placeholder={t("patternName")}
           value={newPattern.name}
           onChangeText={(text) => setNewPattern({ ...newPattern, name: text })}
           style={styles.input}
         />
         <TextInput
-          placeholder="Counts"
+          placeholder={t("counts")}
           value={newPattern.counts.toString()}
           onChangeText={(text) =>
             setNewPattern({ ...newPattern, counts: parseInt(text) || 0 })
@@ -78,7 +80,7 @@ const EditPatternForm: React.FC<EditPatternFormProps> = ({
       </View>
       <View style={styles.inputRow}>
         <View style={styles.input}>
-          <Text style={styles.label}>Type</Text>
+          <Text style={styles.label}>{t("type")}</Text>
           {patternTypes.map((type) => (
             <TouchableOpacity
               key={type}
@@ -93,7 +95,7 @@ const EditPatternForm: React.FC<EditPatternFormProps> = ({
           ))}
         </View>
         <View style={styles.input}>
-          <Text style={styles.label}>Level</Text>
+          <Text style={styles.label}>{t("level")}</Text>
           {levels.map((level) => (
             <TouchableOpacity
               key={level}
@@ -114,7 +116,7 @@ const EditPatternForm: React.FC<EditPatternFormProps> = ({
         </View>
       </View>
       <TextInput
-        placeholder="Description"
+        placeholder={t("description")}
         value={newPattern.description}
         onChangeText={(text) =>
           setNewPattern({ ...newPattern, description: text })
@@ -124,7 +126,7 @@ const EditPatternForm: React.FC<EditPatternFormProps> = ({
       />
       {/* Video URL input for future video support */}
       <TextInput
-        placeholder="Video URL (optional)"
+        placeholder={t("videoUrlOptional")}
         value={newPattern.videoUrl || ""}
         onChangeText={(text) =>
           setNewPattern({ ...newPattern, videoUrl: text })
@@ -132,7 +134,7 @@ const EditPatternForm: React.FC<EditPatternFormProps> = ({
         style={styles.input}
       />
       <View style={styles.prereqContainer}>
-        <Text style={styles.label}>Prerequisites</Text>
+        <Text style={styles.label}>{t("prerequisites")}</Text>
         <ScrollView horizontal>
           {patterns.map((p) => (
             <TouchableOpacity
@@ -164,17 +166,17 @@ const EditPatternForm: React.FC<EditPatternFormProps> = ({
         </ScrollView>
       </View>
       <View style={styles.tagsContainer}>
-        <Text style={styles.label}>Tags</Text>
+        <Text style={styles.label}>{t("tags")}</Text>
         <View style={styles.inputRow}>
           <TextInput
-            placeholder="Add tag"
+            placeholder={t("addTag")}
             value={tagInput}
             onChangeText={setTagInput}
             onSubmitEditing={addTag}
             style={styles.input}
           />
           <TouchableOpacity onPress={addTag} style={styles.buttonIndigoSmall}>
-            <Text style={styles.buttonText}>Add</Text>
+            <Text style={styles.buttonText}>{t("add")}</Text>
           </TouchableOpacity>
         </View>
         <View style={styles.tagsRow}>
@@ -197,10 +199,10 @@ const EditPatternForm: React.FC<EditPatternFormProps> = ({
       </View>
       <View style={styles.buttonRow}>
         <TouchableOpacity onPress={handleFinish} style={styles.buttonIndigo}>
-          <Text style={styles.buttonText}>Save Pattern</Text>
+          <Text style={styles.buttonText}>{t("savePattern")}</Text>
         </TouchableOpacity>
         <TouchableOpacity onPress={onCancel} style={styles.buttonGray}>
-          <Text style={styles.buttonText}>Cancel</Text>
+          <Text style={styles.buttonText}>{t("cancel")}</Text>
         </TouchableOpacity>
       </View>
     </View>
