@@ -24,5 +24,8 @@
   "noDependentPatterns": "No dependent patterns yet",
   "buildsInto": "Builds Into",
   "settings": "Settings",
-  "language": "Language"
+  "language": "Language",
+  "patternTab": "Patterns",
+  "settingsTab": "Settings",
+  "menu": "Menu"
 }

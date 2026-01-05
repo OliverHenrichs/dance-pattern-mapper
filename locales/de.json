@@ -24,5 +24,8 @@
   "noDependentPatterns": "Noch keine abhängigen Figuren",
   "buildsInto": "Ist Grundlage für",
   "settings": "Einstellungen",
-  "language": "Sprache"
+  "language": "Sprache",
+  "patternTab": "Figuren",
+  "settingsTab": "Einstellungen",
+  "menu": "Menü"
 }
