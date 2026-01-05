@@ -1,5 +1,6 @@
 import React, { useEffect, useState } from "react";
 import {
+  Modal,
   ScrollView,
   StyleSheet,
   Text,
@@ -105,21 +106,43 @@ const PatternListManager = () => {
               <Icon name="menu" size={28} color="#6366f1" />
             </TouchableOpacity>
           </View>
-          {isAddingNew && (
-            <EditPatternForm
-              patterns={patterns}
-              onAccepted={addPattern}
-              onCancel={() => setIsAddingNew(false)}
-            />
-          )}
-          {isEditing && selectedPattern != null && (
-            <EditPatternForm
-              patterns={patterns}
-              onAccepted={editPattern}
-              onCancel={() => setIsEditing(false)}
-              existing={selectedPattern}
-            />
-          )}
+          <Modal
+            visible={isAddingNew}
+            animationType="slide"
+            transparent={true}
+            onRequestClose={() => setIsAddingNew(false)}
+          >
+            <View style={styles.modalOverlay}>
+              <View style={styles.modalContent}>
+                <ScrollView contentContainerStyle={{ flexGrow: 1 }}>
+                  <EditPatternForm
+                    patterns={patterns}
+                    onAccepted={addPattern}
+                    onCancel={() => setIsAddingNew(false)}
+                  />
+                </ScrollView>
+              </View>
+            </View>
+          </Modal>
+          <Modal
+            visible={isEditing && selectedPattern != null}
+            animationType="slide"
+            transparent={true}
+            onRequestClose={() => setIsEditing(false)}
+          >
+            <View style={styles.modalOverlay}>
+              <View style={styles.modalContent}>
+                <ScrollView contentContainerStyle={{ flexGrow: 1 }}>
+                  <EditPatternForm
+                    patterns={patterns}
+                    onAccepted={editPattern}
+                    onCancel={() => setIsEditing(false)}
+                    existing={selectedPattern}
+                  />
+                </ScrollView>
+              </View>
+            </View>
+          </Modal>
           <View>
             <PatternList
               patterns={patterns}
@@ -177,6 +200,24 @@ const styles = StyleSheet.create({
   hamburgerButton: {
     marginLeft: 12,
     padding: 8,
+  },
+  modalOverlay: {
+    flex: 1,
+    backgroundColor: "rgba(0,0,0,0.3)",
+    justifyContent: "center",
+    alignItems: "center",
+  },
+  modalContent: {
+    backgroundColor: "#fff",
+    borderRadius: 0,
+    padding: 20,
+    minWidth: "80%",
+    maxHeight: "100%", // Limit modal height
+    elevation: 5,
+    shadowColor: "#000",
+    shadowOffset: { width: 0, height: 2 },
+    shadowOpacity: 0.25,
+    shadowRadius: 4,
   },
 });
 
