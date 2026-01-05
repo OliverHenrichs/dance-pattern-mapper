@@ -1,5 +1,11 @@
 import React, { useEffect, useState } from "react";
-import { ScrollView, StyleSheet, Text, View } from "react-native";
+import {
+  ScrollView,
+  StyleSheet,
+  Text,
+  TouchableOpacity,
+  View,
+} from "react-native";
 import {
   NewWCSPattern,
   WCSPattern,
@@ -13,9 +19,11 @@ import {
   savePatterns,
 } from "@/components/pattern/PatternStorage";
 import { useTranslation } from "react-i18next";
+import { DrawerActions, useNavigation } from "@react-navigation/native";
 
 const PatternListManager = () => {
   const { t } = useTranslation();
+  const navigation = useNavigation();
   const [patterns, setPatterns] = useState<WCSPattern[]>(
     foundationalWCSPatterns,
   );
@@ -74,52 +82,57 @@ const PatternListManager = () => {
   };
 
   return (
-    <ScrollView style={styles.container}>
-      <View style={styles.innerContainer}>
-        <View style={styles.header}>
-          <View style={styles.headerLeft}>
-            <Icon
-              name="dance-ballroom"
-              size={32}
-              color="#6366f1"
-              style={styles.headerIcon}
+    <View style={{ flex: 1 }}>
+      <ScrollView style={styles.container}>
+        <View style={styles.innerContainer}>
+          <View style={styles.header}>
+            <View style={styles.headerLeft}>
+              <Icon
+                name="dance-ballroom"
+                size={32}
+                color="#6366f1"
+                style={styles.headerIcon}
+              />
+              <Text style={[styles.headerTitle, { fontSize: 18 }]}>
+                {t("appTitle")}
+              </Text>
+            </View>
+            <TouchableOpacity
+              onPress={() => navigation.dispatch(DrawerActions.openDrawer())}
+              style={styles.hamburgerButton}
+              accessibilityLabel={t("openMenu")}
+            >
+              <Icon name="menu" size={28} color="#6366f1" />
+            </TouchableOpacity>
+          </View>
+          {isAddingNew && (
+            <EditPatternForm
+              patterns={patterns}
+              onAccepted={addPattern}
+              onCancel={() => setIsAddingNew(false)}
             />
-            <Text style={[styles.headerTitle, { fontSize: 18 }]}>
-              {t("appTitle")}
-            </Text>
-          </View>
-          <View style={styles.swipeHintContainer}>
-            <Icon name="gesture-swipe-right" size={20} color="#6366f1" />
-            <Text style={styles.swipeHintText}>{t("swipeHint")}</Text>
+          )}
+          {isEditing && selectedPattern != null && (
+            <EditPatternForm
+              patterns={patterns}
+              onAccepted={editPattern}
+              onCancel={() => setIsEditing(false)}
+              existing={selectedPattern}
+            />
+          )}
+          <View>
+            <PatternList
+              patterns={patterns}
+              onSelect={setSelectedPattern}
+              onDelete={deletePattern}
+              onAdd={() => setIsAddingNew(!isAddingNew)}
+              onEdit={handleEditPattern}
+              selectedPattern={selectedPattern}
+            />
           </View>
         </View>
-        {isAddingNew && (
-          <EditPatternForm
-            patterns={patterns}
-            onAccepted={addPattern}
-            onCancel={() => setIsAddingNew(false)}
-          />
-        )}
-        {isEditing && selectedPattern != null && (
-          <EditPatternForm
-            patterns={patterns}
-            onAccepted={editPattern}
-            onCancel={() => setIsEditing(false)}
-            existing={selectedPattern}
-          />
-        )}
-        <View>
-          <PatternList
-            patterns={patterns}
-            onSelect={setSelectedPattern}
-            onDelete={deletePattern}
-            onAdd={() => setIsAddingNew(!isAddingNew)}
-            onEdit={handleEditPattern}
-            selectedPattern={selectedPattern}
-          />
-        </View>
-      </View>
-    </ScrollView>
+      </ScrollView>
+    </View>
   );
 };
 
@@ -130,7 +143,7 @@ const styles = StyleSheet.create({
     flexDirection: "row",
     alignItems: "center",
     marginBottom: 0,
-    justifyContent: "center",
+    justifyContent: "space-between",
   },
   headerLeft: { flexDirection: "row", alignItems: "center" },
   headerIcon: { fontSize: 32, marginRight: 8 },
@@ -161,15 +174,9 @@ const styles = StyleSheet.create({
     justifyContent: "center",
   },
   emptyIcon: { fontSize: 48, color: "#d1d5db", marginBottom: 8 },
-  swipeHintContainer: {
-    flexDirection: "row",
-    alignItems: "center",
+  hamburgerButton: {
     marginLeft: 12,
-  },
-  swipeHintText: {
-    color: "#6366f1",
-    marginLeft: 4,
-    fontSize: 12,
+    padding: 8,
   },
 });
 
