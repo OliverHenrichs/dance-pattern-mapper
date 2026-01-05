@@ -12,5 +12,6 @@ export const CommonStyles = StyleSheet.create({
     justifyContent: "space-between",
     marginTop: 16,
     marginBottom: 8,
+    minHeight: 39, // Ensures consistent height with + button
   },
 });
