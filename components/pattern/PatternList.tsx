@@ -51,15 +51,20 @@ function mapPatternToScrollViewItem(
   props: PatternListProps,
   t: any,
 ) {
+  const isSelected = props.selectedPattern?.id === pattern.id;
   return (
     <TouchableOpacity
       key={pattern.id}
-      onPress={() => props.onSelect(pattern)}
+      onPress={() => {
+        if (isSelected) {
+          props.onSelect(undefined as any); // Deselect if already selected
+        } else {
+          props.onSelect(pattern);
+        }
+      }}
       style={[
         styles.patternItem,
-        props.selectedPattern?.id === pattern.id
-          ? styles.patternItemSelected
-          : styles.patternItemUnselected,
+        isSelected ? styles.patternItemSelected : styles.patternItemUnselected,
       ]}
     >
       <View style={styles.patternItemHeader}>
@@ -85,7 +90,7 @@ function mapPatternToScrollViewItem(
           <Text style={styles.deleteIcon}>🗑️</Text>
         </TouchableOpacity>
       </View>
-      {props.selectedPattern?.id === pattern.id && (
+      {isSelected && (
         <PatternDetails selectedPattern={pattern} patterns={props.patterns} />
       )}
     </TouchableOpacity>
