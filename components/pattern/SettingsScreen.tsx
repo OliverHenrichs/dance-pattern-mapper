@@ -2,6 +2,7 @@ import React from "react";
 import { ScrollView, StyleSheet, Text, View } from "react-native";
 import { useTranslation } from "react-i18next";
 import AppHeader from "@/components/common/AppHeader";
+import PageContainer from "@/components/common/PageContainer";
 import { CommonStyles } from "@/components/common/CommonStyles";
 
 const LANGUAGES = [
@@ -14,12 +15,9 @@ const SettingsScreen: React.FC = () => {
   const currentLang = i18n.language;
 
   return (
-    <View style={styles.outerContainer}>
+    <PageContainer>
       <AppHeader />
-      <ScrollView
-        style={styles.container}
-        contentContainerStyle={styles.contentContainer}
-      >
+      <ScrollView style={{ flex: 1 }}>
         <Text style={CommonStyles.sectionTitle}>{t("language")}</Text>
         <View style={styles.languageRow}>
           {LANGUAGES.map((lang) => (
@@ -44,22 +42,11 @@ const SettingsScreen: React.FC = () => {
         </View>
         {/* Theme and export options will go here */}
       </ScrollView>
-    </View>
+    </PageContainer>
   );
 };
 
 const styles = StyleSheet.create({
-  outerContainer: {
-    flex: 1,
-    backgroundColor: "#f5f3ff",
-  },
-  container: {
-    flex: 1,
-  },
-  contentContainer: {
-    padding: 24,
-    justifyContent: "flex-start",
-  },
   languageRow: {
     flexDirection: "row",
     gap: 12,

@@ -25,7 +25,7 @@ type PatternListProps = {
 const PatternList: React.FC<PatternListProps> = (props) => {
   const { t } = useTranslation();
   return (
-    <View>
+    <View style={{ flex: 1 }}>
       <View style={styles.headerRow}>
         <Text style={CommonStyles.sectionTitle}>{t("patternList")}</Text>
         <TouchableOpacity
