@@ -6,4 +6,11 @@ export const CommonStyles = StyleSheet.create({
     fontWeight: "bold",
     color: "#1e293b",
   },
+  sectionHeaderRow: {
+    flexDirection: "row",
+    alignItems: "center",
+    justifyContent: "space-between",
+    marginTop: 16,
+    marginBottom: 8,
+  },
 });

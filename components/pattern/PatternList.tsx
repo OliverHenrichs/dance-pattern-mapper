@@ -26,7 +26,7 @@ const PatternList: React.FC<PatternListProps> = (props) => {
   const { t } = useTranslation();
   return (
     <View style={{ flex: 1 }}>
-      <View style={styles.headerRow}>
+      <View style={CommonStyles.sectionHeaderRow}>
         <Text style={CommonStyles.sectionTitle}>{t("patternList")}</Text>
         <TouchableOpacity
           onPress={props.onAdd}
@@ -99,13 +99,6 @@ function mapPatternToScrollViewItem(
 }
 
 const styles = StyleSheet.create({
-  headerRow: {
-    flexDirection: "row",
-    alignItems: "center",
-    justifyContent: "space-between",
-    marginTop: 16,
-    marginBottom: 8,
-  },
   plusButton: {
     marginLeft: 8,
     padding: 4,

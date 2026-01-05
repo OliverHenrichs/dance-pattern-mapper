@@ -18,7 +18,9 @@ const SettingsScreen: React.FC = () => {
     <PageContainer>
       <AppHeader />
       <ScrollView style={{ flex: 1 }}>
-        <Text style={CommonStyles.sectionTitle}>{t("language")}</Text>
+        <View style={CommonStyles.sectionHeaderRow}>
+          <Text style={CommonStyles.sectionTitle}>{t("language")}</Text>
+        </View>
         <View style={styles.languageRow}>
           {LANGUAGES.map((lang) => (
             <View
