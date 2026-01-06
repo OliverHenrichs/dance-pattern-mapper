@@ -1,5 +1,5 @@
 import React from "react";
-import { StyleSheet, Text, View } from "react-native";
+import { ScrollView, StyleSheet, Text, View } from "react-native";
 import { WCSPattern } from "@/components/pattern/types/WCSPattern";
 import { useTranslation } from "react-i18next";
 import { PaletteColor } from "@/components/common/ColorPalette";
@@ -45,10 +45,9 @@ const PatternDetails: React.FC<PatternDetailsProps> = ({
           </Text>
         </View>
       </View>
-      {selectedPattern.tags.length > 0 &&
-        getTagView(selectedPattern, t, styles)}
       {getPrerequisiteView(selectedPattern, patterns, t, styles)}
       {getBuildsIntoView(selectedPattern, patterns, t, styles)}
+      {getTagView(selectedPattern, t, styles)}
     </View>
   );
 };
@@ -67,7 +66,9 @@ function getPrerequisiteView(
           {t("patternDetailsNoPrerequisites")}
         </Text>
       ) : (
-        <View>{getPrerequisites(selectedPattern, patterns, styles)}</View>
+        <ScrollView horizontal showsHorizontalScrollIndicator={false}>
+          {getPrerequisites(selectedPattern, patterns, styles)}
+        </ScrollView>
       )}
     </View>
   );
@@ -83,9 +84,9 @@ function getPrerequisites(
       {selectedPattern.prerequisites.map((preRequisiteId: number) => {
         const prerequisite = patterns.find((p) => p.id === preRequisiteId);
         return prerequisite ? (
-          <Text key={preRequisiteId} style={styles.prereqItem}>
-            {prerequisite.name}
-          </Text>
+          <View key={preRequisiteId} style={styles.prereqItem}>
+            <Text style={styles.label}>{prerequisite.name}</Text>
+          </View>
         ) : null;
       })}
     </>
@@ -124,7 +125,7 @@ function getBuildsIntoView(
   );
   if (dependents.length === 0) {
     return (
-      <View>
+      <View style={styles.prereqContainer}>
         <Text style={styles.label}>{t("buildsInto")}:</Text>
         <Text style={styles.patternDetailsDesc}>
           {t("noDependentPatterns")}
@@ -133,13 +134,15 @@ function getBuildsIntoView(
     );
   }
   return (
-    <View>
+    <View style={styles.prereqContainer}>
       <Text style={styles.label}>{t("buildsInto")}:</Text>
-      {dependents.map((dep) => (
-        <Text key={dep.id} style={styles.prereqItem}>
-          {dep.name}
-        </Text>
-      ))}
+      <ScrollView horizontal showsHorizontalScrollIndicator={false}>
+        {dependents.map((dep) => (
+          <View key={dep.id} style={styles.prereqItem}>
+            <Text style={styles.label}>{dep.name}</Text>
+          </View>
+        ))}
+      </ScrollView>
     </View>
   );
 }
@@ -163,14 +166,17 @@ const getStyles = (palette: Record<PaletteColor, string>) => {
       color: palette[PaletteColor.SecondaryText],
       marginBottom: 4,
     },
-    prereqContainer: { marginBottom: 8 },
-    prereqItem: {
+    prereqContainer: {
+      ...commonBorder,
       backgroundColor: palette[PaletteColor.TagBg],
-      color: palette[PaletteColor.PrimaryText],
+      padding: 8,
+      marginVertical: 8,
+    },
+    prereqItem: {
+      ...commonBorder,
       padding: 6,
-      borderRadius: 8,
       marginRight: 4,
-      marginBottom: 4,
+      backgroundColor: palette[PaletteColor.Surface],
     },
     tagsRow: {
       flexDirection: "row",
