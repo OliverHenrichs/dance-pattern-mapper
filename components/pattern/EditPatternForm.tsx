@@ -228,8 +228,28 @@ const EditPatternForm: React.FC<EditPatternFormProps> = ({
   );
 };
 
-const getStyles = (palette: Record<PaletteColor, string>) =>
-  StyleSheet.create({
+const getStyles = (palette: Record<PaletteColor, string>) => {
+  // Common style fragments
+  const commonBorder = {
+    borderWidth: 1,
+    borderRadius: 8,
+    borderColor: palette[PaletteColor.Border],
+  };
+
+  const baseInput = {
+    ...commonBorder,
+    padding: 8,
+    color: palette[PaletteColor.PrimaryText],
+    backgroundColor: palette[PaletteColor.TagBg],
+  };
+
+  const baseButton = {
+    padding: 8,
+    borderRadius: 8,
+  };
+
+  return StyleSheet.create({
+    // Containers
     addPatternContainer: {
       borderRadius: 8,
       padding: 16,
@@ -243,86 +263,70 @@ const getStyles = (palette: Record<PaletteColor, string>) =>
       marginBottom: 8,
     },
     inputRow: { flexDirection: "row", gap: 8, marginBottom: 8 },
+    // Inputs
     input: {
       flex: 1,
-      borderWidth: 1,
-      borderColor: palette[PaletteColor.Border],
-      borderRadius: 8,
-      padding: 8,
-      color: palette[PaletteColor.PrimaryText],
-      backgroundColor: palette[PaletteColor.TagBg],
+      ...baseInput,
     },
     textarea: {
-      borderWidth: 1,
-      borderColor: palette[PaletteColor.Border],
-      borderRadius: 8,
-      padding: 8,
+      ...baseInput,
       minHeight: 48,
       marginBottom: 8,
-      color: palette[PaletteColor.PrimaryText],
-      backgroundColor: palette[PaletteColor.TagBg],
     },
-    prereqContainer: {
-      borderWidth: 1,
-      borderColor: palette[PaletteColor.Border],
-      borderRadius: 8,
-      marginBottom: 8,
-      marginTop: 8,
-      padding: 8,
-      backgroundColor: palette[PaletteColor.TagBg],
-    },
+    // Labels
     label: {
       fontSize: 14,
       fontWeight: "500",
       marginBottom: 4,
       color: palette[PaletteColor.PrimaryText],
     },
+    // Prerequisites
+    prereqContainer: {
+      ...commonBorder,
+      padding: 8,
+      marginVertical: 8,
+      backgroundColor: palette[PaletteColor.TagBg],
+    },
     prereqItem: {
-      backgroundColor: palette[PaletteColor.Surface],
-      borderWidth: 1,
-      borderColor: palette[PaletteColor.Border],
-      borderRadius: 8,
+      ...commonBorder,
       padding: 6,
       marginRight: 4,
-      marginBottom: 4,
+      backgroundColor: palette[PaletteColor.Surface],
     },
     prereqItemSelected: { backgroundColor: palette[PaletteColor.Primary] },
+    // Tags
     tagsContainer: { marginBottom: 8 },
     tagsRow: { flexDirection: "row", flexWrap: "wrap", gap: 4 },
     tagItem: {
+      ...commonBorder,
       flexDirection: "row",
       alignItems: "center",
       backgroundColor: palette[PaletteColor.TagBg],
-      borderRadius: 16,
       paddingHorizontal: 8,
-      paddingVertical: 4,
-      marginRight: 4,
-      marginBottom: 4,
     },
-    tagText: { color: palette[PaletteColor.TagText], fontSize: 12 },
+    tagText: { color: palette[PaletteColor.TagText], fontSize: 14 },
     tagRemove: {
       color: palette[PaletteColor.TagText],
       fontSize: 16,
       marginLeft: 4,
     },
+    // Buttons
     buttonRow: { flexDirection: "row", gap: 8, marginTop: 8 },
     buttonIndigo: {
-      padding: 8,
-      borderRadius: 8,
+      ...baseButton,
       marginRight: 8,
       backgroundColor: palette[PaletteColor.Primary],
     },
     buttonIndigoSmall: {
-      padding: 8,
-      borderRadius: 8,
+      ...baseButton,
       backgroundColor: palette[PaletteColor.Primary],
     },
     buttonGray: {
+      ...baseButton,
       backgroundColor: palette[PaletteColor.Border],
-      padding: 8,
-      borderRadius: 8,
     },
     buttonText: { color: palette[PaletteColor.Surface], fontWeight: "bold" },
   });
+};
 
 export default EditPatternForm;
