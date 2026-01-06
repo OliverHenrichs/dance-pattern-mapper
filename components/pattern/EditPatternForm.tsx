@@ -223,7 +223,7 @@ const EditPatternForm: React.FC<EditPatternFormProps> = ({
         >
           <Text style={styles.buttonText}>{t("savePattern")}</Text>
         </TouchableOpacity>
-        <TouchableOpacity onPress={onCancel} style={styles.buttonGray}>
+        <TouchableOpacity onPress={onCancel} style={styles.buttonCancel}>
           <Text style={styles.buttonText}>{t("cancel")}</Text>
         </TouchableOpacity>
       </View>
@@ -286,9 +286,9 @@ const getStyles = (palette: Record<PaletteColor, string>) => {
     // Prerequisites
     prereqContainer: {
       ...commonBorder,
+      backgroundColor: palette[PaletteColor.TagBg],
       padding: 8,
       marginVertical: 8,
-      backgroundColor: palette[PaletteColor.TagBg],
     },
     prereqItem: {
       ...commonBorder,
@@ -298,7 +298,12 @@ const getStyles = (palette: Record<PaletteColor, string>) => {
     },
     prereqItemSelected: { backgroundColor: palette[PaletteColor.Primary] },
     // Tags
-    tagsContainer: { marginBottom: 8 },
+    tagsContainer: {
+      ...commonBorder,
+      marginBottom: 8,
+      padding: 6,
+      backgroundColor: palette[PaletteColor.TagBg],
+    },
     tagsRow: { flexDirection: "row", flexWrap: "wrap", gap: 4 },
     tagItem: {
       ...commonBorder,
@@ -324,7 +329,7 @@ const getStyles = (palette: Record<PaletteColor, string>) => {
       ...baseButton,
       backgroundColor: palette[PaletteColor.Primary],
     },
-    buttonGray: {
+    buttonCancel: {
       ...baseButton,
       backgroundColor: palette[PaletteColor.Border],
     },
