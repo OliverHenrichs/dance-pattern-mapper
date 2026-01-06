@@ -3,6 +3,7 @@ import { Alert, Platform } from "react-native";
 function handleDelete(
   id: number,
   name: string,
+  colorScheme: "light" | "dark",
   callback: (id?: number) => void,
 ) {
   return (e: any) => {
@@ -23,7 +24,7 @@ function handleDelete(
             onPress: () => callback(id),
           },
         ],
-        { cancelable: true },
+        { cancelable: true, userInterfaceStyle: colorScheme },
       );
     }
   };

@@ -13,7 +13,7 @@ import PatternDetails from "@/components/pattern/PatternDetails";
 import { useTranslation } from "react-i18next";
 import { useThemeContext } from "@/components/common/ThemeContext";
 import { getCommonStyles } from "@/components/common/CommonStyles";
-import { PaletteColor } from "@/components/common/ColorPalette";
+import { getPalette, PaletteColor } from "@/components/common/ColorPalette";
 
 type PatternListProps = {
   patterns: WCSPattern[];
@@ -22,28 +22,28 @@ type PatternListProps = {
   onDelete: (id?: number) => void;
   onAdd: () => void;
   onEdit: (pattern: WCSPattern) => void;
-  palette: Record<PaletteColor, string>;
 };
 
-const PatternList: React.FC<PatternListProps> = ({
-  patterns,
-  onSelect,
-  onDelete,
-  onAdd,
-  onEdit,
-  selectedPattern,
-  palette,
-}) => {
+type PatternListItemProps = {
+  pattern: WCSPattern;
+  t: any;
+  palette: Record<PaletteColor, string>;
+  styles: ReturnType<typeof getStyles>;
+  colorScheme: "light" | "dark";
+} & PatternListProps;
+
+const PatternList: React.FC<PatternListProps> = (props) => {
   const { t } = useTranslation();
   const { colorScheme } = useThemeContext();
   const commonStyles = getCommonStyles(colorScheme);
+  const palette = getPalette(colorScheme);
   const styles = getStyles(palette);
   return (
     <View style={styles.listContainer}>
       <View style={commonStyles.sectionHeaderRow}>
         <Text style={commonStyles.sectionTitle}>{t("patternList")}</Text>
         <TouchableOpacity
-          onPress={onAdd}
+          onPress={props.onAdd}
           style={styles.plusButton}
           accessibilityLabel={t("addPattern")}
         >
@@ -55,21 +55,16 @@ const PatternList: React.FC<PatternListProps> = ({
         </TouchableOpacity>
       </View>
       <ScrollView>
-        {patterns.map((pattern) => (
+        {props.patterns.map((pattern) => (
           <View key={pattern.id}>
-            {mapPatternToScrollViewItem(
+            {mapPatternToScrollViewItem({
+              ...props,
               pattern,
-              {
-                onSelect,
-                onDelete,
-                onEdit,
-                selectedPattern,
-                patterns,
-              } as PatternListProps,
               t,
               palette,
               styles,
-            )}
+              colorScheme,
+            })}
           </View>
         ))}
       </ScrollView>
@@ -77,13 +72,18 @@ const PatternList: React.FC<PatternListProps> = ({
   );
 };
 
-function mapPatternToScrollViewItem(
-  pattern: WCSPattern,
-  { onSelect, onDelete, onEdit, selectedPattern, patterns }: PatternListProps,
-  t: any,
-  palette: Record<PaletteColor, string>,
-  styles: ReturnType<typeof getStyles>,
-) {
+function mapPatternToScrollViewItem({
+  onSelect,
+  onDelete,
+  onEdit,
+  selectedPattern,
+  patterns,
+  pattern,
+  t,
+  palette,
+  styles,
+  colorScheme,
+}: PatternListItemProps) {
   const isSelected = selectedPattern?.id === pattern.id;
   return (
     <View
@@ -114,7 +114,12 @@ function mapPatternToScrollViewItem(
           <Icon name="pencil" size={20} color={palette[PaletteColor.Primary]} />
         </TouchableOpacity>
         <TouchableOpacity
-          onPress={handleDelete(pattern.id, pattern.name, onDelete)}
+          onPress={handleDelete(
+            pattern.id,
+            pattern.name,
+            colorScheme,
+            onDelete,
+          )}
           style={styles.iconButton}
           accessibilityLabel={t("deletePattern")}
         >
