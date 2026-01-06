@@ -131,7 +131,6 @@ const PatternListManager = () => {
               onAdd={() => setIsAddingNew(!isAddingNew)}
               onEdit={handleEditPattern}
               selectedPattern={selectedPattern}
-              palette={palette}
             />
           </View>
         </ScrollView>
