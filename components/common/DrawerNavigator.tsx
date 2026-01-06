@@ -29,6 +29,13 @@ export default function DrawerNavigator() {
           headerShown: false,
           swipeEdgeWidth: 40,
           drawerStyle: styles.drawerStyle,
+          drawerActiveTintColor: palette[PaletteColor.Primary],
+          drawerInactiveTintColor: palette[PaletteColor.SecondaryText],
+          drawerLabelStyle: {
+            fontSize: 16,
+            fontWeight: "500",
+            color: palette[PaletteColor.PrimaryText],
+          },
         }}
         drawerContent={(props) => <CustomDrawerContent {...props} />}
       >
