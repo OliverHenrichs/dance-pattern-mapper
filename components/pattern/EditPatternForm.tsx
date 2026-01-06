@@ -67,23 +67,32 @@ const EditPatternForm: React.FC<EditPatternFormProps> = ({
         {existing ? t("editPattern") : t("addPattern")}
       </Text>
       <View style={styles.inputRow}>
-        <TextInput
-          placeholder={t("patternName")}
-          value={newPattern.name}
-          onChangeText={(text) => setNewPattern({ ...newPattern, name: text })}
-          style={styles.input}
-          placeholderTextColor={palette[PaletteColor.SecondaryText]}
-        />
-        <TextInput
-          placeholder={t("counts")}
-          value={newPattern.counts.toString()}
-          onChangeText={(text) =>
-            setNewPattern({ ...newPattern, counts: parseInt(text) || 0 })
-          }
-          keyboardType="numeric"
-          style={styles.input}
-          placeholderTextColor={palette[PaletteColor.SecondaryText]}
-        />
+        <View style={styles.input}>
+          <Text style={styles.label}>{t("patternName")}</Text>
+          <TextInput
+            placeholder={t("patternName")}
+            value={newPattern.name}
+            onChangeText={(text) =>
+              setNewPattern({ ...newPattern, name: text })
+            }
+            style={styles.input}
+            placeholderTextColor={palette[PaletteColor.SecondaryText]}
+          />
+        </View>
+
+        <View style={styles.input}>
+          <Text style={styles.label}>{t("counts")}</Text>
+          <TextInput
+            placeholder={t("counts")}
+            value={newPattern.counts.toString()}
+            onChangeText={(text) =>
+              setNewPattern({ ...newPattern, counts: parseInt(text) || 0 })
+            }
+            keyboardType="numeric"
+            style={styles.input}
+            placeholderTextColor={palette[PaletteColor.SecondaryText]}
+          />
+        </View>
       </View>
       <View style={styles.inputRow}>
         <View style={styles.input}>
@@ -253,7 +262,15 @@ const getStyles = (palette: Record<PaletteColor, string>) =>
       color: palette[PaletteColor.PrimaryText],
       backgroundColor: palette[PaletteColor.TagBg],
     },
-    prereqContainer: { marginBottom: 8 },
+    prereqContainer: {
+      borderWidth: 1,
+      borderColor: palette[PaletteColor.Border],
+      borderRadius: 8,
+      marginBottom: 8,
+      marginTop: 8,
+      padding: 8,
+      backgroundColor: palette[PaletteColor.TagBg],
+    },
     label: {
       fontSize: 14,
       fontWeight: "500",
@@ -261,9 +278,11 @@ const getStyles = (palette: Record<PaletteColor, string>) =>
       color: palette[PaletteColor.PrimaryText],
     },
     prereqItem: {
-      backgroundColor: palette[PaletteColor.TagBg],
-      padding: 6,
+      backgroundColor: palette[PaletteColor.Surface],
+      borderWidth: 1,
+      borderColor: palette[PaletteColor.Border],
       borderRadius: 8,
+      padding: 6,
       marginRight: 4,
       marginBottom: 4,
     },
