@@ -17,6 +17,7 @@ import {
 } from "@/components/pattern/types/WCSPatternEnums";
 import { defaultNewPattern } from "@/components/pattern/data/DefaultWCSPatterns";
 import { useTranslation } from "react-i18next";
+import { useThemeContext } from "@/components/common/ThemeContext";
 
 type EditPatternFormProps = {
   patterns: WCSPattern[];
@@ -35,6 +36,7 @@ const EditPatternForm: React.FC<EditPatternFormProps> = ({
   existing,
 }) => {
   const { t } = useTranslation();
+  const { colorScheme } = useThemeContext();
   const [newPattern, setNewPattern] = useState<NewWCSPattern>(
     existing ?? defaultNewPattern,
   );
@@ -57,7 +59,12 @@ const EditPatternForm: React.FC<EditPatternFormProps> = ({
   };
 
   return (
-    <View style={styles.addPatternContainer}>
+    <View
+      style={[
+        styles.addPatternContainer,
+        { backgroundColor: colorScheme === "dark" ? "#23232b" : "#fff" },
+      ]}
+    >
       <Text style={styles.sectionTitle}>
         {existing ? t("editPattern") : t("addPattern")}
       </Text>
@@ -66,7 +73,13 @@ const EditPatternForm: React.FC<EditPatternFormProps> = ({
           placeholder={t("patternName")}
           value={newPattern.name}
           onChangeText={(text) => setNewPattern({ ...newPattern, name: text })}
-          style={styles.input}
+          style={[
+            styles.input,
+            {
+              color: colorScheme === "dark" ? "#f1f5f9" : "#1e293b",
+              backgroundColor: colorScheme === "dark" ? "#18181b" : "#f3f4f6",
+            },
+          ]}
         />
         <TextInput
           placeholder={t("counts")}
@@ -75,7 +88,13 @@ const EditPatternForm: React.FC<EditPatternFormProps> = ({
             setNewPattern({ ...newPattern, counts: parseInt(text) || 0 })
           }
           keyboardType="numeric"
-          style={styles.input}
+          style={[
+            styles.input,
+            {
+              color: colorScheme === "dark" ? "#f1f5f9" : "#1e293b",
+              backgroundColor: colorScheme === "dark" ? "#18181b" : "#f3f4f6",
+            },
+          ]}
         />
       </View>
       <View style={styles.inputRow}>
@@ -198,8 +217,21 @@ const EditPatternForm: React.FC<EditPatternFormProps> = ({
         </View>
       </View>
       <View style={styles.buttonRow}>
-        <TouchableOpacity onPress={handleFinish} style={styles.buttonIndigo}>
-          <Text style={styles.buttonText}>{t("savePattern")}</Text>
+        <TouchableOpacity
+          onPress={handleFinish}
+          style={[
+            styles.buttonIndigo,
+            { backgroundColor: colorScheme === "dark" ? "#3730a3" : "#6366f1" },
+          ]}
+        >
+          <Text
+            style={[
+              styles.buttonText,
+              { color: colorScheme === "dark" ? "#f1f5f9" : "#fff" },
+            ]}
+          >
+            {t("savePattern")}
+          </Text>
         </TouchableOpacity>
         <TouchableOpacity onPress={onCancel} style={styles.buttonGray}>
           <Text style={styles.buttonText}>{t("cancel")}</Text>
@@ -211,7 +243,6 @@ const EditPatternForm: React.FC<EditPatternFormProps> = ({
 
 const styles = StyleSheet.create({
   addPatternContainer: {
-    backgroundColor: "#eef2ff",
     borderRadius: 8,
     padding: 16,
     marginBottom: 24,
@@ -229,19 +260,17 @@ const styles = StyleSheet.create({
     borderColor: "#d1d5db",
     borderRadius: 8,
     padding: 8,
-    backgroundColor: "#fff",
   },
   textarea: {
     borderWidth: 1,
     borderColor: "#d1d5db",
     borderRadius: 8,
     padding: 8,
-    backgroundColor: "#fff",
     minHeight: 48,
     marginBottom: 8,
   },
   prereqContainer: { marginBottom: 8 },
-  label: { fontSize: 14, fontWeight: "500", color: "#64748b", marginBottom: 4 },
+  label: { fontSize: 14, fontWeight: "500", marginBottom: 4 },
   prereqItem: {
     backgroundColor: "#f3f4f6",
     padding: 6,
@@ -266,13 +295,11 @@ const styles = StyleSheet.create({
   tagRemove: { color: "#7c3aed", fontSize: 16, marginLeft: 4 },
   buttonRow: { flexDirection: "row", gap: 8, marginTop: 8 },
   buttonIndigo: {
-    backgroundColor: "#6366f1",
     padding: 8,
     borderRadius: 8,
     marginRight: 8,
   },
   buttonIndigoSmall: {
-    backgroundColor: "#6366f1",
     padding: 8,
     borderRadius: 8,
   },

@@ -3,20 +3,25 @@ import { StyleSheet, Text, TouchableOpacity, View } from "react-native";
 import Icon from "react-native-vector-icons/MaterialCommunityIcons";
 import { useTranslation } from "react-i18next";
 import { DrawerActions, useNavigation } from "@react-navigation/native";
+import { useThemeContext } from "@/components/common/ThemeContext";
 
 const AppHeader: React.FC = () => {
   const { t } = useTranslation();
   const navigation = useNavigation();
+  const { colorScheme } = useThemeContext();
+  const iconColor = colorScheme === "dark" ? "#f1f5f9" : "#6366f1";
+  const textColor = colorScheme === "dark" ? "#f1f5f9" : "#3730a3";
+
   return (
     <View style={styles.header}>
       <View style={styles.headerLeft}>
         <Icon
           name="dance-ballroom"
           size={32}
-          color="#6366f1"
+          color={iconColor}
           style={styles.headerIcon}
         />
-        <Text style={[styles.headerTitle, { fontSize: 18 }]}>
+        <Text style={[styles.headerTitle, { fontSize: 18, color: textColor }]}>
           {t("appTitle")}
         </Text>
       </View>
@@ -25,7 +30,7 @@ const AppHeader: React.FC = () => {
         style={styles.hamburgerButton}
         accessibilityLabel={t("openMenu")}
       >
-        <Icon name="menu" size={28} color="#6366f1" />
+        <Icon name="menu" size={28} color={iconColor} />
       </TouchableOpacity>
     </View>
   );

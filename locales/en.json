@@ -27,5 +27,9 @@
   "language": "Language",
   "patternTab": "Patterns",
   "settingsTab": "Settings",
-  "menu": "Menu"
+  "menu": "Menu",
+  "theme": "Theme",
+  "themeSystem": "System Default",
+  "themeLight": "Light",
+  "themeDark": "Dark"
 }

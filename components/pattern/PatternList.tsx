@@ -11,7 +11,8 @@ import Icon from "react-native-vector-icons/MaterialCommunityIcons";
 import handleDelete from "@/components/common/DeleteConfirmationDialog";
 import PatternDetails from "@/components/pattern/PatternDetails";
 import { useTranslation } from "react-i18next";
-import { CommonStyles } from "@/components/common/CommonStyles";
+import { useThemeContext } from "@/components/common/ThemeContext";
+import { getCommonStyles } from "@/components/common/CommonStyles";
 
 type PatternListProps = {
   patterns: WCSPattern[];
@@ -22,14 +23,28 @@ type PatternListProps = {
   onEdit: (pattern: WCSPattern) => void;
 };
 
-const PatternList: React.FC<PatternListProps> = (props) => {
+const PatternList: React.FC<PatternListProps> = ({
+  patterns,
+  onSelect,
+  onDelete,
+  onAdd,
+  onEdit,
+  selectedPattern,
+}) => {
   const { t } = useTranslation();
+  const { colorScheme } = useThemeContext();
+  const commonStyles = getCommonStyles(colorScheme);
   return (
-    <View style={{ flex: 1 }}>
-      <View style={CommonStyles.sectionHeaderRow}>
-        <Text style={CommonStyles.sectionTitle}>{t("patternList")}</Text>
+    <View
+      style={[
+        styles.listContainer,
+        { backgroundColor: colorScheme === "dark" ? "#18181b" : "#fff" },
+      ]}
+    >
+      <View style={commonStyles.sectionHeaderRow}>
+        <Text style={commonStyles.sectionTitle}>{t("patternList")}</Text>
         <TouchableOpacity
-          onPress={props.onAdd}
+          onPress={onAdd}
           style={styles.plusButton}
           accessibilityLabel={t("addPattern")}
         >
@@ -37,9 +52,20 @@ const PatternList: React.FC<PatternListProps> = (props) => {
         </TouchableOpacity>
       </View>
       <ScrollView>
-        {props.patterns.map((pattern) => (
+        {patterns.map((pattern) => (
           <View key={pattern.id}>
-            {mapPatternToScrollViewItem(pattern, props, t)}
+            {mapPatternToScrollViewItem(
+              pattern,
+              {
+                onSelect,
+                onDelete,
+                onEdit,
+                selectedPattern,
+                patterns,
+              } as PatternListProps,
+              t,
+              colorScheme,
+            )}
           </View>
         ))}
       </ScrollView>
@@ -49,18 +75,19 @@ const PatternList: React.FC<PatternListProps> = (props) => {
 
 function mapPatternToScrollViewItem(
   pattern: WCSPattern,
-  props: PatternListProps,
+  { onSelect, onDelete, onEdit, selectedPattern, patterns }: PatternListProps,
   t: any,
+  colorScheme: string,
 ) {
-  const isSelected = props.selectedPattern?.id === pattern.id;
+  const isSelected = selectedPattern?.id === pattern.id;
   return (
     <TouchableOpacity
       key={pattern.id}
       onPress={() => {
         if (isSelected) {
-          props.onSelect(undefined as any); // Deselect if already selected
+          onSelect(undefined as any); // Deselect if already selected
         } else {
-          props.onSelect(pattern);
+          onSelect(pattern);
         }
       }}
       style={[
@@ -70,13 +97,20 @@ function mapPatternToScrollViewItem(
     >
       <View style={styles.patternItemHeader}>
         <View style={{ flex: 1 }}>
-          <Text style={styles.patternName}>{pattern.name}</Text>
+          <Text
+            style={[
+              styles.patternName,
+              { color: colorScheme === "dark" ? "#f1f5f9" : "#1e293b" },
+            ]}
+          >
+            {pattern.name}
+          </Text>
           {/* Add tags or other info here if needed */}
         </View>
         <TouchableOpacity
           onPress={(e) => {
             e.stopPropagation?.();
-            props.onEdit(pattern);
+            onEdit(pattern);
           }}
           style={styles.iconButton}
           accessibilityLabel={t("editPattern")}
@@ -84,7 +118,7 @@ function mapPatternToScrollViewItem(
           <Icon name="pencil" size={20} color="#6366f1" />
         </TouchableOpacity>
         <TouchableOpacity
-          onPress={handleDelete(pattern.id, pattern.name, props.onDelete)}
+          onPress={handleDelete(pattern.id, pattern.name, onDelete)}
           style={styles.iconButton}
           accessibilityLabel={t("deletePattern")}
         >
@@ -92,13 +126,20 @@ function mapPatternToScrollViewItem(
         </TouchableOpacity>
       </View>
       {isSelected && (
-        <PatternDetails selectedPattern={pattern} patterns={props.patterns} />
+        <PatternDetails selectedPattern={pattern} patterns={patterns} />
       )}
     </TouchableOpacity>
   );
 }
 
 const styles = StyleSheet.create({
+  listContainer: {
+    borderRadius: 12,
+    padding: 8,
+    marginTop: 8,
+    marginBottom: 8,
+    elevation: 2,
+  },
   plusButton: {
     marginLeft: 8,
     padding: 4,
@@ -116,7 +157,10 @@ const styles = StyleSheet.create({
     flexDirection: "row",
     alignItems: "center",
   },
-  patternName: { fontWeight: "bold", fontSize: 16, color: "#1e293b" },
+  patternName: {
+    fontWeight: "bold",
+    fontSize: 16,
+  },
   deleteIcon: { fontSize: 20, color: "#ef4444", marginLeft: 8 },
   iconButton: {
     paddingHorizontal: 4,

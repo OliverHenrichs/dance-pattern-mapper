@@ -2,6 +2,7 @@ import React from "react";
 import { StyleSheet, Text, View } from "react-native";
 import { WCSPattern } from "@/components/pattern/types/WCSPattern";
 import { useTranslation } from "react-i18next";
+import { useThemeContext } from "@/components/common/ThemeContext";
 
 type PatternDetailsProps = {
   selectedPattern: WCSPattern;
@@ -13,8 +14,22 @@ const PatternDetails: React.FC<PatternDetailsProps> = ({
   patterns,
 }) => {
   const { t } = useTranslation();
+  const { colorScheme } = useThemeContext();
   return (
-    <View style={styles.patternDetails}>
+    <View
+      style={[
+        styles.detailsContainer,
+        { backgroundColor: colorScheme === "dark" ? "#23232b" : "#fff" },
+      ]}
+    >
+      <Text
+        style={[
+          styles.patternName,
+          { color: colorScheme === "dark" ? "#f1f5f9" : "#1e293b" },
+        ]}
+      >
+        {selectedPattern.name}
+      </Text>
       <Text style={styles.patternDetailsDesc}>
         {selectedPattern.description}
       </Text>
@@ -145,18 +160,16 @@ const styles = StyleSheet.create({
   },
   tagsRow: { flexDirection: "row", flexWrap: "wrap", gap: 4 },
   tagText: { color: "#7c3aed", fontSize: 12 },
-  patternDetails: {
-    backgroundColor: "#fff",
+  detailsContainer: {
     borderRadius: 8,
     borderWidth: 2,
     borderColor: "#6366f1",
     padding: 16,
     marginTop: 8,
   },
-  patternDetailsName: {
+  patternName: {
     fontSize: 20,
     fontWeight: "bold",
-    color: "#6366f1",
     marginBottom: 4,
   },
   patternDetailsDesc: { color: "#64748b", marginBottom: 8 },

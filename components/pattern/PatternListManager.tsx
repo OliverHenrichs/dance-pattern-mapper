@@ -13,8 +13,10 @@ import {
 } from "@/components/pattern/PatternStorage";
 import AppHeader from "@/components/common/AppHeader";
 import PageContainer from "@/components/common/PageContainer";
+import { useThemeContext } from "@/components/common/ThemeContext";
 
 const PatternListManager = () => {
+  const { colorScheme } = useThemeContext();
   const [patterns, setPatterns] = useState<WCSPattern[]>(
     foundationalWCSPatterns,
   );
@@ -73,62 +75,72 @@ const PatternListManager = () => {
   };
 
   return (
-    <PageContainer>
-      <AppHeader />
-      <ScrollView style={{ flex: 1 }}>
-        <Modal
-          visible={isAddingNew}
-          animationType="slide"
-          transparent={true}
-          onRequestClose={() => setIsAddingNew(false)}
-        >
-          <View style={styles.modalOverlay}>
-            <View style={styles.modalContent}>
-              <ScrollView contentContainerStyle={{ flexGrow: 1 }}>
-                <EditPatternForm
-                  patterns={patterns}
-                  onAccepted={addPattern}
-                  onCancel={() => setIsAddingNew(false)}
-                />
-              </ScrollView>
+    <View
+      style={{
+        flex: 1,
+        backgroundColor: colorScheme === "dark" ? "#18181b" : "#f5f3ff",
+      }}
+    >
+      <PageContainer>
+        <AppHeader />
+        <ScrollView style={styles.container}>
+          <Modal
+            visible={isAddingNew}
+            animationType="slide"
+            transparent={true}
+            onRequestClose={() => setIsAddingNew(false)}
+          >
+            <View style={styles.modalOverlay}>
+              <View style={styles.modalContent}>
+                <ScrollView contentContainerStyle={{ flexGrow: 1 }}>
+                  <EditPatternForm
+                    patterns={patterns}
+                    onAccepted={addPattern}
+                    onCancel={() => setIsAddingNew(false)}
+                  />
+                </ScrollView>
+              </View>
             </View>
-          </View>
-        </Modal>
-        <Modal
-          visible={isEditing && selectedPattern != null}
-          animationType="slide"
-          transparent={true}
-          onRequestClose={() => setIsEditing(false)}
-        >
-          <View style={styles.modalOverlay}>
-            <View style={styles.modalContent}>
-              <ScrollView contentContainerStyle={{ flexGrow: 1 }}>
-                <EditPatternForm
-                  patterns={patterns}
-                  onAccepted={editPattern}
-                  onCancel={() => setIsEditing(false)}
-                  existing={selectedPattern}
-                />
-              </ScrollView>
+          </Modal>
+          <Modal
+            visible={isEditing && selectedPattern != null}
+            animationType="slide"
+            transparent={true}
+            onRequestClose={() => setIsEditing(false)}
+          >
+            <View style={styles.modalOverlay}>
+              <View style={styles.modalContent}>
+                <ScrollView contentContainerStyle={{ flexGrow: 1 }}>
+                  <EditPatternForm
+                    patterns={patterns}
+                    onAccepted={editPattern}
+                    onCancel={() => setIsEditing(false)}
+                    existing={selectedPattern}
+                  />
+                </ScrollView>
+              </View>
             </View>
+          </Modal>
+          <View>
+            <PatternList
+              patterns={patterns}
+              onSelect={setSelectedPattern}
+              onDelete={deletePattern}
+              onAdd={() => setIsAddingNew(!isAddingNew)}
+              onEdit={handleEditPattern}
+              selectedPattern={selectedPattern}
+            />
           </View>
-        </Modal>
-        <View>
-          <PatternList
-            patterns={patterns}
-            onSelect={setSelectedPattern}
-            onDelete={deletePattern}
-            onAdd={() => setIsAddingNew(!isAddingNew)}
-            onEdit={handleEditPattern}
-            selectedPattern={selectedPattern}
-          />
-        </View>
-      </ScrollView>
-    </PageContainer>
+        </ScrollView>
+      </PageContainer>
+    </View>
   );
 };
 
 const styles = StyleSheet.create({
+  container: {
+    flex: 1,
+  },
   modalOverlay: {
     flex: 1,
     backgroundColor: "rgba(0,0,0,0.3)",

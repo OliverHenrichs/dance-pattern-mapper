@@ -27,5 +27,9 @@
   "language": "Sprache",
   "patternTab": "Figuren",
   "settingsTab": "Einstellungen",
-  "menu": "Menü"
+  "menu": "Menü",
+  "theme": "Design",
+  "themeSystem": "Systemstandard",
+  "themeLight": "Hell",
+  "themeDark": "Dunkel"
 }

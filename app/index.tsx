@@ -11,6 +11,7 @@ import React from "react";
 import { SafeAreaView } from "react-native-safe-area-context";
 import { StyleSheet, Text, View } from "react-native";
 import { useTranslation } from "react-i18next";
+import { ThemeProvider } from "@/components/common/ThemeContext";
 
 const Drawer = createDrawerNavigator();
 
@@ -33,29 +34,31 @@ function CustomDrawerContent(props: DrawerContentComponentProps) {
 export default function Index() {
   const { t } = useTranslation();
   return (
-    <SafeAreaView style={{ flex: 1, backgroundColor: "#f5f3ff" }}>
-      <Drawer.Navigator
-        initialRouteName="Patterns"
-        screenOptions={{
-          drawerPosition: "right",
-          headerShown: false,
-          swipeEdgeWidth: 40,
-          drawerStyle: { width: 180 },
-        }}
-        drawerContent={(props) => <CustomDrawerContent {...props} />}
-      >
-        <Drawer.Screen
-          name="Patterns"
-          component={PatternListManager}
-          options={{ title: t("patternTab") }}
-        />
-        <Drawer.Screen
-          name="Settings"
-          component={SettingsScreen}
-          options={{ title: t("settingsTab") }}
-        />
-      </Drawer.Navigator>
-    </SafeAreaView>
+    <ThemeProvider>
+      <SafeAreaView style={{ flex: 1, backgroundColor: "#f5f3ff" }}>
+        <Drawer.Navigator
+          initialRouteName="Patterns"
+          screenOptions={{
+            drawerPosition: "right",
+            headerShown: false,
+            swipeEdgeWidth: 40,
+            drawerStyle: { width: 180 },
+          }}
+          drawerContent={(props) => <CustomDrawerContent {...props} />}
+        >
+          <Drawer.Screen
+            name="Patterns"
+            component={PatternListManager}
+            options={{ title: t("patternTab") }}
+          />
+          <Drawer.Screen
+            name="Settings"
+            component={SettingsScreen}
+            options={{ title: t("settingsTab") }}
+          />
+        </Drawer.Navigator>
+      </SafeAreaView>
+    </ThemeProvider>
   );
 }
 
