@@ -37,22 +37,11 @@ const PatternList: React.FC<PatternListProps> = ({
   const { t } = useTranslation();
   const { colorScheme } = useThemeContext();
   const commonStyles = getCommonStyles(colorScheme);
+  const styles = getStyles(palette);
   return (
-    <View
-      style={[
-        styles.listContainer,
-        { backgroundColor: palette[PaletteColor.Surface] },
-      ]}
-    >
+    <View style={styles.listContainer}>
       <View style={commonStyles.sectionHeaderRow}>
-        <Text
-          style={[
-            commonStyles.sectionTitle,
-            { color: palette[PaletteColor.PrimaryText] },
-          ]}
-        >
-          {t("patternList")}
-        </Text>
+        <Text style={commonStyles.sectionTitle}>{t("patternList")}</Text>
         <TouchableOpacity
           onPress={onAdd}
           style={styles.plusButton}
@@ -79,6 +68,7 @@ const PatternList: React.FC<PatternListProps> = ({
               } as PatternListProps,
               t,
               palette,
+              styles,
             )}
           </View>
         ))}
@@ -92,6 +82,7 @@ function mapPatternToScrollViewItem(
   { onSelect, onDelete, onEdit, selectedPattern, patterns }: PatternListProps,
   t: any,
   palette: Record<PaletteColor, string>,
+  styles: ReturnType<typeof getStyles>,
 ) {
   const isSelected = selectedPattern?.id === pattern.id;
   return (
@@ -104,29 +95,11 @@ function mapPatternToScrollViewItem(
           onSelect(pattern);
         }
       }}
-      style={[
-        styles.patternItem,
-        isSelected
-          ? {
-              borderColor: palette[PaletteColor.Primary],
-              backgroundColor: palette[PaletteColor.TagBg],
-            }
-          : {
-              borderColor: palette[PaletteColor.Border],
-              backgroundColor: palette[PaletteColor.Surface],
-            },
-      ]}
+      style={[styles.patternItem, isSelected && styles.patternItemSelected]}
     >
       <View style={styles.patternItemHeader}>
         <View style={{ flex: 1 }}>
-          <Text
-            style={[
-              styles.patternName,
-              { color: palette[PaletteColor.PrimaryText] },
-            ]}
-          >
-            {pattern.name}
-          </Text>
+          <Text style={styles.patternName}>{pattern.name}</Text>
           {/* Add tags or other info here if needed */}
         </View>
         <TouchableOpacity
@@ -144,11 +117,7 @@ function mapPatternToScrollViewItem(
           style={styles.iconButton}
           accessibilityLabel={t("deletePattern")}
         >
-          <Text
-            style={[styles.deleteIcon, { color: palette[PaletteColor.Error] }]}
-          >
-            🗑️
-          </Text>
+          <Text style={styles.deleteIcon}>🗑️</Text>
         </TouchableOpacity>
       </View>
       {isSelected && (
@@ -162,38 +131,51 @@ function mapPatternToScrollViewItem(
   );
 }
 
-const styles = StyleSheet.create({
-  listContainer: {
-    borderRadius: 12,
-    padding: 8,
-    marginTop: 8,
-    marginBottom: 8,
-    elevation: 2,
-  },
-  plusButton: {
-    marginLeft: 8,
-    padding: 4,
-    borderRadius: 16,
-  },
-  patternItem: {
-    padding: 12,
-    borderRadius: 8,
-    borderWidth: 2,
-    marginBottom: 8,
-  },
-  patternItemHeader: {
-    flexDirection: "row",
-    alignItems: "center",
-  },
-  patternName: {
-    fontWeight: "bold",
-    fontSize: 16,
-  },
-  deleteIcon: { fontSize: 20, marginLeft: 8 },
-  iconButton: {
-    paddingHorizontal: 4,
-    paddingVertical: 2,
-  },
-});
+const getStyles = (palette: Record<PaletteColor, string>) =>
+  StyleSheet.create({
+    listContainer: {
+      borderRadius: 12,
+      padding: 8,
+      marginTop: 8,
+      marginBottom: 8,
+      elevation: 2,
+      backgroundColor: palette[PaletteColor.Surface],
+    },
+    plusButton: {
+      marginLeft: 8,
+      padding: 4,
+      borderRadius: 16,
+    },
+    patternItem: {
+      padding: 12,
+      borderRadius: 8,
+      borderWidth: 2,
+      marginBottom: 8,
+      borderColor: palette[PaletteColor.Border],
+      backgroundColor: palette[PaletteColor.Surface],
+    },
+    patternItemSelected: {
+      borderColor: palette[PaletteColor.Primary],
+      backgroundColor: palette[PaletteColor.TagBg],
+    },
+    patternItemHeader: {
+      flexDirection: "row",
+      alignItems: "center",
+    },
+    patternName: {
+      fontWeight: "bold",
+      fontSize: 16,
+      color: palette[PaletteColor.PrimaryText],
+    },
+    deleteIcon: {
+      fontSize: 20,
+      marginLeft: 8,
+      color: palette[PaletteColor.Error],
+    },
+    iconButton: {
+      paddingHorizontal: 4,
+      paddingVertical: 2,
+    },
+  });
 
 export default PatternList;

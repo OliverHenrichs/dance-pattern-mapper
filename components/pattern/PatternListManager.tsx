@@ -27,6 +27,7 @@ const PatternListManager = () => {
   >(undefined);
   const [isAddingNew, setIsAddingNew] = useState(false);
   const [isEditing, setIsEditing] = useState(false);
+  const styles = getStyles(palette);
 
   // Load patterns from storage on mount
   useEffect(() => {
@@ -82,7 +83,7 @@ const PatternListManager = () => {
         style={{ backgroundColor: palette[PaletteColor.Background] }}
       >
         <AppHeader />
-        <ScrollView style={[styles.container]}>
+        <ScrollView style={styles.container}>
           <Modal
             visible={isAddingNew}
             animationType="slide"
@@ -90,12 +91,7 @@ const PatternListManager = () => {
             onRequestClose={() => setIsAddingNew(false)}
           >
             <View style={styles.modalOverlay}>
-              <View
-                style={[
-                  styles.modalContent,
-                  { backgroundColor: palette[PaletteColor.Surface] },
-                ]}
-              >
+              <View style={styles.modalContent}>
                 <ScrollView contentContainerStyle={{ flexGrow: 1 }}>
                   <EditPatternForm
                     patterns={patterns}
@@ -114,12 +110,7 @@ const PatternListManager = () => {
             onRequestClose={() => setIsEditing(false)}
           >
             <View style={styles.modalOverlay}>
-              <View
-                style={[
-                  styles.modalContent,
-                  { backgroundColor: palette[PaletteColor.Surface] },
-                ]}
-              >
+              <View style={styles.modalContent}>
                 <ScrollView contentContainerStyle={{ flexGrow: 1 }}>
                   <EditPatternForm
                     patterns={patterns}
@@ -149,27 +140,29 @@ const PatternListManager = () => {
   );
 };
 
-const styles = StyleSheet.create({
-  container: {
-    flex: 1,
-  },
-  modalOverlay: {
-    flex: 1,
-    backgroundColor: "rgba(0,0,0,0.3)",
-    justifyContent: "center",
-    alignItems: "center",
-  },
-  modalContent: {
-    borderRadius: 0,
-    padding: 20,
-    minWidth: "80%",
-    maxHeight: "100%", // Limit modal height
-    elevation: 5,
-    shadowColor: "#000",
-    shadowOffset: { width: 0, height: 2 },
-    shadowOpacity: 0.25,
-    shadowRadius: 4,
-  },
-});
+const getStyles = (palette: Record<PaletteColor, string>) =>
+  StyleSheet.create({
+    container: {
+      flex: 1,
+    },
+    modalOverlay: {
+      flex: 1,
+      backgroundColor: "rgba(0,0,0,0.3)",
+      justifyContent: "center",
+      alignItems: "center",
+    },
+    modalContent: {
+      borderRadius: 0,
+      padding: 20,
+      minWidth: "80%",
+      maxHeight: "100%", // Limit modal height
+      elevation: 5,
+      shadowColor: "#000",
+      shadowOffset: { width: 0, height: 2 },
+      shadowOpacity: 0.25,
+      shadowRadius: 4,
+      backgroundColor: palette[PaletteColor.Surface],
+    },
+  });
 
 export default PatternListManager;

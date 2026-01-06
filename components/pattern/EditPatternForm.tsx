@@ -59,19 +59,11 @@ const EditPatternForm: React.FC<EditPatternFormProps> = ({
     setTagInput("");
   };
 
+  const styles = getStyles(palette);
+
   return (
-    <View
-      style={[
-        styles.addPatternContainer,
-        { backgroundColor: palette[PaletteColor.Surface] },
-      ]}
-    >
-      <Text
-        style={[
-          styles.sectionTitle,
-          { color: palette[PaletteColor.PrimaryText] },
-        ]}
-      >
+    <View style={styles.addPatternContainer}>
+      <Text style={styles.sectionTitle}>
         {existing ? t("editPattern") : t("addPattern")}
       </Text>
       <View style={styles.inputRow}>
@@ -79,14 +71,8 @@ const EditPatternForm: React.FC<EditPatternFormProps> = ({
           placeholder={t("patternName")}
           value={newPattern.name}
           onChangeText={(text) => setNewPattern({ ...newPattern, name: text })}
-          style={[
-            styles.input,
-            {
-              color: palette[PaletteColor.PrimaryText],
-              backgroundColor: palette[PaletteColor.TagBg],
-              borderColor: palette[PaletteColor.Border],
-            },
-          ]}
+          style={styles.input}
+          placeholderTextColor={palette[PaletteColor.SecondaryText]}
         />
         <TextInput
           placeholder={t("counts")}
@@ -95,14 +81,8 @@ const EditPatternForm: React.FC<EditPatternFormProps> = ({
             setNewPattern({ ...newPattern, counts: parseInt(text) || 0 })
           }
           keyboardType="numeric"
-          style={[
-            styles.input,
-            {
-              color: palette[PaletteColor.PrimaryText],
-              backgroundColor: palette[PaletteColor.TagBg],
-              borderColor: palette[PaletteColor.Border],
-            },
-          ]}
+          style={styles.input}
+          placeholderTextColor={palette[PaletteColor.SecondaryText]}
         />
       </View>
       <View style={styles.inputRow}>
@@ -114,13 +94,10 @@ const EditPatternForm: React.FC<EditPatternFormProps> = ({
               style={[
                 styles.prereqItem,
                 newPattern.type === type && styles.prereqItemSelected,
-                newPattern.type === type && {
-                  backgroundColor: palette[PaletteColor.Primary],
-                },
               ]}
               onPress={() => setNewPattern({ ...newPattern, type })}
             >
-              <Text>{type}</Text>
+              <Text style={styles.label}>{type}</Text>
             </TouchableOpacity>
           ))}
         </View>
@@ -132,9 +109,6 @@ const EditPatternForm: React.FC<EditPatternFormProps> = ({
               style={[
                 styles.prereqItem,
                 newPattern.level === level && styles.prereqItemSelected,
-                newPattern.level === level && {
-                  backgroundColor: palette[PaletteColor.Primary],
-                },
               ]}
               onPress={() =>
                 setNewPattern({
@@ -143,7 +117,7 @@ const EditPatternForm: React.FC<EditPatternFormProps> = ({
                 })
               }
             >
-              <Text>{level}</Text>
+              <Text style={styles.label}>{level}</Text>
             </TouchableOpacity>
           ))}
         </View>
@@ -154,15 +128,9 @@ const EditPatternForm: React.FC<EditPatternFormProps> = ({
         onChangeText={(text) =>
           setNewPattern({ ...newPattern, description: text })
         }
-        style={[
-          styles.textarea,
-          {
-            color: palette[PaletteColor.PrimaryText],
-            backgroundColor: palette[PaletteColor.TagBg],
-            borderColor: palette[PaletteColor.Border],
-          },
-        ]}
+        style={styles.textarea}
         multiline
+        placeholderTextColor={palette[PaletteColor.SecondaryText]}
       />
       {/* Video URL input for future video support */}
       <TextInput
@@ -171,21 +139,11 @@ const EditPatternForm: React.FC<EditPatternFormProps> = ({
         onChangeText={(text) =>
           setNewPattern({ ...newPattern, videoUrl: text })
         }
-        style={[
-          styles.input,
-          {
-            color: palette[PaletteColor.PrimaryText],
-            backgroundColor: palette[PaletteColor.TagBg],
-            borderColor: palette[PaletteColor.Border],
-          },
-        ]}
+        style={styles.input}
+        placeholderTextColor={palette[PaletteColor.SecondaryText]}
       />
       <View style={styles.prereqContainer}>
-        <Text
-          style={[styles.label, { color: palette[PaletteColor.PrimaryText] }]}
-        >
-          {t("prerequisites")}
-        </Text>
+        <Text style={styles.label}>{t("prerequisites")}</Text>
         <ScrollView horizontal>
           {patterns.map((p) => (
             <TouchableOpacity
@@ -194,9 +152,6 @@ const EditPatternForm: React.FC<EditPatternFormProps> = ({
                 styles.prereqItem,
                 newPattern.prerequisites.includes(p.id) &&
                   styles.prereqItemSelected,
-                newPattern.prerequisites.includes(p.id) && {
-                  backgroundColor: palette[PaletteColor.Primary],
-                },
               ]}
               onPress={() => {
                 if (newPattern.prerequisites.includes(p.id)) {
@@ -214,7 +169,7 @@ const EditPatternForm: React.FC<EditPatternFormProps> = ({
                 }
               }}
             >
-              <Text>{p.name}</Text>
+              <Text style={styles.label}>{p.name}</Text>
             </TouchableOpacity>
           ))}
         </ScrollView>
@@ -227,49 +182,17 @@ const EditPatternForm: React.FC<EditPatternFormProps> = ({
             value={tagInput}
             onChangeText={setTagInput}
             onSubmitEditing={addTag}
-            style={[
-              styles.input,
-              {
-                color: palette[PaletteColor.PrimaryText],
-                backgroundColor: palette[PaletteColor.TagBg],
-                borderColor: palette[PaletteColor.Border],
-              },
-            ]}
+            style={styles.input}
+            placeholderTextColor={palette[PaletteColor.SecondaryText]}
           />
-          <TouchableOpacity
-            onPress={addTag}
-            style={[
-              styles.buttonIndigoSmall,
-              { backgroundColor: palette[PaletteColor.Primary] },
-            ]}
-          >
-            <Text
-              style={[
-                styles.buttonText,
-                { color: palette[PaletteColor.Surface] },
-              ]}
-            >
-              {t("add")}
-            </Text>
+          <TouchableOpacity onPress={addTag} style={styles.buttonIndigoSmall}>
+            <Text style={styles.buttonText}>{t("add")}</Text>
           </TouchableOpacity>
         </View>
         <View style={styles.tagsRow}>
           {newPattern.tags.map((tag: string, idx: number) => (
-            <View
-              key={idx}
-              style={[
-                styles.tagItem,
-                { backgroundColor: palette[PaletteColor.TagBg] },
-              ]}
-            >
-              <Text
-                style={[
-                  styles.tagText,
-                  { color: palette[PaletteColor.TagText] },
-                ]}
-              >
-                {tag}
-              </Text>
+            <View key={idx} style={styles.tagItem}>
+              <Text style={styles.tagText}>{tag}</Text>
               <TouchableOpacity
                 onPress={() =>
                   setNewPattern({
@@ -278,35 +201,15 @@ const EditPatternForm: React.FC<EditPatternFormProps> = ({
                   })
                 }
               >
-                <Text
-                  style={[
-                    styles.tagRemove,
-                    { color: palette[PaletteColor.TagText] },
-                  ]}
-                >
-                  ×
-                </Text>
+                <Text style={styles.tagRemove}>×</Text>
               </TouchableOpacity>
             </View>
           ))}
         </View>
       </View>
       <View style={styles.buttonRow}>
-        <TouchableOpacity
-          onPress={handleFinish}
-          style={[
-            styles.buttonIndigo,
-            { backgroundColor: palette[PaletteColor.Primary] },
-          ]}
-        >
-          <Text
-            style={[
-              styles.buttonText,
-              { color: palette[PaletteColor.Surface] },
-            ]}
-          >
-            {t("savePattern")}
-          </Text>
+        <TouchableOpacity onPress={handleFinish} style={styles.buttonIndigo}>
+          <Text style={styles.buttonText}>{t("savePattern")}</Text>
         </TouchableOpacity>
         <TouchableOpacity onPress={onCancel} style={styles.buttonGray}>
           <Text style={styles.buttonText}>{t("cancel")}</Text>
@@ -316,70 +219,91 @@ const EditPatternForm: React.FC<EditPatternFormProps> = ({
   );
 };
 
-const styles = StyleSheet.create({
-  addPatternContainer: {
-    borderRadius: 8,
-    padding: 16,
-    marginBottom: 24,
-  },
-  sectionTitle: {
-    fontSize: 18,
-    fontWeight: "bold",
-    color: "#1e293b",
-    marginBottom: 8,
-  },
-  inputRow: { flexDirection: "row", gap: 8, marginBottom: 8 },
-  input: {
-    flex: 1,
-    borderWidth: 1,
-    borderColor: "#d1d5db",
-    borderRadius: 8,
-    padding: 8,
-  },
-  textarea: {
-    borderWidth: 1,
-    borderColor: "#d1d5db",
-    borderRadius: 8,
-    padding: 8,
-    minHeight: 48,
-    marginBottom: 8,
-  },
-  prereqContainer: { marginBottom: 8 },
-  label: { fontSize: 14, fontWeight: "500", marginBottom: 4 },
-  prereqItem: {
-    backgroundColor: "#f3f4f6",
-    padding: 6,
-    borderRadius: 8,
-    marginRight: 4,
-    marginBottom: 4,
-  },
-  prereqItemSelected: { backgroundColor: "#c7d2fe" },
-  tagsContainer: { marginBottom: 8 },
-  tagsRow: { flexDirection: "row", flexWrap: "wrap", gap: 4 },
-  tagItem: {
-    flexDirection: "row",
-    alignItems: "center",
-    backgroundColor: "#ede9fe",
-    borderRadius: 16,
-    paddingHorizontal: 8,
-    paddingVertical: 4,
-    marginRight: 4,
-    marginBottom: 4,
-  },
-  tagText: { color: "#7c3aed", fontSize: 12 },
-  tagRemove: { color: "#7c3aed", fontSize: 16, marginLeft: 4 },
-  buttonRow: { flexDirection: "row", gap: 8, marginTop: 8 },
-  buttonIndigo: {
-    padding: 8,
-    borderRadius: 8,
-    marginRight: 8,
-  },
-  buttonIndigoSmall: {
-    padding: 8,
-    borderRadius: 8,
-  },
-  buttonGray: { backgroundColor: "#d1d5db", padding: 8, borderRadius: 8 },
-  buttonText: { color: "#fff", fontWeight: "bold" },
-});
+const getStyles = (palette: Record<PaletteColor, string>) =>
+  StyleSheet.create({
+    addPatternContainer: {
+      borderRadius: 8,
+      padding: 16,
+      marginBottom: 24,
+      backgroundColor: palette[PaletteColor.Surface],
+    },
+    sectionTitle: {
+      fontSize: 18,
+      fontWeight: "bold",
+      color: palette[PaletteColor.PrimaryText],
+      marginBottom: 8,
+    },
+    inputRow: { flexDirection: "row", gap: 8, marginBottom: 8 },
+    input: {
+      flex: 1,
+      borderWidth: 1,
+      borderColor: palette[PaletteColor.Border],
+      borderRadius: 8,
+      padding: 8,
+      color: palette[PaletteColor.PrimaryText],
+      backgroundColor: palette[PaletteColor.TagBg],
+    },
+    textarea: {
+      borderWidth: 1,
+      borderColor: palette[PaletteColor.Border],
+      borderRadius: 8,
+      padding: 8,
+      minHeight: 48,
+      marginBottom: 8,
+      color: palette[PaletteColor.PrimaryText],
+      backgroundColor: palette[PaletteColor.TagBg],
+    },
+    prereqContainer: { marginBottom: 8 },
+    label: {
+      fontSize: 14,
+      fontWeight: "500",
+      marginBottom: 4,
+      color: palette[PaletteColor.PrimaryText],
+    },
+    prereqItem: {
+      backgroundColor: palette[PaletteColor.TagBg],
+      padding: 6,
+      borderRadius: 8,
+      marginRight: 4,
+      marginBottom: 4,
+    },
+    prereqItemSelected: { backgroundColor: palette[PaletteColor.Primary] },
+    tagsContainer: { marginBottom: 8 },
+    tagsRow: { flexDirection: "row", flexWrap: "wrap", gap: 4 },
+    tagItem: {
+      flexDirection: "row",
+      alignItems: "center",
+      backgroundColor: palette[PaletteColor.TagBg],
+      borderRadius: 16,
+      paddingHorizontal: 8,
+      paddingVertical: 4,
+      marginRight: 4,
+      marginBottom: 4,
+    },
+    tagText: { color: palette[PaletteColor.TagText], fontSize: 12 },
+    tagRemove: {
+      color: palette[PaletteColor.TagText],
+      fontSize: 16,
+      marginLeft: 4,
+    },
+    buttonRow: { flexDirection: "row", gap: 8, marginTop: 8 },
+    buttonIndigo: {
+      padding: 8,
+      borderRadius: 8,
+      marginRight: 8,
+      backgroundColor: palette[PaletteColor.Primary],
+    },
+    buttonIndigoSmall: {
+      padding: 8,
+      borderRadius: 8,
+      backgroundColor: palette[PaletteColor.Primary],
+    },
+    buttonGray: {
+      backgroundColor: palette[PaletteColor.Border],
+      padding: 8,
+      borderRadius: 8,
+    },
+    buttonText: { color: palette[PaletteColor.Surface], fontWeight: "bold" },
+  });
 
 export default EditPatternForm;

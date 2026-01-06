@@ -2,7 +2,6 @@ import React from "react";
 import { StyleSheet, Text, View } from "react-native";
 import { WCSPattern } from "@/components/pattern/types/WCSPattern";
 import { useTranslation } from "react-i18next";
-import { useThemeContext } from "@/components/common/ThemeContext";
 import { PaletteColor } from "@/components/common/ColorPalette";
 
 type PatternDetailsProps = {
@@ -17,37 +16,15 @@ const PatternDetails: React.FC<PatternDetailsProps> = ({
   palette,
 }) => {
   const { t } = useTranslation();
-  const { colorScheme } = useThemeContext();
+  const styles = getStyles(palette);
   return (
-    <View
-      style={[
-        styles.detailsContainer,
-        {
-          backgroundColor: palette[PaletteColor.Surface],
-          borderColor: palette[PaletteColor.Primary],
-        },
-      ]}
-    >
-      <Text
-        style={[
-          styles.patternName,
-          { color: palette[PaletteColor.PrimaryText] },
-        ]}
-      >
-        {selectedPattern.name}
-      </Text>
-      <Text
-        style={[
-          styles.patternDetailsDesc,
-          { color: palette[PaletteColor.SecondaryText] },
-        ]}
-      >
+    <View style={styles.detailsContainer}>
+      <Text style={styles.patternName}>{selectedPattern.name}</Text>
+      <Text style={styles.patternDetailsDesc}>
         {selectedPattern.description}
       </Text>
       {selectedPattern.videoUrl ? (
-        <Text
-          style={[styles.videoUrl, { color: palette[PaletteColor.Accent] }]}
-        >
+        <Text style={styles.videoUrl}>
           {t("video")}: {selectedPattern.videoUrl}
         </Text>
       ) : null}
@@ -69,9 +46,10 @@ const PatternDetails: React.FC<PatternDetailsProps> = ({
           </Text>
         </View>
       </View>
-      {selectedPattern.tags.length > 0 && getTagView(selectedPattern, t)}
-      {getPrerequisiteView(selectedPattern, patterns, t)}
-      {getBuildsIntoView(selectedPattern, patterns, t)}
+      {selectedPattern.tags.length > 0 &&
+        getTagView(selectedPattern, t, styles)}
+      {getPrerequisiteView(selectedPattern, patterns, t, styles)}
+      {getBuildsIntoView(selectedPattern, patterns, t, styles)}
     </View>
   );
 };
@@ -80,6 +58,7 @@ function getPrerequisiteView(
   selectedPattern: WCSPattern,
   patterns: WCSPattern[],
   t: any,
+  styles: ReturnType<typeof getStyles>,
 ) {
   return (
     <View style={styles.prereqContainer}>
@@ -89,13 +68,17 @@ function getPrerequisiteView(
           {t("patternDetailsNoPrerequisites")}
         </Text>
       ) : (
-        <View>{getPrerequisites(selectedPattern, patterns)}</View>
+        <View>{getPrerequisites(selectedPattern, patterns, styles)}</View>
       )}
     </View>
   );
 }
 
-function getPrerequisites(selectedPattern: WCSPattern, patterns: WCSPattern[]) {
+function getPrerequisites(
+  selectedPattern: WCSPattern,
+  patterns: WCSPattern[],
+  styles: ReturnType<typeof getStyles>,
+) {
   return (
     <>
       {selectedPattern.prerequisites.map((preRequisiteId: number) => {
@@ -110,7 +93,11 @@ function getPrerequisites(selectedPattern: WCSPattern, patterns: WCSPattern[]) {
   );
 }
 
-function getTagView(selectedPattern: WCSPattern, t: any) {
+function getTagView(
+  selectedPattern: WCSPattern,
+  t: any,
+  styles: ReturnType<typeof getStyles>,
+) {
   return (
     <View style={styles.tagsRow}>
       <Text style={styles.label}>{t("tags")}:</Text>
@@ -129,6 +116,7 @@ function getBuildsIntoView(
   selectedPattern: WCSPattern,
   patterns: WCSPattern[],
   t: any,
+  styles: ReturnType<typeof getStyles>,
 ) {
   const dependents = patterns.filter((pattern) =>
     pattern.prerequisites.includes(selectedPattern.id),
@@ -155,41 +143,56 @@ function getBuildsIntoView(
   );
 }
 
-const styles = StyleSheet.create({
-  sectionTitle: {
-    fontSize: 18,
-    fontWeight: "bold",
-    color: "#1e293b",
-    marginBottom: 8,
-  },
-  label: { fontSize: 14, fontWeight: "500", color: "#64748b", marginBottom: 4 },
-  prereqContainer: { marginBottom: 8 },
-  prereqItem: {
-    backgroundColor: "#f3f4f6",
-    padding: 6,
-    borderRadius: 8,
-    marginRight: 4,
-    marginBottom: 4,
-  },
-  tagsRow: { flexDirection: "row", flexWrap: "wrap", gap: 4 },
-  tagText: { color: "#7c3aed", fontSize: 12 },
-  detailsContainer: {
-    borderRadius: 8,
-    borderWidth: 2,
-    borderColor: "#6366f1",
-    padding: 16,
-    marginTop: 8,
-  },
-  patternName: {
-    fontSize: 20,
-    fontWeight: "bold",
-    marginBottom: 4,
-  },
-  patternDetailsDesc: { color: "#64748b", marginBottom: 8 },
-  patternDetailsRow: { flexDirection: "row", gap: 16, marginBottom: 8 },
-  patternDetailsCol: { flex: 1 },
-  patternDetailsValue: { fontSize: 16, fontWeight: "bold", color: "#1e293b" },
-  videoUrl: { color: "#1e90ff", marginBottom: 8 },
-});
+const getStyles = (palette: Record<PaletteColor, string>) =>
+  StyleSheet.create({
+    sectionTitle: {
+      fontSize: 18,
+      fontWeight: "bold",
+      color: palette[PaletteColor.PrimaryText],
+      marginBottom: 8,
+    },
+    label: {
+      fontSize: 14,
+      fontWeight: "500",
+      color: palette[PaletteColor.SecondaryText],
+      marginBottom: 4,
+    },
+    prereqContainer: { marginBottom: 8 },
+    prereqItem: {
+      backgroundColor: palette[PaletteColor.TagBg],
+      padding: 6,
+      borderRadius: 8,
+      marginRight: 4,
+      marginBottom: 4,
+    },
+    tagsRow: { flexDirection: "row", flexWrap: "wrap", gap: 4 },
+    tagText: { color: palette[PaletteColor.TagText], fontSize: 12 },
+    detailsContainer: {
+      borderRadius: 8,
+      borderWidth: 2,
+      borderColor: palette[PaletteColor.Primary],
+      padding: 16,
+      marginTop: 8,
+      backgroundColor: palette[PaletteColor.Surface],
+    },
+    patternName: {
+      fontSize: 20,
+      fontWeight: "bold",
+      marginBottom: 4,
+      color: palette[PaletteColor.PrimaryText],
+    },
+    patternDetailsDesc: {
+      color: palette[PaletteColor.SecondaryText],
+      marginBottom: 8,
+    },
+    patternDetailsRow: { flexDirection: "row", gap: 16, marginBottom: 8 },
+    patternDetailsCol: { flex: 1 },
+    patternDetailsValue: {
+      fontSize: 16,
+      fontWeight: "bold",
+      color: palette[PaletteColor.PrimaryText],
+    },
+    videoUrl: { color: palette[PaletteColor.Accent], marginBottom: 8 },
+  });
 
 export default PatternDetails;
