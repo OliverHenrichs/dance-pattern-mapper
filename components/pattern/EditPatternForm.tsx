@@ -194,7 +194,7 @@ const EditPatternForm: React.FC<EditPatternFormProps> = ({
             style={styles.input}
             placeholderTextColor={palette[PaletteColor.SecondaryText]}
           />
-          <TouchableOpacity onPress={addTag} style={styles.buttonIndigoSmall}>
+          <TouchableOpacity onPress={addTag} style={styles.buttonIndigo}>
             <Text style={styles.buttonText}>{t("add")}</Text>
           </TouchableOpacity>
         </View>
@@ -217,7 +217,10 @@ const EditPatternForm: React.FC<EditPatternFormProps> = ({
         </View>
       </View>
       <View style={styles.buttonRow}>
-        <TouchableOpacity onPress={handleFinish} style={styles.buttonIndigo}>
+        <TouchableOpacity
+          onPress={handleFinish}
+          style={styles.buttonIndigoWithMargin}
+        >
           <Text style={styles.buttonText}>{t("savePattern")}</Text>
         </TouchableOpacity>
         <TouchableOpacity onPress={onCancel} style={styles.buttonGray}>
@@ -311,13 +314,13 @@ const getStyles = (palette: Record<PaletteColor, string>) => {
       marginLeft: 4,
     },
     // Buttons
-    buttonRow: { flexDirection: "row", gap: 8, marginTop: 8 },
-    buttonIndigo: {
+    buttonRow: { flexDirection: "row", gap: 8 },
+    buttonIndigoWithMargin: {
       ...baseButton,
       marginRight: 8,
       backgroundColor: palette[PaletteColor.Primary],
     },
-    buttonIndigoSmall: {
+    buttonIndigo: {
       ...baseButton,
       backgroundColor: palette[PaletteColor.Primary],
     },
@@ -325,7 +328,10 @@ const getStyles = (palette: Record<PaletteColor, string>) => {
       ...baseButton,
       backgroundColor: palette[PaletteColor.Border],
     },
-    buttonText: { color: palette[PaletteColor.Surface], fontWeight: "bold" },
+    buttonText: {
+      color: palette[PaletteColor.PrimaryText],
+      fontWeight: "bold",
+    },
   });
 };
 
