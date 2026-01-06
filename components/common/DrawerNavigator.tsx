@@ -1,0 +1,95 @@
+import React from "react";
+import PatternListManager from "@/components/pattern/PatternListManager";
+import SettingsScreen from "@/components/pattern/SettingsScreen";
+import {
+  createDrawerNavigator,
+  DrawerContentComponentProps,
+  DrawerContentScrollView,
+  DrawerItemList,
+} from "@react-navigation/drawer";
+import { SafeAreaView } from "react-native-safe-area-context";
+import { StyleSheet, Text, View } from "react-native";
+import { useTranslation } from "react-i18next";
+import { useThemeContext } from "@/components/common/ThemeContext";
+import { getPalette, PaletteColor } from "@/components/common/ColorPalette";
+
+const Drawer = createDrawerNavigator();
+
+export default function DrawerNavigator() {
+  const { t } = useTranslation();
+  const { colorScheme } = useThemeContext();
+  const palette = getPalette(colorScheme);
+  const styles = getStyles(palette);
+  return (
+    <SafeAreaView style={styles.flexView}>
+      <Drawer.Navigator
+        initialRouteName="Patterns"
+        screenOptions={{
+          drawerPosition: "right",
+          headerShown: false,
+          swipeEdgeWidth: 40,
+          drawerStyle: styles.drawerStyle,
+        }}
+        drawerContent={(props) => <CustomDrawerContent {...props} />}
+      >
+        <Drawer.Screen
+          name="Patterns"
+          component={PatternListManager}
+          options={{ title: t("patternTab") }}
+        />
+        <Drawer.Screen
+          name="Settings"
+          component={SettingsScreen}
+          options={{ title: t("settingsTab") }}
+        />
+      </Drawer.Navigator>
+    </SafeAreaView>
+  );
+}
+
+function CustomDrawerContent(props: DrawerContentComponentProps) {
+  const { t } = useTranslation();
+  const { colorScheme } = useThemeContext();
+  const palette = getPalette(colorScheme);
+  const styles = getStyles(palette);
+  return (
+    <DrawerContentScrollView
+      {...props}
+      contentContainerStyle={{
+        flex: 1,
+        backgroundColor: palette[PaletteColor.Background],
+      }}
+      style={styles.drawerStyle}
+    >
+      <View style={styles.drawerHeaderContainer}>
+        <Text style={styles.drawerHeader}>{t("menu")}</Text>
+      </View>
+      <DrawerItemList {...props} />
+    </DrawerContentScrollView>
+  );
+}
+
+function getStyles(palette: Record<PaletteColor, string>) {
+  return StyleSheet.create({
+    drawerHeaderContainer: {
+      paddingBottom: 16,
+      paddingHorizontal: 16,
+      alignItems: "center",
+      backgroundColor: palette[PaletteColor.Background],
+    },
+    drawerHeader: {
+      fontSize: 18,
+      fontWeight: "bold",
+      color: palette[PaletteColor.Primary],
+      letterSpacing: 1,
+    },
+    flexView: {
+      flex: 1,
+      backgroundColor: palette[PaletteColor.Background],
+    },
+    drawerStyle: {
+      width: 180,
+      backgroundColor: palette[PaletteColor.Background],
+    },
+  });
+}
