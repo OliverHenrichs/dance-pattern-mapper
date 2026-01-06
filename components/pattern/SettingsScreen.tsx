@@ -5,6 +5,7 @@ import AppHeader from "@/components/common/AppHeader";
 import PageContainer from "@/components/common/PageContainer";
 import { getCommonStyles } from "@/components/common/CommonStyles";
 import { ThemeType, useThemeContext } from "@/components/common/ThemeContext";
+import { getPalette, PaletteColor } from "@/components/common/ColorPalette";
 
 const LANGUAGES = [
   { code: "en", label: "English" },
@@ -16,6 +17,7 @@ const SettingsScreen: React.FC = () => {
   const currentLang = i18n.language;
   const { theme, setTheme, colorScheme } = useThemeContext();
   const commonStyles = getCommonStyles(colorScheme);
+  const palette = getPalette(colorScheme);
 
   const themeOptions = [
     { value: "system", label: t("themeSystem") },
@@ -23,7 +25,7 @@ const SettingsScreen: React.FC = () => {
     { value: "dark", label: t("themeDark") },
   ];
 
-  const getStyles = (colorScheme: "light" | "dark") =>
+  const getStyles = (palette: Record<PaletteColor, string>) =>
     StyleSheet.create({
       languageRow: {
         flexDirection: "row",
@@ -34,20 +36,20 @@ const SettingsScreen: React.FC = () => {
         paddingVertical: 8,
         paddingHorizontal: 16,
         borderRadius: 8,
-        backgroundColor: colorScheme === "dark" ? "#27272a" : "#f3f4f6",
+        backgroundColor: palette[PaletteColor.Surface],
         borderWidth: 1,
-        borderColor: colorScheme === "dark" ? "#52525b" : "#d1d5db",
+        borderColor: palette[PaletteColor.Border],
       },
       langButtonSelected: {
-        backgroundColor: "#6366f1",
-        borderColor: "#6366f1",
+        backgroundColor: palette[PaletteColor.Primary],
+        borderColor: palette[PaletteColor.Primary],
       },
       langButtonText: {
-        color: colorScheme === "dark" ? "#f1f5f9" : "#3730a3",
+        color: palette[PaletteColor.PrimaryText],
         fontWeight: "bold",
       },
       langButtonTextSelected: {
-        color: "#fff",
+        color: palette[PaletteColor.Surface],
       },
       themeRow: {
         flexDirection: "row",
@@ -58,28 +60,28 @@ const SettingsScreen: React.FC = () => {
         paddingVertical: 8,
         paddingHorizontal: 16,
         borderRadius: 8,
-        backgroundColor: colorScheme === "dark" ? "#27272a" : "#f3f4f6",
+        backgroundColor: palette[PaletteColor.Surface],
         borderWidth: 1,
-        borderColor: colorScheme === "dark" ? "#52525b" : "#d1d5db",
+        borderColor: palette[PaletteColor.Border],
       },
       themeButtonSelected: {
-        backgroundColor: "#6366f1",
-        borderColor: "#6366f1",
+        backgroundColor: palette[PaletteColor.Primary],
+        borderColor: palette[PaletteColor.Primary],
       },
       themeButtonText: {
-        color: colorScheme === "dark" ? "#f1f5f9" : "#3730a3",
+        color: palette[PaletteColor.PrimaryText],
         fontWeight: "bold",
       },
       themeButtonTextSelected: {
-        color: "#fff",
+        color: palette[PaletteColor.Surface],
       },
     });
 
-  const styles = getStyles(colorScheme);
+  const styles = getStyles(palette);
 
   return (
     <PageContainer
-      style={{ backgroundColor: colorScheme === "dark" ? "#18181b" : "#fff" }}
+      style={{ backgroundColor: palette[PaletteColor.Background] }}
     >
       <AppHeader />
       <ScrollView style={{ flex: 1 }}>

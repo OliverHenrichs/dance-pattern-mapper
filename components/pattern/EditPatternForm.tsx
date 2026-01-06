@@ -17,13 +17,14 @@ import {
 } from "@/components/pattern/types/WCSPatternEnums";
 import { defaultNewPattern } from "@/components/pattern/data/DefaultWCSPatterns";
 import { useTranslation } from "react-i18next";
-import { useThemeContext } from "@/components/common/ThemeContext";
+import { PaletteColor } from "@/components/common/ColorPalette";
 
 type EditPatternFormProps = {
   patterns: WCSPattern[];
   onAccepted: (pattern: NewWCSPattern | WCSPattern) => void;
   onCancel: () => void;
   existing?: WCSPattern | null;
+  palette: Record<PaletteColor, string>;
 };
 
 const patternTypes = Object.values(WCSPatternType);
@@ -34,9 +35,9 @@ const EditPatternForm: React.FC<EditPatternFormProps> = ({
   onAccepted,
   onCancel,
   existing,
+  palette,
 }) => {
   const { t } = useTranslation();
-  const { colorScheme } = useThemeContext();
   const [newPattern, setNewPattern] = useState<NewWCSPattern>(
     existing ?? defaultNewPattern,
   );
@@ -62,10 +63,15 @@ const EditPatternForm: React.FC<EditPatternFormProps> = ({
     <View
       style={[
         styles.addPatternContainer,
-        { backgroundColor: colorScheme === "dark" ? "#23232b" : "#fff" },
+        { backgroundColor: palette[PaletteColor.Surface] },
       ]}
     >
-      <Text style={styles.sectionTitle}>
+      <Text
+        style={[
+          styles.sectionTitle,
+          { color: palette[PaletteColor.PrimaryText] },
+        ]}
+      >
         {existing ? t("editPattern") : t("addPattern")}
       </Text>
       <View style={styles.inputRow}>
@@ -76,8 +82,9 @@ const EditPatternForm: React.FC<EditPatternFormProps> = ({
           style={[
             styles.input,
             {
-              color: colorScheme === "dark" ? "#f1f5f9" : "#1e293b",
-              backgroundColor: colorScheme === "dark" ? "#18181b" : "#f3f4f6",
+              color: palette[PaletteColor.PrimaryText],
+              backgroundColor: palette[PaletteColor.TagBg],
+              borderColor: palette[PaletteColor.Border],
             },
           ]}
         />
@@ -91,8 +98,9 @@ const EditPatternForm: React.FC<EditPatternFormProps> = ({
           style={[
             styles.input,
             {
-              color: colorScheme === "dark" ? "#f1f5f9" : "#1e293b",
-              backgroundColor: colorScheme === "dark" ? "#18181b" : "#f3f4f6",
+              color: palette[PaletteColor.PrimaryText],
+              backgroundColor: palette[PaletteColor.TagBg],
+              borderColor: palette[PaletteColor.Border],
             },
           ]}
         />
@@ -106,6 +114,9 @@ const EditPatternForm: React.FC<EditPatternFormProps> = ({
               style={[
                 styles.prereqItem,
                 newPattern.type === type && styles.prereqItemSelected,
+                newPattern.type === type && {
+                  backgroundColor: palette[PaletteColor.Primary],
+                },
               ]}
               onPress={() => setNewPattern({ ...newPattern, type })}
             >
@@ -121,6 +132,9 @@ const EditPatternForm: React.FC<EditPatternFormProps> = ({
               style={[
                 styles.prereqItem,
                 newPattern.level === level && styles.prereqItemSelected,
+                newPattern.level === level && {
+                  backgroundColor: palette[PaletteColor.Primary],
+                },
               ]}
               onPress={() =>
                 setNewPattern({
@@ -140,7 +154,14 @@ const EditPatternForm: React.FC<EditPatternFormProps> = ({
         onChangeText={(text) =>
           setNewPattern({ ...newPattern, description: text })
         }
-        style={styles.textarea}
+        style={[
+          styles.textarea,
+          {
+            color: palette[PaletteColor.PrimaryText],
+            backgroundColor: palette[PaletteColor.TagBg],
+            borderColor: palette[PaletteColor.Border],
+          },
+        ]}
         multiline
       />
       {/* Video URL input for future video support */}
@@ -150,10 +171,21 @@ const EditPatternForm: React.FC<EditPatternFormProps> = ({
         onChangeText={(text) =>
           setNewPattern({ ...newPattern, videoUrl: text })
         }
-        style={styles.input}
+        style={[
+          styles.input,
+          {
+            color: palette[PaletteColor.PrimaryText],
+            backgroundColor: palette[PaletteColor.TagBg],
+            borderColor: palette[PaletteColor.Border],
+          },
+        ]}
       />
       <View style={styles.prereqContainer}>
-        <Text style={styles.label}>{t("prerequisites")}</Text>
+        <Text
+          style={[styles.label, { color: palette[PaletteColor.PrimaryText] }]}
+        >
+          {t("prerequisites")}
+        </Text>
         <ScrollView horizontal>
           {patterns.map((p) => (
             <TouchableOpacity
@@ -162,6 +194,9 @@ const EditPatternForm: React.FC<EditPatternFormProps> = ({
                 styles.prereqItem,
                 newPattern.prerequisites.includes(p.id) &&
                   styles.prereqItemSelected,
+                newPattern.prerequisites.includes(p.id) && {
+                  backgroundColor: palette[PaletteColor.Primary],
+                },
               ]}
               onPress={() => {
                 if (newPattern.prerequisites.includes(p.id)) {
@@ -192,16 +227,49 @@ const EditPatternForm: React.FC<EditPatternFormProps> = ({
             value={tagInput}
             onChangeText={setTagInput}
             onSubmitEditing={addTag}
-            style={styles.input}
+            style={[
+              styles.input,
+              {
+                color: palette[PaletteColor.PrimaryText],
+                backgroundColor: palette[PaletteColor.TagBg],
+                borderColor: palette[PaletteColor.Border],
+              },
+            ]}
           />
-          <TouchableOpacity onPress={addTag} style={styles.buttonIndigoSmall}>
-            <Text style={styles.buttonText}>{t("add")}</Text>
+          <TouchableOpacity
+            onPress={addTag}
+            style={[
+              styles.buttonIndigoSmall,
+              { backgroundColor: palette[PaletteColor.Primary] },
+            ]}
+          >
+            <Text
+              style={[
+                styles.buttonText,
+                { color: palette[PaletteColor.Surface] },
+              ]}
+            >
+              {t("add")}
+            </Text>
           </TouchableOpacity>
         </View>
         <View style={styles.tagsRow}>
           {newPattern.tags.map((tag: string, idx: number) => (
-            <View key={idx} style={styles.tagItem}>
-              <Text style={styles.tagText}>{tag}</Text>
+            <View
+              key={idx}
+              style={[
+                styles.tagItem,
+                { backgroundColor: palette[PaletteColor.TagBg] },
+              ]}
+            >
+              <Text
+                style={[
+                  styles.tagText,
+                  { color: palette[PaletteColor.TagText] },
+                ]}
+              >
+                {tag}
+              </Text>
               <TouchableOpacity
                 onPress={() =>
                   setNewPattern({
@@ -210,7 +278,14 @@ const EditPatternForm: React.FC<EditPatternFormProps> = ({
                   })
                 }
               >
-                <Text style={styles.tagRemove}>×</Text>
+                <Text
+                  style={[
+                    styles.tagRemove,
+                    { color: palette[PaletteColor.TagText] },
+                  ]}
+                >
+                  ×
+                </Text>
               </TouchableOpacity>
             </View>
           ))}
@@ -221,13 +296,13 @@ const EditPatternForm: React.FC<EditPatternFormProps> = ({
           onPress={handleFinish}
           style={[
             styles.buttonIndigo,
-            { backgroundColor: colorScheme === "dark" ? "#3730a3" : "#6366f1" },
+            { backgroundColor: palette[PaletteColor.Primary] },
           ]}
         >
           <Text
             style={[
               styles.buttonText,
-              { color: colorScheme === "dark" ? "#f1f5f9" : "#fff" },
+              { color: palette[PaletteColor.Surface] },
             ]}
           >
             {t("savePattern")}

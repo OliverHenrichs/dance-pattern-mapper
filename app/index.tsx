@@ -11,20 +11,41 @@ import React from "react";
 import { SafeAreaView } from "react-native-safe-area-context";
 import { StyleSheet, Text, View } from "react-native";
 import { useTranslation } from "react-i18next";
-import { ThemeProvider } from "@/components/common/ThemeContext";
+import {
+  ThemeProvider,
+  useThemeContext,
+} from "@/components/common/ThemeContext";
+import { getPalette, PaletteColor } from "@/components/common/ColorPalette";
 
 const Drawer = createDrawerNavigator();
 
 function CustomDrawerContent(props: DrawerContentComponentProps) {
   const { t } = useTranslation();
+  const { colorScheme } = useThemeContext();
+  const palette = getPalette(colorScheme);
   return (
     <DrawerContentScrollView
       {...props}
-      contentContainerStyle={{ flex: 1 }}
-      style={{ width: 180 }}
+      contentContainerStyle={{
+        flex: 1,
+        backgroundColor: palette[PaletteColor.Background],
+      }}
+      style={{ width: 180, backgroundColor: palette[PaletteColor.Background] }}
     >
-      <View style={styles.drawerHeaderContainer}>
-        <Text style={styles.drawerHeader}>{t("menu")}</Text>
+      <View
+        style={[
+          styles.drawerHeaderContainer,
+          { backgroundColor: palette[PaletteColor.Background] },
+        ]}
+      >
+        <Text
+          style={[
+            styles.drawerHeader,
+            { color: palette[PaletteColor.Primary] },
+          ]}
+        >
+          {t("menu")}
+        </Text>
       </View>
       <DrawerItemList {...props} />
     </DrawerContentScrollView>
@@ -33,31 +54,42 @@ function CustomDrawerContent(props: DrawerContentComponentProps) {
 
 export default function Index() {
   const { t } = useTranslation();
+  const { colorScheme } = useThemeContext();
+  const palette = getPalette(colorScheme);
   return (
     <ThemeProvider>
-      <SafeAreaView style={{ flex: 1, backgroundColor: "#f5f3ff" }}>
-        <Drawer.Navigator
-          initialRouteName="Patterns"
-          screenOptions={{
-            drawerPosition: "right",
-            headerShown: false,
-            swipeEdgeWidth: 40,
-            drawerStyle: { width: 180 },
-          }}
-          drawerContent={(props) => <CustomDrawerContent {...props} />}
+      <View
+        style={{ flex: 1, backgroundColor: palette[PaletteColor.Background] }}
+      >
+        <SafeAreaView
+          style={{ flex: 1, backgroundColor: palette[PaletteColor.Background] }}
         >
-          <Drawer.Screen
-            name="Patterns"
-            component={PatternListManager}
-            options={{ title: t("patternTab") }}
-          />
-          <Drawer.Screen
-            name="Settings"
-            component={SettingsScreen}
-            options={{ title: t("settingsTab") }}
-          />
-        </Drawer.Navigator>
-      </SafeAreaView>
+          <Drawer.Navigator
+            initialRouteName="Patterns"
+            screenOptions={{
+              drawerPosition: "right",
+              headerShown: false,
+              swipeEdgeWidth: 40,
+              drawerStyle: {
+                width: 180,
+                backgroundColor: palette[PaletteColor.Background],
+              },
+            }}
+            drawerContent={(props) => <CustomDrawerContent {...props} />}
+          >
+            <Drawer.Screen
+              name="Patterns"
+              component={PatternListManager}
+              options={{ title: t("patternTab") }}
+            />
+            <Drawer.Screen
+              name="Settings"
+              component={SettingsScreen}
+              options={{ title: t("settingsTab") }}
+            />
+          </Drawer.Navigator>
+        </SafeAreaView>
+      </View>
     </ThemeProvider>
   );
 }

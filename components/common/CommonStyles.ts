@@ -1,11 +1,13 @@
 import { StyleSheet } from "react-native";
+import { getPalette, PaletteColor } from "@/components/common/ColorPalette";
 
-export const getCommonStyles = (colorScheme: "light" | "dark") =>
-  StyleSheet.create({
+export const getCommonStyles = (colorScheme: "light" | "dark") => {
+  const palette = getPalette(colorScheme);
+  return StyleSheet.create({
     sectionTitle: {
       fontSize: 18,
       fontWeight: "bold",
-      color: colorScheme === "dark" ? "#f1f5f9" : "#1e293b",
+      color: palette[PaletteColor.PrimaryText],
     },
     sectionHeaderRow: {
       flexDirection: "row",
@@ -16,3 +18,4 @@ export const getCommonStyles = (colorScheme: "light" | "dark") =>
       minHeight: 39, // Ensures consistent height with + button
     },
   });
+};

@@ -14,9 +14,11 @@ import {
 import AppHeader from "@/components/common/AppHeader";
 import PageContainer from "@/components/common/PageContainer";
 import { useThemeContext } from "@/components/common/ThemeContext";
+import { getPalette, PaletteColor } from "@/components/common/ColorPalette";
 
 const PatternListManager = () => {
   const { colorScheme } = useThemeContext();
+  const palette = getPalette(colorScheme);
   const [patterns, setPatterns] = useState<WCSPattern[]>(
     foundationalWCSPatterns,
   );
@@ -75,15 +77,12 @@ const PatternListManager = () => {
   };
 
   return (
-    <View
-      style={{
-        flex: 1,
-        backgroundColor: colorScheme === "dark" ? "#18181b" : "#f5f3ff",
-      }}
-    >
-      <PageContainer>
+    <View style={{ flex: 1 }}>
+      <PageContainer
+        style={{ backgroundColor: palette[PaletteColor.Background] }}
+      >
         <AppHeader />
-        <ScrollView style={styles.container}>
+        <ScrollView style={[styles.container]}>
           <Modal
             visible={isAddingNew}
             animationType="slide"
@@ -91,12 +90,18 @@ const PatternListManager = () => {
             onRequestClose={() => setIsAddingNew(false)}
           >
             <View style={styles.modalOverlay}>
-              <View style={styles.modalContent}>
+              <View
+                style={[
+                  styles.modalContent,
+                  { backgroundColor: palette[PaletteColor.Surface] },
+                ]}
+              >
                 <ScrollView contentContainerStyle={{ flexGrow: 1 }}>
                   <EditPatternForm
                     patterns={patterns}
                     onAccepted={addPattern}
                     onCancel={() => setIsAddingNew(false)}
+                    palette={palette}
                   />
                 </ScrollView>
               </View>
@@ -109,13 +114,19 @@ const PatternListManager = () => {
             onRequestClose={() => setIsEditing(false)}
           >
             <View style={styles.modalOverlay}>
-              <View style={styles.modalContent}>
+              <View
+                style={[
+                  styles.modalContent,
+                  { backgroundColor: palette[PaletteColor.Surface] },
+                ]}
+              >
                 <ScrollView contentContainerStyle={{ flexGrow: 1 }}>
                   <EditPatternForm
                     patterns={patterns}
                     onAccepted={editPattern}
                     onCancel={() => setIsEditing(false)}
                     existing={selectedPattern}
+                    palette={palette}
                   />
                 </ScrollView>
               </View>
@@ -129,6 +140,7 @@ const PatternListManager = () => {
               onAdd={() => setIsAddingNew(!isAddingNew)}
               onEdit={handleEditPattern}
               selectedPattern={selectedPattern}
+              palette={palette}
             />
           </View>
         </ScrollView>
@@ -148,7 +160,6 @@ const styles = StyleSheet.create({
     alignItems: "center",
   },
   modalContent: {
-    backgroundColor: "#fff",
     borderRadius: 0,
     padding: 20,
     minWidth: "80%",

@@ -3,15 +3,18 @@ import { StyleSheet, Text, View } from "react-native";
 import { WCSPattern } from "@/components/pattern/types/WCSPattern";
 import { useTranslation } from "react-i18next";
 import { useThemeContext } from "@/components/common/ThemeContext";
+import { PaletteColor } from "@/components/common/ColorPalette";
 
 type PatternDetailsProps = {
   selectedPattern: WCSPattern;
   patterns: WCSPattern[];
+  palette: Record<PaletteColor, string>;
 };
 
 const PatternDetails: React.FC<PatternDetailsProps> = ({
   selectedPattern,
   patterns,
+  palette,
 }) => {
   const { t } = useTranslation();
   const { colorScheme } = useThemeContext();
@@ -19,22 +22,32 @@ const PatternDetails: React.FC<PatternDetailsProps> = ({
     <View
       style={[
         styles.detailsContainer,
-        { backgroundColor: colorScheme === "dark" ? "#23232b" : "#fff" },
+        {
+          backgroundColor: palette[PaletteColor.Surface],
+          borderColor: palette[PaletteColor.Primary],
+        },
       ]}
     >
       <Text
         style={[
           styles.patternName,
-          { color: colorScheme === "dark" ? "#f1f5f9" : "#1e293b" },
+          { color: palette[PaletteColor.PrimaryText] },
         ]}
       >
         {selectedPattern.name}
       </Text>
-      <Text style={styles.patternDetailsDesc}>
+      <Text
+        style={[
+          styles.patternDetailsDesc,
+          { color: palette[PaletteColor.SecondaryText] },
+        ]}
+      >
         {selectedPattern.description}
       </Text>
       {selectedPattern.videoUrl ? (
-        <Text style={styles.videoUrl}>
+        <Text
+          style={[styles.videoUrl, { color: palette[PaletteColor.Accent] }]}
+        >
           {t("video")}: {selectedPattern.videoUrl}
         </Text>
       ) : null}
