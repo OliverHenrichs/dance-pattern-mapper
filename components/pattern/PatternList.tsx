@@ -86,22 +86,23 @@ function mapPatternToScrollViewItem(
 ) {
   const isSelected = selectedPattern?.id === pattern.id;
   return (
-    <TouchableOpacity
-      key={pattern.id}
-      onPress={() => {
-        if (isSelected) {
-          onSelect(undefined as any); // Deselect if already selected
-        } else {
-          onSelect(pattern);
-        }
-      }}
+    <View
       style={[styles.patternItem, isSelected && styles.patternItemSelected]}
     >
       <View style={styles.patternItemHeader}>
-        <View style={{ flex: 1 }}>
+        <TouchableOpacity
+          onPress={() => {
+            if (isSelected) {
+              onSelect(undefined as any); // Deselect if already selected
+            } else {
+              onSelect(pattern);
+            }
+          }}
+          style={{ flex: 1 }}
+          accessibilityLabel={t("selectPattern")}
+        >
           <Text style={styles.patternName}>{pattern.name}</Text>
-          {/* Add tags or other info here if needed */}
-        </View>
+        </TouchableOpacity>
         <TouchableOpacity
           onPress={(e) => {
             e.stopPropagation?.();
@@ -127,7 +128,7 @@ function mapPatternToScrollViewItem(
           palette={palette}
         />
       )}
-    </TouchableOpacity>
+    </View>
   );
 }
 
