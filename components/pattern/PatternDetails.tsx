@@ -19,7 +19,6 @@ const PatternDetails: React.FC<PatternDetailsProps> = ({
   const styles = getStyles(palette);
   return (
     <View style={styles.detailsContainer}>
-      <Text style={styles.patternName}>{selectedPattern.name}</Text>
       <Text style={styles.patternDetailsDesc}>
         {selectedPattern.description}
       </Text>
@@ -103,9 +102,11 @@ function getTagView(
       <Text style={styles.label}>{t("tags")}:</Text>
       <View style={styles.tagsRow}>
         {selectedPattern.tags.map((tag, idx) => (
-          <Text key={idx} style={styles.tagText}>
-            {tag}
-          </Text>
+          <View key={idx} style={styles.tagItem}>
+            <Text key={idx} style={styles.tagText}>
+              {tag}
+            </Text>
+          </View>
         ))}
       </View>
     </View>
@@ -143,8 +144,13 @@ function getBuildsIntoView(
   );
 }
 
-const getStyles = (palette: Record<PaletteColor, string>) =>
-  StyleSheet.create({
+const getStyles = (palette: Record<PaletteColor, string>) => {
+  const commonBorder = {
+    borderWidth: 1,
+    borderRadius: 8,
+    borderColor: palette[PaletteColor.Border],
+  };
+  return StyleSheet.create({
     sectionTitle: {
       fontSize: 18,
       fontWeight: "bold",
@@ -160,12 +166,25 @@ const getStyles = (palette: Record<PaletteColor, string>) =>
     prereqContainer: { marginBottom: 8 },
     prereqItem: {
       backgroundColor: palette[PaletteColor.TagBg],
+      color: palette[PaletteColor.PrimaryText],
       padding: 6,
       borderRadius: 8,
       marginRight: 4,
       marginBottom: 4,
     },
-    tagsRow: { flexDirection: "row", flexWrap: "wrap", gap: 4 },
+    tagsRow: {
+      flexDirection: "row",
+      flexWrap: "wrap",
+      gap: 4,
+      alignItems: "center",
+    },
+    tagItem: {
+      ...commonBorder,
+      flexDirection: "row",
+      alignItems: "center",
+      backgroundColor: palette[PaletteColor.TagBg],
+      paddingHorizontal: 8,
+    },
     tagText: { color: palette[PaletteColor.TagText], fontSize: 12 },
     detailsContainer: {
       borderRadius: 8,
@@ -182,6 +201,7 @@ const getStyles = (palette: Record<PaletteColor, string>) =>
       color: palette[PaletteColor.PrimaryText],
     },
     patternDetailsDesc: {
+      fontStyle: "italic",
       color: palette[PaletteColor.SecondaryText],
       marginBottom: 8,
     },
@@ -194,5 +214,6 @@ const getStyles = (palette: Record<PaletteColor, string>) =>
     },
     videoUrl: { color: palette[PaletteColor.Accent], marginBottom: 8 },
   });
+};
 
 export default PatternDetails;
