@@ -31,5 +31,8 @@
   "theme": "Design",
   "themeSystem": "Systemstandard",
   "themeLight": "Hell",
-  "themeDark": "Dunkel"
+  "themeDark": "Dunkel",
+  "exportPatterns": "Export / Teilen",
+  "importPatterns": "Import",
+  "serialization": "Datenübertragung"
 }

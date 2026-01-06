@@ -31,5 +31,8 @@
   "theme": "Theme",
   "themeSystem": "System Default",
   "themeLight": "Light",
-  "themeDark": "Dark"
+  "themeDark": "Dark",
+  "exportPatterns": "Export / Share",
+  "importPatterns": "Import",
+  "serialization": "Data Transfer"
 }
