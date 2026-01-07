@@ -1,5 +1,6 @@
-import React, { useState } from "react";
+import React, { useEffect, useState } from "react";
 import {
+  Image,
   ScrollView,
   StyleSheet,
   Text,
@@ -20,6 +21,7 @@ import { defaultNewPattern } from "@/components/pattern/data/DefaultWCSPatterns"
 import { useTranslation } from "react-i18next";
 import { PaletteColor } from "@/components/common/ColorPalette";
 import * as ImagePicker from "expo-image-picker";
+import * as VideoThumbnails from "expo-video-thumbnails";
 
 type EditPatternFormProps = {
   patterns: WCSPattern[];
@@ -44,6 +46,30 @@ const EditPatternForm: React.FC<EditPatternFormProps> = ({
     existing ?? defaultNewPattern,
   );
   const [tagInput, setTagInput] = useState("");
+  const [thumbnails, setThumbnails] = useState<string[]>([]);
+
+  useEffect(() => {
+    const generateThumbnails = async () => {
+      if (!newPattern.videoRefs || newPattern.videoRefs.length === 0) {
+        setThumbnails([]);
+        return;
+      }
+      const results: string[] = [];
+      for (const ref of newPattern.videoRefs) {
+        try {
+          const { uri } = await VideoThumbnails.getThumbnailAsync(ref.value, {
+            time: 1000,
+            quality: 0.7,
+          });
+          results.push(uri);
+        } catch (e) {
+          results.push("");
+        }
+      }
+      setThumbnails(results);
+    };
+    generateThumbnails();
+  }, [newPattern.videoRefs]);
 
   const addTag = () => {
     if (tagInput.trim() && !newPattern.tags.includes(tagInput.trim())) {
@@ -66,7 +92,7 @@ const EditPatternForm: React.FC<EditPatternFormProps> = ({
     const result = await ImagePicker.launchImageLibraryAsync({
       mediaTypes: ["videos"],
       allowsMultipleSelection: true,
-      selectionLimit: 3 - newPattern.videoRefs.length,
+      selectionLimit: 3 - (newPattern.videoRefs?.length ?? 0),
     });
     if (!result.canceled) {
       const newVideos: VideoReference[] = result.assets.map((asset) => ({
@@ -235,10 +261,22 @@ const EditPatternForm: React.FC<EditPatternFormProps> = ({
             contentContainerStyle={styles.videosRow}
             showsHorizontalScrollIndicator={false}
           >
-            {newPattern.videoRefs &&
-              newPattern.videoRefs.map((ref, idx) => (
+            {thumbnails.length > 0 &&
+              thumbnails.map((thumb, idx) => (
                 <View key={idx} style={styles.prereqItem}>
-                  <Text style={styles.label}>{ref.value}</Text>
+                  {thumb ? (
+                    <Image
+                      source={{ uri: thumb }}
+                      style={{
+                        width: 64,
+                        height: 64,
+                        borderRadius: 8,
+                        resizeMode: "cover",
+                      }}
+                    />
+                  ) : (
+                    <Text style={styles.label}>No thumbnail</Text>
+                  )}
                 </View>
               ))}
           </ScrollView>
