@@ -62,7 +62,7 @@ const EditPatternForm: React.FC<EditPatternFormProps> = ({
             quality: 0.7,
           });
           results.push(uri);
-        } catch (e) {
+        } catch {
           results.push("");
         }
       }
@@ -255,7 +255,7 @@ const EditPatternForm: React.FC<EditPatternFormProps> = ({
       </View>
       <View style={styles.prereqContainer}>
         <Text style={styles.label}>{t("videos")}</Text>
-        <View style={styles.inputRow}>
+        <View style={styles.videosInputRow}>
           <ScrollView
             horizontal
             contentContainerStyle={styles.videosRow}
@@ -280,13 +280,17 @@ const EditPatternForm: React.FC<EditPatternFormProps> = ({
                 </View>
               ))}
           </ScrollView>
-          <TouchableOpacity
-            onPress={handlePickVideos}
-            style={styles.buttonIndigo}
-            disabled={newPattern.videoRefs && newPattern.videoRefs.length >= 3}
-          >
-            <Text style={styles.buttonText}>{t("add")}</Text>
-          </TouchableOpacity>
+          <View style={styles.addButtonContainer}>
+            <TouchableOpacity
+              onPress={handlePickVideos}
+              style={styles.buttonIndigo}
+              disabled={
+                newPattern.videoRefs && newPattern.videoRefs.length >= 3
+              }
+            >
+              <Text style={styles.buttonText}>{t("add")}</Text>
+            </TouchableOpacity>
+          </View>
         </View>
       </View>
       <View style={styles.buttonRow}>
@@ -413,6 +417,18 @@ const getStyles = (palette: Record<PaletteColor, string>) => {
     },
     // Videos
     videosRow: { flexDirection: "row", gap: 4, alignItems: "center" },
+    videosInputRow: {
+      flexDirection: "row",
+      alignItems: "center",
+      minHeight: 64,
+      height: 78,
+    },
+    addButtonContainer: {
+      justifyContent: "center",
+      alignItems: "center",
+      height: 64,
+      marginLeft: 8,
+    },
   });
 };
 
