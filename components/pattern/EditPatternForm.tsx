@@ -351,7 +351,6 @@ const getStyles = (palette: Record<PaletteColor, string>) => {
     textarea: {
       ...baseInput,
       minHeight: 48,
-      marginBottom: 8,
     },
     // Labels
     label: {
@@ -377,7 +376,6 @@ const getStyles = (palette: Record<PaletteColor, string>) => {
     // Tags
     tagsContainer: {
       ...commonBorder,
-      marginBottom: 8,
       padding: 6,
       backgroundColor: palette[PaletteColor.TagBg],
     },
