@@ -13,6 +13,7 @@
   "level": "Level",
   "description": "Description",
   "video": "Video",
+  "videos": "Videos",
   "videoUrlOptional": "Video URL (optional)",
   "prerequisites": "Prerequisites",
   "patternDetailsNoPrerequisites": "None (foundational pattern)",

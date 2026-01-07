@@ -13,6 +13,7 @@
   "level": "Niveau",
   "description": "Beschreibung",
   "video": "Video",
+  "videos": "Videos",
   "videoUrlOptional": "Video-URL (optional)",
   "prerequisites": "Voraussetzungen",
   "patternDetailsNoPrerequisites": "Keine (grundlegende Figur)",

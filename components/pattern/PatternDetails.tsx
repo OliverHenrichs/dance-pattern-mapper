@@ -3,6 +3,7 @@ import { ScrollView, StyleSheet, Text, View } from "react-native";
 import { WCSPattern } from "@/components/pattern/types/WCSPattern";
 import { useTranslation } from "react-i18next";
 import { PaletteColor } from "@/components/common/ColorPalette";
+import { Video } from "expo-av";
 
 type PatternDetailsProps = {
   selectedPattern: WCSPattern;
@@ -22,11 +23,20 @@ const PatternDetails: React.FC<PatternDetailsProps> = ({
       <Text style={styles.patternDetailsDesc}>
         {selectedPattern.description}
       </Text>
-      {selectedPattern.videoUrl ? (
-        <Text style={styles.videoUrl}>
-          {t("video")}: {selectedPattern.videoUrl}
-        </Text>
-      ) : null}
+      {selectedPattern.videoRefs && selectedPattern.videoRefs.length > 0 && (
+        <View style={{ marginVertical: 8 }}>
+          {selectedPattern.videoRefs.map((ref, idx) => (
+            <Video
+              key={idx}
+              source={{ uri: ref.value }}
+              style={{ width: "100%", height: 200, marginBottom: 8 }}
+              useNativeControls
+              resizeMode={"contain" as any}
+              isLooping={false}
+            />
+          ))}
+        </View>
+      )}
       <View style={styles.patternDetailsRow}>
         <View style={styles.patternDetailsCol}>
           <Text style={styles.label}>{t("counts")}:</Text>
@@ -218,7 +228,6 @@ const getStyles = (palette: Record<PaletteColor, string>) => {
       fontWeight: "bold",
       color: palette[PaletteColor.PrimaryText],
     },
-    videoUrl: { color: palette[PaletteColor.Accent], marginBottom: 8 },
   });
 };
 

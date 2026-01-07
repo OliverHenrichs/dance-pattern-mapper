@@ -6,12 +6,17 @@ import {
 export type NewWCSPattern = BasePattern & WCSSpecificPattern;
 export type WCSPattern = IdBasePattern & WCSSpecificPattern;
 
+export interface VideoReference {
+  type: "url" | "local";
+  value: string; // URL or local file path
+}
+
 interface WCSSpecificPattern {
   counts: number;
   level?: WCSPatternLevel;
   type: WCSPatternType;
   tags: string[];
-  videoUrl?: string; // Optional field for video content
+  videoRefs: VideoReference[];
 }
 
 export interface IdBasePattern extends BasePattern {

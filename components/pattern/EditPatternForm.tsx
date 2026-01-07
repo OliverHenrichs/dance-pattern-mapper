@@ -18,6 +18,7 @@ import {
 import { defaultNewPattern } from "@/components/pattern/data/DefaultWCSPatterns";
 import { useTranslation } from "react-i18next";
 import { PaletteColor } from "@/components/common/ColorPalette";
+import * as ImagePicker from "expo-image-picker";
 
 type EditPatternFormProps = {
   patterns: WCSPattern[];
@@ -57,6 +58,22 @@ const EditPatternForm: React.FC<EditPatternFormProps> = ({
     onAccepted(newPattern);
     setNewPattern(defaultNewPattern);
     setTagInput("");
+  };
+
+  const handlePickVideos = async () => {
+    const result = await ImagePicker.launchImageLibraryAsync({
+      mediaTypes: ["videos"],
+      allowsMultipleSelection: true,
+    });
+    if (!result.canceled) {
+      setNewPattern({
+        ...newPattern,
+        videoRefs: result.assets.map((asset) => ({
+          type: "local",
+          value: asset.uri,
+        })),
+      });
+    }
   };
 
   const styles = getStyles(palette);
@@ -141,16 +158,6 @@ const EditPatternForm: React.FC<EditPatternFormProps> = ({
         multiline
         placeholderTextColor={palette[PaletteColor.SecondaryText]}
       />
-      {/* Video URL input for future video support */}
-      <TextInput
-        placeholder={t("videoUrlOptional")}
-        value={newPattern.videoUrl || ""}
-        onChangeText={(text) =>
-          setNewPattern({ ...newPattern, videoUrl: text })
-        }
-        style={styles.input}
-        placeholderTextColor={palette[PaletteColor.SecondaryText]}
-      />
       <View style={styles.prereqContainer}>
         <Text style={styles.label}>{t("prerequisites")}</Text>
         <ScrollView horizontal>
@@ -215,6 +222,26 @@ const EditPatternForm: React.FC<EditPatternFormProps> = ({
             </View>
           ))}
         </View>
+      </View>
+      <View style={styles.prereqContainer}>
+        <Text style={styles.label}>{t("videos")}</Text>
+        <View style={[styles.buttonRowWithBorder]}>
+          <TouchableOpacity
+            onPress={handlePickVideos}
+            style={[styles.buttonIndigo]}
+          >
+            <Text style={styles.buttonText}>{t("selectVideos")}</Text>
+          </TouchableOpacity>
+        </View>
+        {newPattern.videoRefs && newPattern.videoRefs.length > 0 && (
+          <View>
+            {newPattern.videoRefs.map((ref, idx) => (
+              <Text style={styles.label} key={idx}>
+                {ref.value}
+              </Text>
+            ))}
+          </View>
+        )}
       </View>
       <View style={styles.buttonRow}>
         <TouchableOpacity
@@ -320,6 +347,7 @@ const getStyles = (palette: Record<PaletteColor, string>) => {
     },
     // Buttons
     buttonRow: { flexDirection: "row", gap: 8 },
+    buttonRowWithBorder: { flexDirection: "row", gap: 8 },
     buttonIndigoWithMargin: {
       ...baseButton,
       marginRight: 8,
