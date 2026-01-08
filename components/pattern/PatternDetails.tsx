@@ -158,11 +158,7 @@ function getBuildsIntoView(
 }
 
 const getStyles = (palette: Record<PaletteColor, string>) => {
-  const commonBorder = {
-    borderWidth: 1,
-    borderRadius: 8,
-    borderColor: palette[PaletteColor.Border],
-  };
+  // Only use getCommonBorder for View styles
   return StyleSheet.create({
     sectionTitle: {
       fontSize: 18,
@@ -173,17 +169,21 @@ const getStyles = (palette: Record<PaletteColor, string>) => {
     label: {
       fontSize: 14,
       fontWeight: "500",
-      color: palette[PaletteColor.SecondaryText],
       marginBottom: 4,
+      color: palette[PaletteColor.SecondaryText],
     },
     prereqContainer: {
-      ...commonBorder,
+      borderWidth: 1,
+      borderRadius: 8,
+      borderColor: palette[PaletteColor.Border],
       backgroundColor: palette[PaletteColor.TagBg],
       padding: 8,
       marginVertical: 8,
     },
     prereqItem: {
-      ...commonBorder,
+      borderWidth: 1,
+      borderRadius: 8,
+      borderColor: palette[PaletteColor.Border],
       padding: 6,
       marginRight: 4,
       backgroundColor: palette[PaletteColor.Surface],
@@ -191,15 +191,18 @@ const getStyles = (palette: Record<PaletteColor, string>) => {
     tagsRow: {
       flexDirection: "row",
       flexWrap: "wrap",
-      gap: 4,
       alignItems: "center",
     },
     tagItem: {
-      ...commonBorder,
       flexDirection: "row",
       alignItems: "center",
       backgroundColor: palette[PaletteColor.TagBg],
       paddingHorizontal: 8,
+      marginRight: 4,
+      marginBottom: 4,
+      borderWidth: 1,
+      borderRadius: 8,
+      borderColor: palette[PaletteColor.Border],
     },
     tagText: { color: palette[PaletteColor.TagText], fontSize: 12 },
     detailsContainer: {
@@ -221,7 +224,11 @@ const getStyles = (palette: Record<PaletteColor, string>) => {
       color: palette[PaletteColor.SecondaryText],
       marginBottom: 8,
     },
-    patternDetailsRow: { flexDirection: "row", gap: 16, marginBottom: 8 },
+    patternDetailsRow: {
+      flexDirection: "row",
+      alignItems: "center",
+      marginBottom: 8,
+    },
     patternDetailsCol: { flex: 1 },
     patternDetailsValue: {
       fontSize: 16,

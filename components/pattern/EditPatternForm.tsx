@@ -24,6 +24,13 @@ import * as VideoThumbnails from "expo-video-thumbnails";
 import PatternVideos from "./PatternVideos";
 import PatternTags from "./PatternTags";
 import { useThemeContext } from "@/components/common/ThemeContext";
+import {
+  getCommonBorder,
+  getCommonButton,
+  getCommonInput,
+  getCommonLabel,
+  getCommonRow,
+} from "@/components/common/CommonStyles";
 
 type EditPatternFormProps = {
   patterns: WCSPattern[];
@@ -242,29 +249,24 @@ const EditPatternForm: React.FC<EditPatternFormProps> = ({
 };
 
 const getStyles = (palette: Record<PaletteColor, string>) => {
-  // Common style fragments
-  const commonBorder = {
-    borderWidth: 1,
-    borderRadius: 8,
-    borderColor: palette[PaletteColor.Border],
+  // Explicit ViewStyle for problematic styles
+  const videosRow: import("react-native").ViewStyle = {
+    flexDirection: "row",
+    alignItems: "center",
   };
-
-  const baseInput = {
-    ...commonBorder,
-    padding: 8,
-    color: palette[PaletteColor.PrimaryText],
-    backgroundColor: palette[PaletteColor.TagBg],
+  const videosInputRow: import("react-native").ViewStyle = {
+    flexDirection: "row",
+    alignItems: "center",
+    minHeight: 64,
+    height: 78,
   };
-
-  const baseButton = {
-    padding: 8,
-    borderRadius: 8,
-  };
-
+  const baseInput = getCommonInput(palette);
+  const baseButton = getCommonButton(palette);
+  const commonBorder = getCommonBorder(palette);
   return StyleSheet.create({
     // Containers
     addPatternContainer: {
-      borderRadius: 8,
+      ...commonBorder,
       padding: 16,
       marginBottom: 24,
       backgroundColor: palette[PaletteColor.Surface],
@@ -275,7 +277,7 @@ const getStyles = (palette: Record<PaletteColor, string>) => {
       color: palette[PaletteColor.PrimaryText],
       marginBottom: 8,
     },
-    inputRow: { flexDirection: "row", gap: 8, marginBottom: 8 },
+    inputRow: { ...getCommonRow(), gap: 8, marginBottom: 8 },
     // Inputs
     input: {
       flex: 1,
@@ -286,12 +288,7 @@ const getStyles = (palette: Record<PaletteColor, string>) => {
       minHeight: 48,
     },
     // Labels
-    label: {
-      fontSize: 14,
-      fontWeight: "500",
-      marginBottom: 4,
-      color: palette[PaletteColor.PrimaryText],
-    },
+    label: { ...getCommonLabel(palette) },
     // Prerequisites
     prereqContainer: {
       ...commonBorder,
@@ -307,12 +304,9 @@ const getStyles = (palette: Record<PaletteColor, string>) => {
     },
     prereqItemSelected: { backgroundColor: palette[PaletteColor.Primary] },
     // Buttons
-    buttonRow: { flexDirection: "row", gap: 8 },
-    buttonRowWithBorder: { flexDirection: "row", gap: 8 },
-    buttonIndigo: {
-      ...baseButton,
-      backgroundColor: palette[PaletteColor.Primary],
-    },
+    buttonRow: { ...getCommonRow(), gap: 8 },
+    buttonRowWithBorder: { ...getCommonRow(), gap: 8 },
+    buttonIndigo: { ...baseButton },
     buttonCancel: {
       ...baseButton,
       backgroundColor: palette[PaletteColor.Border],
@@ -322,13 +316,8 @@ const getStyles = (palette: Record<PaletteColor, string>) => {
       fontWeight: "bold",
     },
     // Videos
-    videosRow: { flexDirection: "row", gap: 4, alignItems: "center" },
-    videosInputRow: {
-      flexDirection: "row",
-      alignItems: "center",
-      minHeight: 64,
-      height: 78,
-    },
+    videosRow,
+    videosInputRow,
     addButtonContainer: {
       justifyContent: "center",
       alignItems: "center",

@@ -3,18 +3,26 @@ import { Text, TextInput, TouchableOpacity, View } from "react-native";
 import { getPalette, PaletteColor } from "@/components/common/ColorPalette";
 import { useTranslation } from "react-i18next";
 import { useThemeContext } from "@/components/common/ThemeContext";
+import {
+  getCommonBorder,
+  getCommonButton,
+  getCommonInput,
+  getCommonLabel,
+  getCommonRow,
+} from "@/components/common/CommonStyles";
 
 interface PatternTagsProps {
   tags: string[];
   setTags: (tags: string[]) => void;
-  styles: any;
+  styles?: any;
 }
 
 const PatternTags: React.FC<PatternTagsProps> = ({ tags, setTags, styles }) => {
   const { t } = useTranslation();
   const { colorScheme } = useThemeContext();
   const palette = getPalette(colorScheme);
-  styles = { ...styles, ...getStyles(palette) };
+  const localStyles = getStyles(palette);
+  styles = { ...styles, ...localStyles };
 
   const [tagInput, setTagInput] = useState("");
   const addTag = () => {
@@ -57,33 +65,34 @@ const PatternTags: React.FC<PatternTagsProps> = ({ tags, setTags, styles }) => {
 };
 
 const getStyles = (palette: Record<PaletteColor, string>) => {
-  // Common style fragments
-  const commonBorder = {
-    borderWidth: 1,
-    borderRadius: 8,
-    borderColor: palette[PaletteColor.Border],
-  };
   return {
-    // Tags
     tagsContainer: {
-      ...commonBorder,
+      ...getCommonBorder(palette),
       padding: 6,
       backgroundColor: palette[PaletteColor.TagBg],
     },
-    tagsRow: { flexDirection: "row", flexWrap: "wrap", gap: 4 },
+    tagsRow: { ...getCommonRow(), flexWrap: "wrap", gap: 4 },
     tagItem: {
-      ...commonBorder,
-      flexDirection: "row",
-      alignItems: "center",
+      ...getCommonBorder(palette),
+      ...getCommonRow(),
       backgroundColor: palette[PaletteColor.TagBg],
       paddingHorizontal: 8,
     },
-    tagText: { color: palette[PaletteColor.TagText], fontSize: 14 },
+    tagText: { color: palette[PaletteColor.TagText], fontSize: 14 }, // TextStyle only
     tagRemove: {
       color: palette[PaletteColor.TagText],
       fontSize: 16,
       marginLeft: 4,
     },
+    inputRow: { ...getCommonRow(), gap: 8 }, // ViewStyle only
+    input: { ...getCommonInput(palette), flex: 1 }, // TextInput: ViewStyle & TextStyle
+    buttonIndigo: { ...getCommonButton(palette) }, // ViewStyle only
+    buttonText: {
+      color: palette[PaletteColor.PrimaryText],
+      fontWeight: "bold",
+    }, // TextStyle only
+    label: { ...getCommonLabel(palette) }, // TextStyle only
   };
 };
+
 export default PatternTags;

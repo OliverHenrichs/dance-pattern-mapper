@@ -9,6 +9,12 @@ import {
 } from "react-native";
 import { PaletteColor } from "@/components/common/ColorPalette";
 import { useTranslation } from "react-i18next";
+import {
+  getCommonBorder,
+  getCommonButton,
+  getCommonLabel,
+  getCommonRow,
+} from "@/components/common/CommonStyles";
 
 export type PatternVideosProps = {
   thumbnails: string[];
@@ -84,15 +90,8 @@ const PatternVideos: React.FC<PatternVideosProps> = ({
 };
 
 const getStyles = (palette: Record<PaletteColor, string>) => {
-  const commonBorder = {
-    borderWidth: 1,
-    borderRadius: 8,
-    borderColor: palette[PaletteColor.Border],
-  };
-  const baseButton = {
-    padding: 8,
-    borderRadius: 8,
-  };
+  const baseButton = getCommonButton(palette);
+  const commonBorder = getCommonBorder(palette);
   return StyleSheet.create({
     prereqContainer: {
       ...commonBorder,
@@ -100,16 +99,14 @@ const getStyles = (palette: Record<PaletteColor, string>) => {
       padding: 8,
       marginVertical: 8,
     },
-    label: {
-      fontSize: 14,
-      fontWeight: "500",
-      marginBottom: 4,
+    label: { ...getCommonLabel(palette) }, // TextStyle only
+    buttonText: {
       color: palette[PaletteColor.PrimaryText],
-    },
-    videosRow: { flexDirection: "row", gap: 4, alignItems: "center" },
+      fontWeight: "bold",
+    }, // TextStyle only
+    videosRow: { ...getCommonRow(), gap: 4 }, // ViewStyle only
     videosInputRow: {
-      flexDirection: "row",
-      alignItems: "center",
+      ...getCommonRow(),
       minHeight: 64,
       height: 78,
     },
@@ -147,14 +144,7 @@ const getStyles = (palette: Record<PaletteColor, string>) => {
       height: 64,
       marginLeft: 8,
     },
-    buttonIndigo: {
-      ...baseButton,
-      backgroundColor: palette[PaletteColor.Primary],
-    },
-    buttonText: {
-      color: palette[PaletteColor.PrimaryText],
-      fontWeight: "bold",
-    },
+    buttonIndigo: { ...baseButton },
   });
 };
 
