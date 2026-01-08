@@ -1,6 +1,5 @@
 import React, { useEffect, useState } from "react";
 import {
-  Image,
   ScrollView,
   StyleSheet,
   Text,
@@ -22,6 +21,7 @@ import { useTranslation } from "react-i18next";
 import { PaletteColor } from "@/components/common/ColorPalette";
 import * as ImagePicker from "expo-image-picker";
 import * as VideoThumbnails from "expo-video-thumbnails";
+import PatternVideos from "./PatternVideos";
 
 type EditPatternFormProps = {
   patterns: WCSPattern[];
@@ -253,46 +253,12 @@ const EditPatternForm: React.FC<EditPatternFormProps> = ({
           ))}
         </View>
       </View>
-      <View style={styles.prereqContainer}>
-        <Text style={styles.label}>{t("videos")}</Text>
-        <View style={styles.videosInputRow}>
-          <ScrollView
-            horizontal
-            contentContainerStyle={styles.videosRow}
-            showsHorizontalScrollIndicator={false}
-          >
-            {thumbnails.length > 0 &&
-              thumbnails.map((thumb, idx) => (
-                <View key={idx} style={styles.prereqItem}>
-                  {thumb ? (
-                    <Image
-                      source={{ uri: thumb }}
-                      style={{
-                        width: 64,
-                        height: 64,
-                        borderRadius: 8,
-                        resizeMode: "cover",
-                      }}
-                    />
-                  ) : (
-                    <Text style={styles.label}>No thumbnail</Text>
-                  )}
-                </View>
-              ))}
-          </ScrollView>
-          <View style={styles.addButtonContainer}>
-            <TouchableOpacity
-              onPress={handlePickVideos}
-              style={styles.buttonIndigo}
-              disabled={
-                newPattern.videoRefs && newPattern.videoRefs.length >= 3
-              }
-            >
-              <Text style={styles.buttonText}>{t("add")}</Text>
-            </TouchableOpacity>
-          </View>
-        </View>
-      </View>
+      <PatternVideos
+        thumbnails={thumbnails}
+        onAddVideo={handlePickVideos}
+        palette={palette}
+        disabled={newPattern.videoRefs && newPattern.videoRefs.length >= 3}
+      />
       <View style={styles.buttonRow}>
         <TouchableOpacity
           onPress={handleFinish}
