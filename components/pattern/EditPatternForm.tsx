@@ -106,6 +106,13 @@ const EditPatternForm: React.FC<EditPatternFormProps> = ({
     }
   };
 
+  const handleRemoveVideo = (index: number) => {
+    setNewPattern((prev) => ({
+      ...prev,
+      videoRefs: prev.videoRefs?.filter((_, i) => i !== index) || [],
+    }));
+  };
+
   const styles = getStyles(palette);
 
   return (
@@ -256,14 +263,12 @@ const EditPatternForm: React.FC<EditPatternFormProps> = ({
       <PatternVideos
         thumbnails={thumbnails}
         onAddVideo={handlePickVideos}
+        onRemoveVideo={handleRemoveVideo}
         palette={palette}
         disabled={newPattern.videoRefs && newPattern.videoRefs.length >= 3}
       />
       <View style={styles.buttonRow}>
-        <TouchableOpacity
-          onPress={handleFinish}
-          style={styles.buttonIndigoWithMargin}
-        >
+        <TouchableOpacity onPress={handleFinish} style={styles.buttonIndigo}>
           <Text style={styles.buttonText}>{t("savePattern")}</Text>
         </TouchableOpacity>
         <TouchableOpacity onPress={onCancel} style={styles.buttonCancel}>
@@ -362,11 +367,6 @@ const getStyles = (palette: Record<PaletteColor, string>) => {
     // Buttons
     buttonRow: { flexDirection: "row", gap: 8 },
     buttonRowWithBorder: { flexDirection: "row", gap: 8 },
-    buttonIndigoWithMargin: {
-      ...baseButton,
-      marginRight: 8,
-      backgroundColor: palette[PaletteColor.Primary],
-    },
     buttonIndigo: {
       ...baseButton,
       backgroundColor: palette[PaletteColor.Primary],
