@@ -25,6 +25,34 @@ const PatternVideos: React.FC<PatternVideosProps> = ({
 }) => {
   const { t } = useTranslation();
   const styles = getStyles(palette);
+
+  function getThumbnailItem(thumb: string) {
+    if (thumb != null) {
+      return (
+        <Image
+          source={{ uri: thumb }}
+          style={{
+            width: 64,
+            height: 64,
+            borderRadius: 8,
+            resizeMode: "cover",
+          }}
+        />
+      );
+    } else {
+      return <Text style={styles.label}>No thumbnail</Text>;
+    }
+  }
+
+  const renderThumbnails = () => {
+    if (thumbnails.length === 0) return null;
+    return thumbnails.map((thumb, idx) => (
+      <View key={idx} style={styles.prereqItem}>
+        {getThumbnailItem(thumb)}
+      </View>
+    ));
+  };
+
   return (
     <View style={styles.prereqContainer}>
       <Text style={styles.label}>{t("videos")}</Text>
@@ -34,24 +62,7 @@ const PatternVideos: React.FC<PatternVideosProps> = ({
           contentContainerStyle={styles.videosRow}
           showsHorizontalScrollIndicator={false}
         >
-          {thumbnails.length > 0 &&
-            thumbnails.map((thumb, idx) => (
-              <View key={idx} style={styles.prereqItem}>
-                {thumb ? (
-                  <Image
-                    source={{ uri: thumb }}
-                    style={{
-                      width: 64,
-                      height: 64,
-                      borderRadius: 8,
-                      resizeMode: "cover",
-                    }}
-                  />
-                ) : (
-                  <Text style={styles.label}>No thumbnail</Text>
-                )}
-              </View>
-            ))}
+          {renderThumbnails()}
         </ScrollView>
         <View style={styles.addButtonContainer}>
           <TouchableOpacity
