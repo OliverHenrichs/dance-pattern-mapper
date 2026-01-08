@@ -267,8 +267,8 @@ const getStyles = (palette: Record<PaletteColor, string>) => {
     // Containers
     addPatternContainer: {
       ...commonBorder,
-      padding: 16,
-      marginBottom: 24,
+      padding: 8,
+      marginBottom: 16,
       backgroundColor: palette[PaletteColor.Surface],
     },
     sectionTitle: {
