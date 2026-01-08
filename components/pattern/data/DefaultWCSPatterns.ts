@@ -14,6 +14,7 @@ export const foundationalWCSPatterns: WCSPattern[] = [
     prerequisites: [],
     description: "Basic compression and extension pattern",
     tags: [],
+    videoRefs: [],
   },
   {
     id: 1,
@@ -24,6 +25,7 @@ export const foundationalWCSPatterns: WCSPattern[] = [
     prerequisites: [],
     description: "Follower passes the leader on the left side",
     tags: [],
+    videoRefs: [],
   },
   {
     id: 2,
@@ -34,6 +36,7 @@ export const foundationalWCSPatterns: WCSPattern[] = [
     prerequisites: [],
     description: "Right side pass with follower turn under raised arm",
     tags: [],
+    videoRefs: [],
   },
   {
     id: 3,
@@ -44,6 +47,7 @@ export const foundationalWCSPatterns: WCSPattern[] = [
     prerequisites: [],
     description: "Basic rotational pattern maintaining the direction",
     tags: [],
+    videoRefs: [],
   },
   {
     id: 4,
@@ -54,6 +58,7 @@ export const foundationalWCSPatterns: WCSPattern[] = [
     prerequisites: [],
     description: "Basic compression and tuck pattern",
     tags: [],
+    videoRefs: [],
   },
 ];
 
@@ -65,4 +70,5 @@ export const defaultNewPattern: Omit<WCSPattern, "id"> = {
   prerequisites: [],
   description: "",
   tags: [],
+  videoRefs: [],
 };
