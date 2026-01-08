@@ -97,7 +97,6 @@ const PatternListManager = () => {
                     patterns={patterns}
                     onAccepted={addPattern}
                     onCancel={() => setIsAddingNew(false)}
-                    palette={palette}
                   />
                 </ScrollView>
               </View>
@@ -117,7 +116,6 @@ const PatternListManager = () => {
                     onAccepted={editPattern}
                     onCancel={() => setIsEditing(false)}
                     existing={selectedPattern}
-                    palette={palette}
                   />
                 </ScrollView>
               </View>

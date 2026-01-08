@@ -18,17 +18,18 @@ import {
 } from "@/components/pattern/types/WCSPatternEnums";
 import { defaultNewPattern } from "@/components/pattern/data/DefaultWCSPatterns";
 import { useTranslation } from "react-i18next";
-import { PaletteColor } from "@/components/common/ColorPalette";
+import { getPalette, PaletteColor } from "@/components/common/ColorPalette";
 import * as ImagePicker from "expo-image-picker";
 import * as VideoThumbnails from "expo-video-thumbnails";
 import PatternVideos from "./PatternVideos";
+import PatternTags from "./PatternTags";
+import { useThemeContext } from "@/components/common/ThemeContext";
 
 type EditPatternFormProps = {
   patterns: WCSPattern[];
   onAccepted: (pattern: NewWCSPattern | WCSPattern) => void;
   onCancel: () => void;
   existing?: WCSPattern | null;
-  palette: Record<PaletteColor, string>;
 };
 
 const patternTypes = Object.values(WCSPatternType);
@@ -39,13 +40,11 @@ const EditPatternForm: React.FC<EditPatternFormProps> = ({
   onAccepted,
   onCancel,
   existing,
-  palette,
 }) => {
   const { t } = useTranslation();
   const [newPattern, setNewPattern] = useState<NewWCSPattern>(
     existing ?? defaultNewPattern,
   );
-  const [tagInput, setTagInput] = useState("");
   const [thumbnails, setThumbnails] = useState<string[]>([]);
 
   useEffect(() => {
@@ -71,20 +70,9 @@ const EditPatternForm: React.FC<EditPatternFormProps> = ({
     generateThumbnails();
   }, [newPattern.videoRefs]);
 
-  const addTag = () => {
-    if (tagInput.trim() && !newPattern.tags.includes(tagInput.trim())) {
-      setNewPattern({
-        ...newPattern,
-        tags: [...newPattern.tags, tagInput.trim()],
-      });
-      setTagInput("");
-    }
-  };
-
   const handleFinish = () => {
     onAccepted(newPattern);
     setNewPattern(defaultNewPattern);
-    setTagInput("");
   };
 
   const handlePickVideos = async () => {
@@ -113,6 +101,8 @@ const EditPatternForm: React.FC<EditPatternFormProps> = ({
     }));
   };
 
+  const { colorScheme } = useThemeContext();
+  const palette = getPalette(colorScheme);
   const styles = getStyles(palette);
 
   return (
@@ -227,39 +217,11 @@ const EditPatternForm: React.FC<EditPatternFormProps> = ({
           ))}
         </ScrollView>
       </View>
-      <View style={styles.tagsContainer}>
-        <Text style={styles.label}>{t("tags")}</Text>
-        <View style={styles.inputRow}>
-          <TextInput
-            placeholder={t("addTag")}
-            value={tagInput}
-            onChangeText={setTagInput}
-            onSubmitEditing={addTag}
-            style={styles.input}
-            placeholderTextColor={palette[PaletteColor.SecondaryText]}
-          />
-          <TouchableOpacity onPress={addTag} style={styles.buttonIndigo}>
-            <Text style={styles.buttonText}>{t("add")}</Text>
-          </TouchableOpacity>
-        </View>
-        <View style={styles.tagsRow}>
-          {newPattern.tags.map((tag: string, idx: number) => (
-            <View key={idx} style={styles.tagItem}>
-              <Text style={styles.tagText}>{tag}</Text>
-              <TouchableOpacity
-                onPress={() =>
-                  setNewPattern({
-                    ...newPattern,
-                    tags: newPattern.tags.filter((_, i) => i !== idx),
-                  })
-                }
-              >
-                <Text style={styles.tagRemove}>×</Text>
-              </TouchableOpacity>
-            </View>
-          ))}
-        </View>
-      </View>
+      <PatternTags
+        tags={newPattern.tags}
+        setTags={(tags) => setNewPattern({ ...newPattern, tags })}
+        styles={styles}
+      />
       <PatternVideos
         thumbnails={thumbnails}
         onAddVideo={handlePickVideos}
@@ -344,26 +306,6 @@ const getStyles = (palette: Record<PaletteColor, string>) => {
       backgroundColor: palette[PaletteColor.Surface],
     },
     prereqItemSelected: { backgroundColor: palette[PaletteColor.Primary] },
-    // Tags
-    tagsContainer: {
-      ...commonBorder,
-      padding: 6,
-      backgroundColor: palette[PaletteColor.TagBg],
-    },
-    tagsRow: { flexDirection: "row", flexWrap: "wrap", gap: 4 },
-    tagItem: {
-      ...commonBorder,
-      flexDirection: "row",
-      alignItems: "center",
-      backgroundColor: palette[PaletteColor.TagBg],
-      paddingHorizontal: 8,
-    },
-    tagText: { color: palette[PaletteColor.TagText], fontSize: 14 },
-    tagRemove: {
-      color: palette[PaletteColor.TagText],
-      fontSize: 16,
-      marginLeft: 4,
-    },
     // Buttons
     buttonRow: { flexDirection: "row", gap: 8 },
     buttonRowWithBorder: { flexDirection: "row", gap: 8 },
