@@ -281,6 +281,7 @@ const getStyles = (palette: Record<PaletteColor, string>) => {
     // Inputs
     input: {
       flex: 1,
+      height: "100%",
       ...baseInput,
     },
     textarea: {
