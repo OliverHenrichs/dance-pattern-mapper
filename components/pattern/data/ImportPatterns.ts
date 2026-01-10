@@ -24,68 +24,17 @@ export async function handleImportPatterns(
 ) {
   setIsLoading(true);
   try {
-    const result = await importPatterns();
+    const importResult = await importPatterns();
 
-    if (!result.success) {
-      if (result.message !== "Import cancelled") {
-        Alert.alert("Import Failed", result.message);
+    if (!importResult.success) {
+      if (importResult.message !== "Import cancelled") {
+        Alert.alert("Import Failed", importResult.message);
       }
       return;
     }
 
-    if (result.patterns && result.patterns.length > 0) {
-      // Get existing patterns
-      const existingPatterns = (await loadPatterns()) || [];
-
-      // Ask user if they want to merge or replace
-      Alert.alert(
-        "Import Patterns",
-        `Found ${result.patterns.length} pattern(s) to import. How would you like to proceed?`,
-        [
-          {
-            text: "Cancel",
-            style: "cancel",
-          },
-          {
-            text: "Replace All",
-            style: "destructive",
-            onPress: async () => {
-              await savePatternsAsync(result.patterns!);
-              Alert.alert("Import Successful", result.message);
-            },
-          },
-          {
-            text: "Merge",
-            onPress: async () => {
-              // Find the highest existing ID
-              const maxId = existingPatterns.reduce(
-                (max, p) => Math.max(max, p.id),
-                0,
-              );
-
-              // Reassign IDs to imported patterns to avoid conflicts
-              const remappedPatterns = result.patterns!.map((p, index) => ({
-                ...p,
-                id: maxId + index + 1,
-                // Update prerequisites to point to new IDs if needed
-                prerequisites: p.prerequisites.map((prereqId) => {
-                  const prereqIndex = result.patterns!.findIndex(
-                    (pat) => pat.id === prereqId,
-                  );
-                  return prereqIndex >= 0 ? maxId + prereqIndex + 1 : prereqId;
-                }),
-              }));
-
-              const mergedPatterns = [...existingPatterns, ...remappedPatterns];
-              await savePatternsAsync(mergedPatterns);
-              Alert.alert(
-                "Import Successful",
-                `Merged ${result.patterns!.length} pattern(s) with existing ${existingPatterns.length} pattern(s)`,
-              );
-            },
-          },
-        ],
-      );
+    if (importResult.patterns && importResult.patterns.length > 0) {
+      executeImport(importResult.patterns);
     }
   } catch (error) {
     Alert.alert(
@@ -225,4 +174,79 @@ function createResult(
     message,
     ...(patterns && { patterns }),
   };
+}
+
+/**
+ * Ask user if they want to merge or replace.
+ * */
+function executeImport(patterns: WCSPattern[]) {
+  Alert.alert(
+    "Import Patterns",
+    `Found ${patterns.length} pattern(s) to import. How would you like to proceed?`,
+    [
+      {
+        text: "Cancel",
+        style: "cancel",
+      },
+      {
+        text: "Replace All",
+        style: "destructive",
+        onPress: savePatterns(patterns),
+      },
+      {
+        text: "Merge",
+        onPress: getPatternMergeCallback(patterns),
+      },
+    ],
+  );
+}
+
+function savePatterns(patterns: WCSPattern[]) {
+  return async () => {
+    await savePatternsAsync(patterns);
+  };
+}
+
+function getPatternMergeCallback(patterns: WCSPattern[]) {
+  return async () => {
+    const existingPatterns = (await loadPatterns()) || [];
+    const maxId = getHighestExistingIde(existingPatterns);
+    const remappedPatterns = getRemappedPatterns(patterns, maxId);
+
+    const mergedPatterns = [...existingPatterns, ...remappedPatterns];
+    await savePatternsAsync(mergedPatterns);
+    Alert.alert(
+      "Import Successful",
+      `Merged ${patterns.length} pattern(s) with existing ${existingPatterns.length} pattern(s)`,
+    );
+  };
+}
+
+function getHighestExistingIde(existingPatterns: WCSPattern[]) {
+  return existingPatterns.reduce((max, p) => Math.max(max, p.id), 0);
+}
+
+/**
+ * Reassign IDs to imported patterns to avoid conflicts.
+ * */
+function getRemappedPatterns(patterns: WCSPattern[], maxId: number) {
+  return patterns.map((pattern, index) => ({
+    ...pattern,
+    id: maxId + index + 1,
+    prerequisites: mapPrerequisiteIds(pattern, patterns, maxId),
+  }));
+}
+
+/**
+ * Update prerequisites to point to new IDs if needed.
+ * */
+function mapPrerequisiteIds(
+  pattern: WCSPattern,
+  patterns: WCSPattern[],
+  maxId: number,
+) {
+  return pattern.prerequisites.map((prereqId) => {
+    const prereqIndex = patterns.findIndex((pat) => pat.id === prereqId);
+    return prereqIndex >= 0 ? maxId + prereqIndex + 1 : prereqId;
+  });
 }
