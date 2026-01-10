@@ -1,5 +1,6 @@
-import React from "react";
+import React, { useState } from "react";
 import {
+  ActivityIndicator,
   Alert,
   Button,
   ScrollView,
@@ -13,6 +14,12 @@ import PageContainer from "@/components/common/PageContainer";
 import { getCommonStyles } from "@/components/common/CommonStyles";
 import { ThemeType, useThemeContext } from "@/components/common/ThemeContext";
 import { getPalette, PaletteColor } from "@/components/common/ColorPalette";
+import {
+  loadPatterns,
+  savePatterns,
+} from "@/components/pattern/PatternStorage";
+import { exportPatterns } from "@/components/pattern/data/exportPatterns";
+import { importPatterns } from "@/components/pattern/data/ImportPatterns";
 
 const LANGUAGES = [
   { code: "en", label: "English" },
@@ -25,6 +32,7 @@ const SettingsScreen: React.FC = () => {
   const { theme, setTheme, colorScheme } = useThemeContext();
   const commonStyles = getCommonStyles(colorScheme);
   const palette = getPalette(colorScheme);
+  const [isLoading, setIsLoading] = useState(false);
 
   const themeOptions = [
     { value: "system", label: t("themeSystem") },
@@ -33,6 +41,111 @@ const SettingsScreen: React.FC = () => {
   ];
 
   const styles = getStyles(palette);
+
+  const handleExportPatterns = async () => {
+    setIsLoading(true);
+    try {
+      const patterns = await loadPatterns();
+      if (!patterns || patterns.length === 0) {
+        Alert.alert("Export Patterns", "No patterns to export");
+        return;
+      }
+
+      const result = await exportPatterns(patterns);
+      Alert.alert(
+        result.success ? "Export Successful" : "Export Failed",
+        result.message,
+      );
+    } catch (error) {
+      Alert.alert(
+        "Export Failed",
+        `An error occurred: ${error instanceof Error ? error.message : String(error)}`,
+      );
+    } finally {
+      setIsLoading(false);
+    }
+  };
+
+  const handleImportPatterns = async () => {
+    setIsLoading(true);
+    try {
+      const result = await importPatterns();
+
+      if (!result.success) {
+        if (result.message !== "Import cancelled") {
+          Alert.alert("Import Failed", result.message);
+        }
+        return;
+      }
+
+      if (result.patterns && result.patterns.length > 0) {
+        // Get existing patterns
+        const existingPatterns = (await loadPatterns()) || [];
+
+        // Ask user if they want to merge or replace
+        Alert.alert(
+          "Import Patterns",
+          `Found ${result.patterns.length} pattern(s) to import. How would you like to proceed?`,
+          [
+            {
+              text: "Cancel",
+              style: "cancel",
+            },
+            {
+              text: "Replace All",
+              style: "destructive",
+              onPress: async () => {
+                await savePatterns(result.patterns!);
+                Alert.alert("Import Successful", result.message);
+              },
+            },
+            {
+              text: "Merge",
+              onPress: async () => {
+                // Find the highest existing ID
+                const maxId = existingPatterns.reduce(
+                  (max, p) => Math.max(max, p.id),
+                  0,
+                );
+
+                // Reassign IDs to imported patterns to avoid conflicts
+                const remappedPatterns = result.patterns!.map((p, index) => ({
+                  ...p,
+                  id: maxId + index + 1,
+                  // Update prerequisites to point to new IDs if needed
+                  prerequisites: p.prerequisites.map((prereqId) => {
+                    const prereqIndex = result.patterns!.findIndex(
+                      (pat) => pat.id === prereqId,
+                    );
+                    return prereqIndex >= 0
+                      ? maxId + prereqIndex + 1
+                      : prereqId;
+                  }),
+                }));
+
+                const mergedPatterns = [
+                  ...existingPatterns,
+                  ...remappedPatterns,
+                ];
+                savePatterns(mergedPatterns);
+                Alert.alert(
+                  "Import Successful",
+                  `Merged ${result.patterns!.length} pattern(s) with existing ${existingPatterns.length} pattern(s)`,
+                );
+              },
+            },
+          ],
+        );
+      }
+    } catch (error) {
+      Alert.alert(
+        "Import Failed",
+        `An error occurred: ${error instanceof Error ? error.message : String(error)}`,
+      );
+    } finally {
+      setIsLoading(false);
+    }
+  };
 
   return (
     <PageContainer
@@ -91,50 +204,39 @@ const SettingsScreen: React.FC = () => {
         <View style={commonStyles.sectionHeaderRow}>
           <Text style={commonStyles.sectionTitle}>{t("serialization")}</Text>
         </View>
-        <View style={[styles.themeRow, { marginLeft: 8 }]}>
-          <Button
-            title={t("exportPatterns")}
-            onPress={handleExportPatterns}
-            color={palette[PaletteColor.Primary]}
-          />
-          <Button
-            title={t("importPatterns")}
-            onPress={handleImportPatterns}
-            color={palette[PaletteColor.Primary]}
-          />
-        </View>
+        {isLoading ? (
+          <View style={styles.loadingContainer}>
+            <ActivityIndicator
+              size="large"
+              color={palette[PaletteColor.Primary]}
+            />
+          </View>
+        ) : (
+          <View style={[styles.themeRow, { marginLeft: 8 }]}>
+            <Button
+              title={t("exportPatterns")}
+              onPress={handleExportPatterns}
+              color={palette[PaletteColor.Primary]}
+            />
+            <Button
+              title={t("importPatterns")}
+              onPress={handleImportPatterns}
+              color={palette[PaletteColor.Primary]}
+            />
+          </View>
+        )}
       </ScrollView>
     </PageContainer>
   );
 };
 
-/**
- * Export format:
- * - ZIP file containing:
- *   - patterns.json: Array of WCSPattern objects (with videoRefs: [{type, value}])
- *   - Local video files referenced in videoRefs (if accessible)
- *   - URLs are included in JSON only, not downloaded
- *
- * If a local video file is missing/inaccessible, it is skipped and a warning is shown.
- */
-const handleExportPatterns = async () => {
-  Alert.alert("Export Patterns", "This feature is not yet implemented.");
-};
-/**
- * Export format:
- * - ZIP file containing:
- *   - patterns.json: Array of WCSPattern objects (with videoRefs: [{type, value}])
- *   - Local video files referenced in videoRefs (if accessible)
- *   - URLs are included in JSON only, not downloaded
- *
- * If a local video file is missing/inaccessible, it is skipped and a warning is shown.
- */
-const handleImportPatterns = async () => {
-  Alert.alert("Export Patterns", "This feature is not yet implemented.");
-};
-
 const getStyles = (palette: Record<PaletteColor, string>) =>
   StyleSheet.create({
+    loadingContainer: {
+      paddingVertical: 20,
+      alignItems: "center",
+      justifyContent: "center",
+    },
     languageRow: {
       flexDirection: "row",
       gap: 12,
