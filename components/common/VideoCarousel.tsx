@@ -90,7 +90,7 @@ const VideoCarousel: React.FC<VideoCarouselProps> = ({
 const getStyles = (palette: Record<PaletteColor, string>) => {
   return StyleSheet.create({
     videoCarouselContainer: {
-      marginVertical: 8,
+      marginBottom: 4,
     },
     videoItemContainer: {
       height: 200,
@@ -102,7 +102,6 @@ const getStyles = (palette: Record<PaletteColor, string>) => {
     },
     paginationContainer: {
       alignItems: "center",
-      marginTop: 8,
     },
     paginationText: {
       fontSize: 12,

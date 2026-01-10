@@ -70,7 +70,7 @@ function getPrerequisiteView(
   styles: ReturnType<typeof getStyles>,
 ) {
   return (
-    <View style={styles.prereqContainer}>
+    <View style={styles.multiSelectContainer}>
       <Text style={styles.label}>{t("prerequisites")}:</Text>
       {selectedPattern.prerequisites.length === 0 ? (
         <Text style={styles.patternDetailsDesc}>
@@ -136,7 +136,7 @@ function getBuildsIntoView(
   );
   if (dependents.length === 0) {
     return (
-      <View style={styles.prereqContainer}>
+      <View style={styles.multiSelectContainer}>
         <Text style={styles.label}>{t("buildsInto")}:</Text>
         <Text style={styles.patternDetailsDesc}>
           {t("noDependentPatterns")}
@@ -145,7 +145,7 @@ function getBuildsIntoView(
     );
   }
   return (
-    <View style={styles.prereqContainer}>
+    <View style={styles.multiSelectContainer}>
       <Text style={styles.label}>{t("buildsInto")}:</Text>
       <ScrollView horizontal showsHorizontalScrollIndicator={false}>
         {dependents.map((dep) => (
@@ -168,7 +168,10 @@ const getStyles = (palette: Record<PaletteColor, string>) => {
     },
     otherLabel: getCommon2ndOrderLabel(palette),
     label: getCommonLabel(palette),
-    prereqContainer: getCommonPrereqContainer(palette),
+    multiSelectContainer: {
+      ...getCommonPrereqContainer(palette),
+      marginTop: 0,
+    },
     prereqItem: getCommonPrereqItem(palette),
     tagsRow: {
       ...getCommonRow(),
