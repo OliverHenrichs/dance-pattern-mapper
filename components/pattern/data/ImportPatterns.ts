@@ -6,11 +6,95 @@ import * as DocumentPicker from "expo-document-picker";
 import * as FileSystem from "expo-file-system/legacy";
 import { IExportData } from "@/components/pattern/data/types/IExportData";
 import { encoder } from "@/components/pattern/data/types/Encoder";
+import React from "react";
+import { Alert } from "react-native";
+import {
+  loadPatterns,
+  savePatternsAsync,
+} from "@/components/pattern/PatternStorage";
 
 interface IImportPatternResult {
   success: boolean;
   patterns?: WCSPattern[];
   message: string;
+}
+
+export async function handleImportPatterns(
+  setIsLoading: React.Dispatch<React.SetStateAction<boolean>>,
+) {
+  setIsLoading(true);
+  try {
+    const result = await importPatterns();
+
+    if (!result.success) {
+      if (result.message !== "Import cancelled") {
+        Alert.alert("Import Failed", result.message);
+      }
+      return;
+    }
+
+    if (result.patterns && result.patterns.length > 0) {
+      // Get existing patterns
+      const existingPatterns = (await loadPatterns()) || [];
+
+      // Ask user if they want to merge or replace
+      Alert.alert(
+        "Import Patterns",
+        `Found ${result.patterns.length} pattern(s) to import. How would you like to proceed?`,
+        [
+          {
+            text: "Cancel",
+            style: "cancel",
+          },
+          {
+            text: "Replace All",
+            style: "destructive",
+            onPress: async () => {
+              await savePatternsAsync(result.patterns!);
+              Alert.alert("Import Successful", result.message);
+            },
+          },
+          {
+            text: "Merge",
+            onPress: async () => {
+              // Find the highest existing ID
+              const maxId = existingPatterns.reduce(
+                (max, p) => Math.max(max, p.id),
+                0,
+              );
+
+              // Reassign IDs to imported patterns to avoid conflicts
+              const remappedPatterns = result.patterns!.map((p, index) => ({
+                ...p,
+                id: maxId + index + 1,
+                // Update prerequisites to point to new IDs if needed
+                prerequisites: p.prerequisites.map((prereqId) => {
+                  const prereqIndex = result.patterns!.findIndex(
+                    (pat) => pat.id === prereqId,
+                  );
+                  return prereqIndex >= 0 ? maxId + prereqIndex + 1 : prereqId;
+                }),
+              }));
+
+              const mergedPatterns = [...existingPatterns, ...remappedPatterns];
+              await savePatternsAsync(mergedPatterns);
+              Alert.alert(
+                "Import Successful",
+                `Merged ${result.patterns!.length} pattern(s) with existing ${existingPatterns.length} pattern(s)`,
+              );
+            },
+          },
+        ],
+      );
+    }
+  } catch (error) {
+    Alert.alert(
+      "Import Failed",
+      `An error occurred: ${error instanceof Error ? error.message : String(error)}`,
+    );
+  } finally {
+    setIsLoading(false);
+  }
 }
 
 /**
@@ -19,7 +103,7 @@ interface IImportPatternResult {
  * - URLs are preserved as-is
  * - Returns the imported patterns
  */
-export async function importPatterns(): Promise<IImportPatternResult> {
+async function importPatterns(): Promise<IImportPatternResult> {
   try {
     const fileUri = await getImportDocument();
     if (typeof fileUri !== "string") {

@@ -1,7 +1,6 @@
 import React, { useState } from "react";
 import {
   ActivityIndicator,
-  Alert,
   Button,
   ScrollView,
   StyleSheet,
@@ -17,18 +16,9 @@ import {
 } from "@/components/common/CommonStyles";
 import { ThemeType, useThemeContext } from "@/components/common/ThemeContext";
 import { getPalette, PaletteColor } from "@/components/common/ColorPalette";
-import {
-  loadPatterns,
-  savePatterns,
-  savePatternsAsync,
-} from "@/components/pattern/PatternStorage";
-import { exportPatterns } from "@/components/pattern/data/exportPatterns";
-import { importPatterns } from "@/components/pattern/data/ImportPatterns";
-
-const LANGUAGES = [
-  { code: "en", label: "English" },
-  { code: "de", label: "Deutsch" },
-];
+import { handleExportPatterns } from "@/components/pattern/data/exportPatterns";
+import { handleImportPatterns } from "@/components/pattern/data/ImportPatterns";
+import { LANGUAGES } from "@/components/settings/types/Languages";
 
 const SettingsScreen: React.FC = () => {
   const { t, i18n } = useTranslation();
@@ -45,111 +35,6 @@ const SettingsScreen: React.FC = () => {
   ];
 
   const styles = getStyles(palette);
-
-  const handleExportPatterns = async () => {
-    setIsLoading(true);
-    try {
-      const patterns = await loadPatterns();
-      if (!patterns || patterns.length === 0) {
-        Alert.alert("Export Patterns", "No patterns to export");
-        return;
-      }
-
-      const result = await exportPatterns(patterns);
-      Alert.alert(
-        result.success ? "Export Successful" : "Export Failed",
-        result.message,
-      );
-    } catch (error) {
-      Alert.alert(
-        "Export Failed",
-        `An error occurred: ${error instanceof Error ? error.message : String(error)}`,
-      );
-    } finally {
-      setIsLoading(false);
-    }
-  };
-
-  const handleImportPatterns = async () => {
-    setIsLoading(true);
-    try {
-      const result = await importPatterns();
-
-      if (!result.success) {
-        if (result.message !== "Import cancelled") {
-          Alert.alert("Import Failed", result.message);
-        }
-        return;
-      }
-
-      if (result.patterns && result.patterns.length > 0) {
-        // Get existing patterns
-        const existingPatterns = (await loadPatterns()) || [];
-
-        // Ask user if they want to merge or replace
-        Alert.alert(
-          "Import Patterns",
-          `Found ${result.patterns.length} pattern(s) to import. How would you like to proceed?`,
-          [
-            {
-              text: "Cancel",
-              style: "cancel",
-            },
-            {
-              text: "Replace All",
-              style: "destructive",
-              onPress: async () => {
-                await savePatterns(result.patterns!);
-                Alert.alert("Import Successful", result.message);
-              },
-            },
-            {
-              text: "Merge",
-              onPress: async () => {
-                // Find the highest existing ID
-                const maxId = existingPatterns.reduce(
-                  (max, p) => Math.max(max, p.id),
-                  0,
-                );
-
-                // Reassign IDs to imported patterns to avoid conflicts
-                const remappedPatterns = result.patterns!.map((p, index) => ({
-                  ...p,
-                  id: maxId + index + 1,
-                  // Update prerequisites to point to new IDs if needed
-                  prerequisites: p.prerequisites.map((prereqId) => {
-                    const prereqIndex = result.patterns!.findIndex(
-                      (pat) => pat.id === prereqId,
-                    );
-                    return prereqIndex >= 0
-                      ? maxId + prereqIndex + 1
-                      : prereqId;
-                  }),
-                }));
-
-                const mergedPatterns = [
-                  ...existingPatterns,
-                  ...remappedPatterns,
-                ];
-                await savePatternsAsync(mergedPatterns);
-                Alert.alert(
-                  "Import Successful",
-                  `Merged ${result.patterns!.length} pattern(s) with existing ${existingPatterns.length} pattern(s)`,
-                );
-              },
-            },
-          ],
-        );
-      }
-    } catch (error) {
-      Alert.alert(
-        "Import Failed",
-        `An error occurred: ${error instanceof Error ? error.message : String(error)}`,
-      );
-    } finally {
-      setIsLoading(false);
-    }
-  };
 
   return (
     <PageContainer
@@ -224,12 +109,12 @@ const SettingsScreen: React.FC = () => {
           <View style={[styles.themeRow, { marginLeft: 8 }]}>
             <Button
               title={t("exportPatterns")}
-              onPress={handleExportPatterns}
+              onPress={handleExportPatterns.bind(this, setIsLoading)}
               color={palette[PaletteColor.Primary]}
             />
             <Button
               title={t("importPatterns")}
-              onPress={handleImportPatterns}
+              onPress={handleImportPatterns.bind(this, setIsLoading)}
               color={palette[PaletteColor.Primary]}
             />
           </View>

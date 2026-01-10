@@ -9,9 +9,38 @@ import {
   IExportData,
 } from "@/components/pattern/data/types/IExportData";
 import { encoder } from "@/components/pattern/data/types/Encoder";
+import { Alert } from "react-native";
+import { loadPatterns } from "@/components/pattern/PatternStorage";
+import React from "react";
 
 interface IVideoList {
   [key: string]: string;
+}
+
+export async function handleExportPatterns(
+  setIsLoading: React.Dispatch<React.SetStateAction<boolean>>,
+) {
+  setIsLoading(true);
+  try {
+    const patterns = await loadPatterns();
+    if (!patterns || patterns.length === 0) {
+      Alert.alert("Export Patterns", "No patterns to export");
+      return;
+    }
+
+    const result = await exportPatterns(patterns);
+    Alert.alert(
+      result.success ? "Export Successful" : "Export Failed",
+      result.message,
+    );
+  } catch (error) {
+    Alert.alert(
+      "Export Failed",
+      `An error occurred: ${error instanceof Error ? error.message : String(error)}`,
+    );
+  } finally {
+    setIsLoading(false);
+  }
 }
 
 /**
@@ -20,7 +49,7 @@ interface IVideoList {
  * - URLs are preserved as-is in the pattern data
  * - Only local videos are embedded
  */
-export async function exportPatterns(
+async function exportPatterns(
   patterns: WCSPattern[],
 ): Promise<{ success: boolean; message: string }> {
   try {
