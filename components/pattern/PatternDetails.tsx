@@ -111,7 +111,7 @@ function getTagView(
 ) {
   return (
     <View style={styles.tagsRow}>
-      <Text style={styles.label}>{t("tags")}:</Text>
+      <Text style={styles.label}>{t("tags")}: </Text>
       <View style={styles.tagsRow}>
         {selectedPattern.tags.map((tag, idx) => (
           <View key={idx} style={styles.tagItem}>
