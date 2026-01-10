@@ -3,7 +3,7 @@ import { ScrollView, StyleSheet, Text, View } from "react-native";
 import { WCSPattern } from "@/components/pattern/types/WCSPattern";
 import { useTranslation } from "react-i18next";
 import { PaletteColor } from "@/components/common/ColorPalette";
-import VideoCarousel from "@/components/pattern/VideoCarousel";
+import VideoCarousel from "@/components/common/VideoCarousel";
 
 type PatternDetailsProps = {
   selectedPattern: WCSPattern;

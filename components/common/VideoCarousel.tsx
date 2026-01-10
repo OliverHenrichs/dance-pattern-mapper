@@ -1,11 +1,5 @@
 import React, { useState } from "react";
-import {
-  FlatList,
-  StyleSheet,
-  Text,
-  useWindowDimensions,
-  View,
-} from "react-native";
+import { FlatList, StyleSheet, Text, View } from "react-native";
 import { VideoReference } from "@/components/pattern/types/WCSPattern";
 import { PaletteColor } from "@/components/common/ColorPalette";
 import { useVideoPlayer, VideoView } from "expo-video";
@@ -45,10 +39,8 @@ const VideoCarousel: React.FC<VideoCarouselProps> = ({
   palette,
 }) => {
   const [currentIndex, setCurrentIndex] = useState(0);
+  const [containerWidth, setContainerWidth] = useState(0);
   const styles = getStyles(palette);
-  const { width: screenWidth } = useWindowDimensions();
-
-  const videoWidth = screenWidth - 32; // Account for container padding
 
   const onViewableItemsChanged = React.useRef(({ viewableItems }: any) => {
     if (viewableItems.length > 0) {
@@ -61,21 +53,29 @@ const VideoCarousel: React.FC<VideoCarouselProps> = ({
   }).current;
 
   return (
-    <View style={styles.videoCarouselContainer}>
-      <FlatList
-        data={videoRefs}
-        renderItem={({ item }) => (
-          <VideoItem videoRef={item} styles={styles} width={videoWidth} />
-        )}
-        keyExtractor={(_, index) => index.toString()}
-        horizontal
-        pagingEnabled
-        snapToInterval={videoWidth}
-        decelerationRate="fast"
-        showsHorizontalScrollIndicator={false}
-        onViewableItemsChanged={onViewableItemsChanged}
-        viewabilityConfig={viewabilityConfig}
-      />
+    <View
+      style={styles.videoCarouselContainer}
+      onLayout={(event) => {
+        const { width } = event.nativeEvent.layout;
+        setContainerWidth(width);
+      }}
+    >
+      {containerWidth > 0 && (
+        <FlatList
+          data={videoRefs}
+          renderItem={({ item }) => (
+            <VideoItem videoRef={item} styles={styles} width={containerWidth} />
+          )}
+          keyExtractor={(_, index) => index.toString()}
+          horizontal
+          pagingEnabled
+          snapToInterval={containerWidth}
+          decelerationRate="fast"
+          showsHorizontalScrollIndicator={false}
+          onViewableItemsChanged={onViewableItemsChanged}
+          viewabilityConfig={viewabilityConfig}
+        />
+      )}
       {videoRefs.length > 1 && (
         <View style={styles.paginationContainer}>
           <Text style={styles.paginationText}>

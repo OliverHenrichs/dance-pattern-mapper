@@ -1,6 +1,6 @@
 import React from "react";
 import PatternListManager from "@/components/pattern/PatternListManager";
-import SettingsScreen from "@/components/pattern/SettingsScreen";
+import SettingsScreen from "@/components/settings/SettingsScreen";
 import {
   createDrawerNavigator,
   DrawerContentComponentProps,
