@@ -18,15 +18,26 @@ export const getCommonButton = (
   backgroundColor: bgColor || palette[PaletteColor.Primary],
 });
 
-export const getCommonLabel = (
+const createCommonLabel = (
   palette: Record<PaletteColor, string>,
+  defaultColor: PaletteColor,
   color?: string,
 ): TextStyle => ({
   fontSize: 14,
   fontWeight: "500",
   marginBottom: 4,
-  color: color || palette[PaletteColor.PrimaryText],
+  color: color || palette[defaultColor],
 });
+
+export const getCommonLabel = (
+  palette: Record<PaletteColor, string>,
+  color?: string,
+): TextStyle => createCommonLabel(palette, PaletteColor.PrimaryText, color);
+
+export const getCommon2ndOrderLabel = (
+  palette: Record<PaletteColor, string>,
+  color?: string,
+): TextStyle => createCommonLabel(palette, PaletteColor.SecondaryText, color);
 
 export const getCommonRow = (): ViewStyle => ({
   flexDirection: "row",
@@ -38,8 +49,45 @@ export const getCommonInput = (
 ): ViewStyle & TextStyle => ({
   ...getCommonBorder(palette),
   padding: 8,
-  color: palette[PaletteColor.PrimaryText],
+  color: palette[PaletteColor.SecondaryText],
   backgroundColor: palette[PaletteColor.TagBg],
+});
+
+export const getCommonPrereqContainer = (
+  palette: Record<PaletteColor, string>,
+): ViewStyle => ({
+  ...getCommonBorder(palette),
+  backgroundColor: palette[PaletteColor.TagBg],
+  padding: 8,
+  marginVertical: 8,
+});
+
+export const getCommonPrereqItem = (
+  palette: Record<PaletteColor, string>,
+): ViewStyle => ({
+  ...getCommonBorder(palette),
+  padding: 6,
+  marginRight: 4,
+  backgroundColor: palette[PaletteColor.Surface],
+});
+
+export const getCommonTagItem = (
+  palette: Record<PaletteColor, string>,
+): ViewStyle => ({
+  flexDirection: "row",
+  alignItems: "center",
+  backgroundColor: palette[PaletteColor.TagBg],
+  paddingHorizontal: 8,
+  marginRight: 4,
+  marginBottom: 4,
+  ...getCommonBorder(palette),
+});
+
+export const getCommonTagText = (
+  palette: Record<PaletteColor, string>,
+): TextStyle => ({
+  color: palette[PaletteColor.TagText],
+  fontSize: 12,
 });
 
 export const getCommonStyles = (colorScheme: "light" | "dark") => {

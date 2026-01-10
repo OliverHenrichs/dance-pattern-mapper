@@ -25,10 +25,13 @@ import PatternVideos from "./PatternVideos";
 import PatternTags from "./PatternTags";
 import { useThemeContext } from "@/components/common/ThemeContext";
 import {
+  getCommon2ndOrderLabel,
   getCommonBorder,
   getCommonButton,
   getCommonInput,
   getCommonLabel,
+  getCommonPrereqContainer,
+  getCommonPrereqItem,
   getCommonRow,
 } from "@/components/common/CommonStyles";
 
@@ -157,7 +160,7 @@ const EditPatternForm: React.FC<EditPatternFormProps> = ({
               ]}
               onPress={() => setNewPattern({ ...newPattern, type })}
             >
-              <Text style={styles.label}>{type}</Text>
+              <Text style={styles.otherLabel}>{type}</Text>
             </TouchableOpacity>
           ))}
         </View>
@@ -177,7 +180,7 @@ const EditPatternForm: React.FC<EditPatternFormProps> = ({
                 })
               }
             >
-              <Text style={styles.label}>{level}</Text>
+              <Text style={styles.otherLabel}>{level}</Text>
             </TouchableOpacity>
           ))}
         </View>
@@ -219,7 +222,7 @@ const EditPatternForm: React.FC<EditPatternFormProps> = ({
                 }
               }}
             >
-              <Text style={styles.label}>{p.name}</Text>
+              <Text style={styles.otherLabel}>{p.name}</Text>
             </TouchableOpacity>
           ))}
         </ScrollView>
@@ -290,19 +293,10 @@ const getStyles = (palette: Record<PaletteColor, string>) => {
     },
     // Labels
     label: { ...getCommonLabel(palette) },
+    otherLabel: { ...getCommon2ndOrderLabel(palette) },
     // Prerequisites
-    prereqContainer: {
-      ...commonBorder,
-      backgroundColor: palette[PaletteColor.TagBg],
-      padding: 8,
-      marginVertical: 8,
-    },
-    prereqItem: {
-      ...commonBorder,
-      padding: 6,
-      marginRight: 4,
-      backgroundColor: palette[PaletteColor.Surface],
-    },
+    prereqContainer: getCommonPrereqContainer(palette),
+    prereqItem: getCommonPrereqItem(palette),
     prereqItemSelected: { backgroundColor: palette[PaletteColor.Primary] },
     // Buttons
     buttonRow: { ...getCommonRow(), gap: 8 },

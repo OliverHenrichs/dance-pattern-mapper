@@ -10,9 +10,9 @@ import {
 import { PaletteColor } from "@/components/common/ColorPalette";
 import { useTranslation } from "react-i18next";
 import {
-  getCommonBorder,
   getCommonButton,
   getCommonLabel,
+  getCommonPrereqContainer,
   getCommonRow,
 } from "@/components/common/CommonStyles";
 
@@ -91,14 +91,8 @@ const PatternVideos: React.FC<PatternVideosProps> = ({
 
 const getStyles = (palette: Record<PaletteColor, string>) => {
   const baseButton = getCommonButton(palette);
-  const commonBorder = getCommonBorder(palette);
   return StyleSheet.create({
-    prereqContainer: {
-      ...commonBorder,
-      backgroundColor: palette[PaletteColor.TagBg],
-      padding: 8,
-      marginVertical: 8,
-    },
+    prereqContainer: getCommonPrereqContainer(palette),
     label: { ...getCommonLabel(palette) }, // TextStyle only
     buttonText: {
       color: palette[PaletteColor.PrimaryText],

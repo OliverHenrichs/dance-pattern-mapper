@@ -3,6 +3,15 @@ import { ScrollView, StyleSheet, Text, View } from "react-native";
 import { WCSPattern } from "@/components/pattern/types/WCSPattern";
 import { useTranslation } from "react-i18next";
 import { PaletteColor } from "@/components/common/ColorPalette";
+import {
+  getCommon2ndOrderLabel,
+  getCommonLabel,
+  getCommonPrereqContainer,
+  getCommonPrereqItem,
+  getCommonRow,
+  getCommonTagItem,
+  getCommonTagText,
+} from "@/components/common/CommonStyles";
 import VideoCarousel from "@/components/common/VideoCarousel";
 
 type PatternDetailsProps = {
@@ -87,7 +96,7 @@ function getPrerequisites(
         const prerequisite = patterns.find((p) => p.id === preRequisiteId);
         return prerequisite ? (
           <View key={preRequisiteId} style={styles.prereqItem}>
-            <Text style={styles.label}>{prerequisite.name}</Text>
+            <Text style={styles.otherLabel}>{prerequisite.name}</Text>
           </View>
         ) : null;
       })}
@@ -141,7 +150,7 @@ function getBuildsIntoView(
       <ScrollView horizontal showsHorizontalScrollIndicator={false}>
         {dependents.map((dep) => (
           <View key={dep.id} style={styles.prereqItem}>
-            <Text style={styles.label}>{dep.name}</Text>
+            <Text style={styles.otherLabel}>{dep.name}</Text>
           </View>
         ))}
       </ScrollView>
@@ -150,7 +159,6 @@ function getBuildsIntoView(
 }
 
 const getStyles = (palette: Record<PaletteColor, string>) => {
-  // Only use getCommonBorder for View styles
   return StyleSheet.create({
     sectionTitle: {
       fontSize: 18,
@@ -158,45 +166,16 @@ const getStyles = (palette: Record<PaletteColor, string>) => {
       color: palette[PaletteColor.PrimaryText],
       marginBottom: 8,
     },
-    label: {
-      fontSize: 14,
-      fontWeight: "500",
-      marginBottom: 4,
-      color: palette[PaletteColor.SecondaryText],
-    },
-    prereqContainer: {
-      borderWidth: 1,
-      borderRadius: 8,
-      borderColor: palette[PaletteColor.Border],
-      backgroundColor: palette[PaletteColor.TagBg],
-      padding: 8,
-      marginVertical: 8,
-    },
-    prereqItem: {
-      borderWidth: 1,
-      borderRadius: 8,
-      borderColor: palette[PaletteColor.Border],
-      padding: 6,
-      marginRight: 4,
-      backgroundColor: palette[PaletteColor.Surface],
-    },
+    otherLabel: getCommon2ndOrderLabel(palette),
+    label: getCommonLabel(palette),
+    prereqContainer: getCommonPrereqContainer(palette),
+    prereqItem: getCommonPrereqItem(palette),
     tagsRow: {
-      flexDirection: "row",
+      ...getCommonRow(),
       flexWrap: "wrap",
-      alignItems: "center",
     },
-    tagItem: {
-      flexDirection: "row",
-      alignItems: "center",
-      backgroundColor: palette[PaletteColor.TagBg],
-      paddingHorizontal: 8,
-      marginRight: 4,
-      marginBottom: 4,
-      borderWidth: 1,
-      borderRadius: 8,
-      borderColor: palette[PaletteColor.Border],
-    },
-    tagText: { color: palette[PaletteColor.TagText], fontSize: 12 },
+    tagItem: getCommonTagItem(palette),
+    tagText: getCommonTagText(palette),
     detailsContainer: {
       borderRadius: 8,
       borderWidth: 2,
@@ -217,15 +196,14 @@ const getStyles = (palette: Record<PaletteColor, string>) => {
       marginBottom: 8,
     },
     patternDetailsRow: {
-      flexDirection: "row",
-      alignItems: "center",
+      ...getCommonRow(),
       marginBottom: 8,
     },
     patternDetailsCol: { flex: 1 },
     patternDetailsValue: {
       fontSize: 16,
       fontWeight: "bold",
-      color: palette[PaletteColor.PrimaryText],
+      color: palette[PaletteColor.SecondaryText],
     },
   });
 };
