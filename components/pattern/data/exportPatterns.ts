@@ -8,6 +8,7 @@ import {
   exportDataVersion,
   IExportData,
 } from "@/components/pattern/data/types/IExportData";
+import { encoder } from "@/components/pattern/data/types/Encoder";
 
 interface IVideoList {
   [key: string]: string;
@@ -123,7 +124,3 @@ function createWarningMessage(patterns: WCSPattern[], warnings: string[]) {
   }
   return message;
 }
-
-const encoder = {
-  encoding: FileSystem.EncodingType.Base64,
-};
