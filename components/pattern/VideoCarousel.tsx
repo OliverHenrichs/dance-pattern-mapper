@@ -1,5 +1,11 @@
 import React, { useState } from "react";
-import { FlatList, StyleSheet, Text, View } from "react-native";
+import {
+  FlatList,
+  StyleSheet,
+  Text,
+  useWindowDimensions,
+  View,
+} from "react-native";
 import { VideoReference } from "@/components/pattern/types/WCSPattern";
 import { PaletteColor } from "@/components/common/ColorPalette";
 import { useVideoPlayer, VideoView } from "expo-video";
@@ -7,15 +13,16 @@ import { useVideoPlayer, VideoView } from "expo-video";
 type VideoItemProps = {
   videoRef: VideoReference;
   styles: ReturnType<typeof getStyles>;
+  width: number;
 };
 
-const VideoItem: React.FC<VideoItemProps> = ({ videoRef, styles }) => {
+const VideoItem: React.FC<VideoItemProps> = ({ videoRef, styles, width }) => {
   const player = useVideoPlayer(videoRef.value, (player) => {
     player.loop = false;
   });
 
   return (
-    <View style={styles.videoItemContainer}>
+    <View style={[styles.videoItemContainer, { width }]}>
       <VideoView
         style={styles.videoPlayer}
         player={player}
@@ -39,6 +46,9 @@ const VideoCarousel: React.FC<VideoCarouselProps> = ({
 }) => {
   const [currentIndex, setCurrentIndex] = useState(0);
   const styles = getStyles(palette);
+  const { width: screenWidth } = useWindowDimensions();
+
+  const videoWidth = screenWidth - 32; // Account for container padding
 
   const onViewableItemsChanged = React.useRef(({ viewableItems }: any) => {
     if (viewableItems.length > 0) {
@@ -54,10 +64,14 @@ const VideoCarousel: React.FC<VideoCarouselProps> = ({
     <View style={styles.videoCarouselContainer}>
       <FlatList
         data={videoRefs}
-        renderItem={({ item }) => <VideoItem videoRef={item} styles={styles} />}
+        renderItem={({ item }) => (
+          <VideoItem videoRef={item} styles={styles} width={videoWidth} />
+        )}
         keyExtractor={(_, index) => index.toString()}
         horizontal
         pagingEnabled
+        snapToInterval={videoWidth}
+        decelerationRate="fast"
         showsHorizontalScrollIndicator={false}
         onViewableItemsChanged={onViewableItemsChanged}
         viewabilityConfig={viewabilityConfig}
@@ -79,7 +93,6 @@ const getStyles = (palette: Record<PaletteColor, string>) => {
       marginVertical: 8,
     },
     videoItemContainer: {
-      width: 360,
       height: 200,
       marginBottom: 8,
     },
