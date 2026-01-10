@@ -1,4 +1,4 @@
-import * as FileSystem from "expo-file-system/legacy";
+import { File, Paths } from "expo-file-system";
 import * as Sharing from "expo-sharing";
 import {
   VideoReference,
@@ -8,17 +8,16 @@ import {
   exportDataVersion,
   IExportData,
 } from "@/components/pattern/data/types/IExportData";
-import { encoder } from "@/components/pattern/data/types/Encoder";
 import { Alert } from "react-native";
 import { loadPatterns } from "@/components/pattern/PatternStorage";
-import React from "react";
+import { Dispatch, SetStateAction } from "react";
 
 interface IVideoList {
   [key: string]: string;
 }
 
 export async function handleExportPatterns(
-  setIsLoading: React.Dispatch<React.SetStateAction<boolean>>,
+  setIsLoading: Dispatch<SetStateAction<boolean>>,
 ) {
   setIsLoading(true);
   try {
@@ -97,11 +96,11 @@ async function getVideo(
   pattern: WCSPattern,
 ) {
   try {
-    const fileInfo = await FileSystem.getInfoAsync(videoRef.value);
-    if (!fileInfo.exists) {
+    const file = new File(videoRef.value);
+    if (!file.exists) {
       return;
     }
-    return FileSystem.readAsStringAsync(videoRef.value, encoder);
+    return await file.base64();
   } catch {
     warnings.push(
       `Failed to read video: ${videoRef.value} (pattern: ${pattern.name})`,
@@ -125,12 +124,9 @@ async function createExportData(patterns: WCSPattern[], warnings: string[]) {
 async function writeExportData(exportData: IExportData) {
   const timestamp = new Date().toISOString().replace(/[:.]/g, "-");
   const fileName = `dance-patterns-${timestamp}.json`;
-  const fileUri = `${FileSystem.documentDirectory}${fileName}`;
-  await FileSystem.writeAsStringAsync(
-    fileUri,
-    JSON.stringify(exportData, null, 2),
-  );
-  return fileUri;
+  const file = new File(Paths.document, fileName);
+  file.write(JSON.stringify(exportData, null, 2));
+  return file.uri;
 }
 
 async function shareExportData(

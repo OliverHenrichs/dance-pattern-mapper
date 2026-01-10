@@ -3,10 +3,9 @@ import {
   WCSPattern,
 } from "@/components/pattern/types/WCSPattern";
 import { getDocumentAsync } from "expo-document-picker";
-import * as FileSystem from "expo-file-system/legacy";
+import { File, Paths } from "expo-file-system";
 import { IExportData } from "@/components/pattern/data/types/IExportData";
-import { encoder } from "@/components/pattern/data/types/Encoder";
-import React from "react";
+import { Dispatch, SetStateAction } from "react";
 import { Alert } from "react-native";
 import {
   loadPatterns,
@@ -20,7 +19,7 @@ interface IImportPatternResult {
 }
 
 export async function handleImportPatterns(
-  setIsLoading: React.Dispatch<React.SetStateAction<boolean>>,
+  setIsLoading: Dispatch<SetStateAction<boolean>>,
 ) {
   setIsLoading(true);
   try {
@@ -95,7 +94,8 @@ async function getImportDocument() {
 }
 
 async function importData(fileUri: string) {
-  const content = await FileSystem.readAsStringAsync(fileUri);
+  const file = new File(fileUri);
+  const content = await file.text();
   const importData: IExportData = JSON.parse(content);
   return importData;
 }
@@ -110,7 +110,8 @@ async function tryAddLocalVideoRef(
   if (videoString) {
     try {
       const newVideoUri = generateVideoUri(pattern);
-      await FileSystem.writeAsStringAsync(newVideoUri, videoString, encoder);
+      const file = new File(newVideoUri);
+      file.write(videoString, { encoding: "base64" });
       return {
         type: "local",
         value: newVideoUri,
@@ -150,7 +151,7 @@ async function addVideoRefs(
 
 function generateVideoUri(pattern: WCSPattern) {
   const timestamp = Date.now();
-  return `${FileSystem.documentDirectory}imported-${pattern.id}-${timestamp}.mp4`;
+  return `${Paths.document.uri}imported-${pattern.id}-${timestamp}.mp4`;
 }
 
 function createSuccessMessage(
