@@ -2,7 +2,7 @@ import {
   VideoReference,
   WCSPattern,
 } from "@/components/pattern/types/WCSPattern";
-import * as DocumentPicker from "expo-document-picker";
+import { getDocumentAsync } from "expo-document-picker";
 import * as FileSystem from "expo-file-system/legacy";
 import { IExportData } from "@/components/pattern/data/types/IExportData";
 import { encoder } from "@/components/pattern/data/types/Encoder";
@@ -84,7 +84,7 @@ async function importPatterns(): Promise<IImportPatternResult> {
 }
 
 async function getImportDocument() {
-  const result = await DocumentPicker.getDocumentAsync({
+  const result = await getDocumentAsync({
     type: "application/json",
     copyToCacheDirectory: true,
   });
