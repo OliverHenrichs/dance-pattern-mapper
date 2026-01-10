@@ -20,7 +20,7 @@ const VideoItem: React.FC<VideoItemProps> = ({ videoRef, styles, width }) => {
       <VideoView
         style={styles.videoPlayer}
         player={player}
-        allowsFullscreen
+        fullscreenOptions={{ enable: true, orientation: "landscape" }}
         allowsPictureInPicture
         nativeControls
         contentFit="contain"
