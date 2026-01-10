@@ -1,5 +1,6 @@
 import React from "react";
 import PatternListManager from "@/components/pattern/PatternListManager";
+import PatternGraphScreen from "@/components/pattern/PatternGraphScreen";
 import SettingsScreen from "@/components/settings/SettingsScreen";
 import {
   createDrawerNavigator,
@@ -43,6 +44,11 @@ export default function DrawerNavigator() {
           name="Patterns"
           component={PatternListManager}
           options={{ title: t("patternTab") }}
+        />
+        <Drawer.Screen
+          name="PatternGraph"
+          component={PatternGraphScreen}
+          options={{ title: t("patternGraph") }}
         />
         <Drawer.Screen
           name="Settings"

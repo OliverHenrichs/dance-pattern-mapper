@@ -35,5 +35,20 @@
   "themeDark": "Dunkel",
   "exportPatterns": "Export / Teilen",
   "importPatterns": "Import",
-  "serialization": "Datenübertragung"
+  "serialization": "Datenübertragung",
+  "patternGraph": "Figuren-Graph",
+  "timelineView": "Zeitstrahl",
+  "graphView": "Netzwerk",
+  "toggleView": "Ansicht wechseln",
+  "resetZoom": "Zoom zurücksetzen",
+  "beginner": "Anfänger",
+  "intermediate": "Fortgeschritten",
+  "advanced": "Experte",
+  "legend": "Legende",
+  "hideLegend": "Ausblenden",
+  "showLegend": "Legende",
+  "typeColors": "Typ-Farben",
+  "levelShading": "Niveau-Schattierung",
+  "foundationalPattern": "Grundlegende Figur",
+  "noPatternsToVisualize": "Keine Figuren zum Visualisieren. Füge Figuren im Figuren-Tab hinzu."
 }

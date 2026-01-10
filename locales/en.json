@@ -35,5 +35,20 @@
   "themeDark": "Dark",
   "exportPatterns": "Export / Share",
   "importPatterns": "Import",
-  "serialization": "Data Transfer"
+  "serialization": "Data Transfer",
+  "patternGraph": "Pattern Graph",
+  "timelineView": "Timeline",
+  "graphView": "Network",
+  "toggleView": "Toggle View",
+  "resetZoom": "Reset Zoom",
+  "beginner": "Beginner",
+  "intermediate": "Intermediate",
+  "advanced": "Advanced",
+  "legend": "Legend",
+  "hideLegend": "Hide",
+  "showLegend": "Legend",
+  "typeColors": "Type Colors",
+  "levelShading": "Level Shading",
+  "foundationalPattern": "Foundational Pattern",
+  "noPatternsToVisualize": "No patterns to visualize. Add patterns in the Patterns tab."
 }
