@@ -2,32 +2,7 @@ import React, { useState } from "react";
 import { FlatList, StyleSheet, Text, View } from "react-native";
 import { VideoReference } from "@/components/pattern/types/WCSPattern";
 import { PaletteColor } from "@/components/common/ColorPalette";
-import { useVideoPlayer, VideoView } from "expo-video";
-
-type VideoItemProps = {
-  videoRef: VideoReference;
-  styles: ReturnType<typeof getStyles>;
-  width: number;
-};
-
-const VideoItem: React.FC<VideoItemProps> = ({ videoRef, styles, width }) => {
-  const player = useVideoPlayer(videoRef.value, (player) => {
-    player.loop = false;
-  });
-
-  return (
-    <View style={[styles.videoItemContainer, { width }]}>
-      <VideoView
-        style={styles.videoPlayer}
-        player={player}
-        fullscreenOptions={{ enable: true, orientation: "landscape" }}
-        allowsPictureInPicture
-        nativeControls
-        contentFit="contain"
-      />
-    </View>
-  );
-};
+import { VideoItem } from "@/components/common/VideoItem";
 
 type VideoCarouselProps = {
   videoRefs: VideoReference[];
@@ -64,7 +39,7 @@ const VideoCarousel: React.FC<VideoCarouselProps> = ({
         <FlatList
           data={videoRefs}
           renderItem={({ item }) => (
-            <VideoItem videoRef={item} styles={styles} width={containerWidth} />
+            <VideoItem videoRef={item} width={containerWidth} />
           )}
           keyExtractor={(_, index) => index.toString()}
           horizontal
@@ -91,14 +66,6 @@ const getStyles = (palette: Record<PaletteColor, string>) => {
   return StyleSheet.create({
     videoCarouselContainer: {
       marginBottom: 4,
-    },
-    videoItemContainer: {
-      height: 200,
-      marginBottom: 8,
-    },
-    videoPlayer: {
-      width: "100%",
-      height: "100%",
     },
     paginationContainer: {
       alignItems: "center",
