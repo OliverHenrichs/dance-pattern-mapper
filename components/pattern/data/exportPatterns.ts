@@ -47,6 +47,9 @@ async function addPatternVideos(
   videos: IVideoList,
   warnings: string[],
 ) {
+  if (!pattern.videoRefs) {
+    return;
+  }
   for (const videoRef of pattern.videoRefs) {
     if (videoRef.type !== "local" || videos[videoRef.value]) {
       continue; // Skip non-local or already processed videos;

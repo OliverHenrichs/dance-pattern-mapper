@@ -47,7 +47,7 @@ export async function importPatterns(): Promise<{
     for (const pattern of importData.patterns) {
       const updatedVideoRefs: VideoReference[] = [];
 
-      for (const videoRef of pattern.videoRefs) {
+      for (const videoRef of pattern.videoRefs ?? []) {
         if (videoRef.type === "local") {
           // Restore local video from base64
           if (importData.videos[videoRef.value]) {
