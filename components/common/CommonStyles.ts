@@ -90,6 +90,16 @@ export const getCommonTagText = (
   fontSize: 12,
 });
 
+export const getCommonListContainer = (
+  palette: Record<PaletteColor, string>,
+): ViewStyle => ({
+  borderRadius: 12,
+  padding: 8,
+  marginBottom: 8,
+  elevation: 2,
+  backgroundColor: palette[PaletteColor.Background],
+});
+
 export const getCommonStyles = (colorScheme: "light" | "dark") => {
   const palette = getPalette(colorScheme);
   return StyleSheet.create({
@@ -102,7 +112,6 @@ export const getCommonStyles = (colorScheme: "light" | "dark") => {
       flexDirection: "row",
       alignItems: "center",
       justifyContent: "space-between",
-      marginTop: 16,
       marginBottom: 8,
       minHeight: 39, // Ensures consistent height with + button
     } as ViewStyle,
