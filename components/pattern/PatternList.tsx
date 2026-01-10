@@ -12,7 +12,10 @@ import handleDelete from "@/components/common/DeleteConfirmationDialog";
 import PatternDetails from "@/components/pattern/PatternDetails";
 import { useTranslation } from "react-i18next";
 import { useThemeContext } from "@/components/common/ThemeContext";
-import { getCommonStyles } from "@/components/common/CommonStyles";
+import {
+  getCommonListContainer,
+  getCommonStyles,
+} from "@/components/common/CommonStyles";
 import { getPalette, PaletteColor } from "@/components/common/ColorPalette";
 
 type PatternListProps = {
@@ -139,14 +142,7 @@ function mapPatternToScrollViewItem({
 
 const getStyles = (palette: Record<PaletteColor, string>) =>
   StyleSheet.create({
-    listContainer: {
-      borderRadius: 12,
-      padding: 8,
-      marginTop: 8,
-      marginBottom: 8,
-      elevation: 2,
-      backgroundColor: palette[PaletteColor.Surface],
-    },
+    listContainer: getCommonListContainer(palette),
     plusButton: {
       marginLeft: 8,
       padding: 4,

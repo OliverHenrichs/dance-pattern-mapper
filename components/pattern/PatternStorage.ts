@@ -16,7 +16,13 @@ export async function loadPatterns(): Promise<WCSPattern[] | null> {
 }
 
 export function savePatterns(patterns: WCSPattern[]): void {
-  AsyncStorage.setItem(STORAGE_KEY, JSON.stringify(patterns)).catch(() => {
+  savePatternsAsync(patterns);
+}
+
+export async function savePatternsAsync(patterns: WCSPattern[]): Promise<void> {
+  try {
+    await AsyncStorage.setItem(STORAGE_KEY, JSON.stringify(patterns));
+  } catch {
     // ignore
-  });
+  }
 }

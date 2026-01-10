@@ -11,12 +11,16 @@ import {
 import { useTranslation } from "react-i18next";
 import AppHeader from "@/components/common/AppHeader";
 import PageContainer from "@/components/common/PageContainer";
-import { getCommonStyles } from "@/components/common/CommonStyles";
+import {
+  getCommonListContainer,
+  getCommonStyles,
+} from "@/components/common/CommonStyles";
 import { ThemeType, useThemeContext } from "@/components/common/ThemeContext";
 import { getPalette, PaletteColor } from "@/components/common/ColorPalette";
 import {
   loadPatterns,
   savePatterns,
+  savePatternsAsync,
 } from "@/components/pattern/PatternStorage";
 import { exportPatterns } from "@/components/pattern/data/exportPatterns";
 import { importPatterns } from "@/components/pattern/data/ImportPatterns";
@@ -127,7 +131,7 @@ const SettingsScreen: React.FC = () => {
                   ...existingPatterns,
                   ...remappedPatterns,
                 ];
-                savePatterns(mergedPatterns);
+                await savePatternsAsync(mergedPatterns);
                 Alert.alert(
                   "Import Successful",
                   `Merged ${result.patterns!.length} pattern(s) with existing ${existingPatterns.length} pattern(s)`,
@@ -152,7 +156,12 @@ const SettingsScreen: React.FC = () => {
       style={{ backgroundColor: palette[PaletteColor.Background] }}
     >
       <AppHeader />
-      <ScrollView style={{ flex: 1 }}>
+      <ScrollView
+        style={{
+          flex: 1,
+          ...getCommonListContainer(palette),
+        }}
+      >
         <View style={commonStyles.sectionHeaderRow}>
           <Text style={commonStyles.sectionTitle}>{t("language")}</Text>
         </View>
