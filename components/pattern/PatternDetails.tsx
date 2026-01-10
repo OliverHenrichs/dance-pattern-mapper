@@ -1,77 +1,9 @@
-import React, { useState } from "react";
-import { FlatList, ScrollView, StyleSheet, Text, View } from "react-native";
-import {
-  VideoReference,
-  WCSPattern,
-} from "@/components/pattern/types/WCSPattern";
+import React from "react";
+import { ScrollView, StyleSheet, Text, View } from "react-native";
+import { WCSPattern } from "@/components/pattern/types/WCSPattern";
 import { useTranslation } from "react-i18next";
 import { PaletteColor } from "@/components/common/ColorPalette";
-import { useVideoPlayer, VideoView } from "expo-video";
-
-type VideoItemProps = {
-  videoRef: VideoReference;
-  styles: ReturnType<typeof getStyles>;
-};
-
-const VideoItem: React.FC<VideoItemProps> = ({ videoRef, styles }) => {
-  const player = useVideoPlayer(videoRef.value, (player) => {
-    player.loop = false;
-  });
-
-  return (
-    <View style={styles.videoItemContainer}>
-      <VideoView
-        style={styles.videoPlayer}
-        player={player}
-        allowsFullscreen
-        allowsPictureInPicture
-        nativeControls
-        contentFit="contain"
-      />
-    </View>
-  );
-};
-
-type VideoCarouselProps = {
-  videoRefs: VideoReference[];
-  styles: ReturnType<typeof getStyles>;
-};
-
-const VideoCarousel: React.FC<VideoCarouselProps> = ({ videoRefs, styles }) => {
-  const [currentIndex, setCurrentIndex] = useState(0);
-
-  const onViewableItemsChanged = React.useRef(({ viewableItems }: any) => {
-    if (viewableItems.length > 0) {
-      setCurrentIndex(viewableItems[0].index ?? 0);
-    }
-  }).current;
-
-  const viewabilityConfig = React.useRef({
-    itemVisiblePercentThreshold: 50,
-  }).current;
-
-  return (
-    <View style={styles.videoCarouselContainer}>
-      <FlatList
-        data={videoRefs}
-        renderItem={({ item }) => <VideoItem videoRef={item} styles={styles} />}
-        keyExtractor={(_, index) => index.toString()}
-        horizontal
-        pagingEnabled
-        showsHorizontalScrollIndicator={false}
-        onViewableItemsChanged={onViewableItemsChanged}
-        viewabilityConfig={viewabilityConfig}
-      />
-      {videoRefs.length > 1 && (
-        <View style={styles.paginationContainer}>
-          <Text style={styles.paginationText}>
-            {currentIndex + 1} / {videoRefs.length}
-          </Text>
-        </View>
-      )}
-    </View>
-  );
-};
+import VideoCarousel from "@/components/pattern/VideoCarousel";
 
 type PatternDetailsProps = {
   selectedPattern: WCSPattern;
@@ -92,7 +24,10 @@ const PatternDetails: React.FC<PatternDetailsProps> = ({
         {selectedPattern.description}
       </Text>
       {selectedPattern.videoRefs && selectedPattern.videoRefs.length > 0 && (
-        <VideoCarousel videoRefs={selectedPattern.videoRefs} styles={styles} />
+        <VideoCarousel
+          videoRefs={selectedPattern.videoRefs}
+          palette={palette}
+        />
       )}
       <View style={styles.patternDetailsRow}>
         <View style={styles.patternDetailsCol}>
@@ -291,26 +226,6 @@ const getStyles = (palette: Record<PaletteColor, string>) => {
       fontSize: 16,
       fontWeight: "bold",
       color: palette[PaletteColor.PrimaryText],
-    },
-    videoCarouselContainer: {
-      marginVertical: 8,
-    },
-    videoItemContainer: {
-      width: 360,
-      height: 200,
-      marginBottom: 8,
-    },
-    videoPlayer: {
-      width: "100%",
-      height: "100%",
-    },
-    paginationContainer: {
-      alignItems: "center",
-      marginTop: 8,
-    },
-    paginationText: {
-      fontSize: 12,
-      color: palette[PaletteColor.SecondaryText],
     },
   });
 };
