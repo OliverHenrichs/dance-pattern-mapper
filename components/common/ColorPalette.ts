@@ -17,7 +17,7 @@ export const LightPalette: Record<PaletteColor, string> = {
   [PaletteColor.Surface]: "#fff",
   [PaletteColor.Primary]: "#6366f1",
   [PaletteColor.PrimaryText]: "#3730a3",
-  [PaletteColor.SecondaryText]: "#64748b",
+  [PaletteColor.SecondaryText]: "#23233e",
   [PaletteColor.Border]: "#d1d5db",
   [PaletteColor.Accent]: "#22c55e",
   [PaletteColor.ModalOverlay]: "rgba(0,0,0,0.3)",
