@@ -84,7 +84,7 @@ const getStyles = (palette: Record<PaletteColor, string>) => {
       fontSize: 16,
       marginLeft: 4,
     },
-    inputRow: { ...getCommonRow(), gap: 8 }, // ViewStyle only
+    inputRow: { ...getCommonRow(), gap: 8, marginBottom: 4 }, // ViewStyle only
     input: { ...getCommonInput(palette), flex: 1 }, // TextInput: ViewStyle & TextStyle
     buttonIndigo: { ...getCommonButton(palette) }, // ViewStyle only
     buttonText: {
