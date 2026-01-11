@@ -7,7 +7,6 @@ import {
   HORIZONTAL_SPACING,
   LEFT_MARGIN,
   NODE_HEIGHT,
-  TOP_MARGIN,
   VERTICAL_STACK_SPACING,
 } from "@/components/pattern/graph/types/Constants";
 
@@ -187,7 +186,6 @@ export function calculateTimelineLayout(
 
   // First pass: Calculate maximum stack height for each type group
   const maxStackPerType = new Map<string, number>();
-  const SWIMLANE_PADDING = 40; // Padding above and below patterns in each lane
 
   Object.entries(grouped).forEach(([type, typePatterns]) => {
     const depthCounts = new Map<number, number>();
@@ -214,15 +212,12 @@ export function calculateTimelineLayout(
     WCSPatternType.TUCK,
   ];
 
-  let currentY = TOP_MARGIN;
+  let currentY = 0;
 
   typeOrder.forEach((type) => {
     const maxStack = maxStackPerType.get(type) || 1;
     const height =
-      LABEL_SPACE +
-      NODE_HEIGHT +
-      (maxStack - 1) * VERTICAL_STACK_SPACING +
-      SWIMLANE_PADDING;
+      LABEL_SPACE + NODE_HEIGHT + (maxStack - 1) * VERTICAL_STACK_SPACING;
 
     swimlaneHeights.set(type, height);
     swimlaneStarts.set(type, currentY + LABEL_SPACE); // Position patterns below label
@@ -279,23 +274,21 @@ export function calculateTimelineLayout(
   // Build swimlane info for rendering
   const swimlaneInfo: Record<WCSPatternType, SwimlaneInfo> = {
     [WCSPatternType.PUSH]: {
-      y: TOP_MARGIN,
+      y: 0,
       height: swimlaneHeights.get(WCSPatternType.PUSH) || 0,
     },
     [WCSPatternType.PASS]: {
-      y: TOP_MARGIN + (swimlaneHeights.get(WCSPatternType.PUSH) || 0),
+      y: swimlaneHeights.get(WCSPatternType.PUSH) || 0,
       height: swimlaneHeights.get(WCSPatternType.PASS) || 0,
     },
     [WCSPatternType.WHIP]: {
       y:
-        TOP_MARGIN +
         (swimlaneHeights.get(WCSPatternType.PUSH) || 0) +
         (swimlaneHeights.get(WCSPatternType.PASS) || 0),
       height: swimlaneHeights.get(WCSPatternType.WHIP) || 0,
     },
     [WCSPatternType.TUCK]: {
       y:
-        TOP_MARGIN +
         (swimlaneHeights.get(WCSPatternType.PUSH) || 0) +
         (swimlaneHeights.get(WCSPatternType.PASS) || 0) +
         (swimlaneHeights.get(WCSPatternType.WHIP) || 0),
