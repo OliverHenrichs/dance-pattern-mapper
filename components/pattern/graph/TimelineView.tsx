@@ -147,7 +147,7 @@ const TimelineView: React.FC<TimelineViewProps> = ({
           {/* Swimlane labels */}
           <SvgText
             x={20}
-            y={swimlanes[WCSPatternType.PUSH].y + 30}
+            y={swimlanes[WCSPatternType.PUSH].y + 25}
             fontSize={16}
             fontWeight="bold"
             fill={palette[PaletteColor.Primary]}
@@ -157,7 +157,7 @@ const TimelineView: React.FC<TimelineViewProps> = ({
           </SvgText>
           <SvgText
             x={20}
-            y={swimlanes[WCSPatternType.PASS].y + 30}
+            y={swimlanes[WCSPatternType.PASS].y + 25}
             fontSize={16}
             fontWeight="bold"
             fill={palette[PaletteColor.SecondaryText]}
@@ -167,7 +167,7 @@ const TimelineView: React.FC<TimelineViewProps> = ({
           </SvgText>
           <SvgText
             x={20}
-            y={swimlanes[WCSPatternType.WHIP].y + 30}
+            y={swimlanes[WCSPatternType.WHIP].y + 25}
             fontSize={16}
             fontWeight="bold"
             fill={palette[PaletteColor.Accent]}
@@ -177,7 +177,7 @@ const TimelineView: React.FC<TimelineViewProps> = ({
           </SvgText>
           <SvgText
             x={20}
-            y={swimlanes[WCSPatternType.TUCK].y + 30}
+            y={swimlanes[WCSPatternType.TUCK].y + 25}
             fontSize={16}
             fontWeight="bold"
             fill={palette[PaletteColor.Error]}

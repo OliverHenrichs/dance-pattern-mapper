@@ -205,6 +205,7 @@ export function calculateTimelineLayout(
   // Calculate dynamic swimlane heights based on content
   const swimlaneHeights = new Map<WCSPatternType, number>();
   const swimlaneStarts = new Map<WCSPatternType, number>();
+  const LABEL_SPACE = 40; // Space reserved for swimlane labels
 
   const typeOrder = [
     WCSPatternType.PUSH,
@@ -218,18 +219,42 @@ export function calculateTimelineLayout(
   typeOrder.forEach((type) => {
     const maxStack = maxStackPerType.get(type) || 1;
     const height =
-      NODE_HEIGHT + (maxStack - 1) * VERTICAL_STACK_SPACING + SWIMLANE_PADDING;
+      LABEL_SPACE +
+      NODE_HEIGHT +
+      (maxStack - 1) * VERTICAL_STACK_SPACING +
+      SWIMLANE_PADDING;
 
     swimlaneHeights.set(type, height);
-    swimlaneStarts.set(type, currentY + 20); // +20 for label space
+    swimlaneStarts.set(type, currentY + LABEL_SPACE); // Position patterns below label
     currentY += height;
   });
 
   // Second pass: Position patterns using calculated swimlane positions
+  // Sort patterns by their prerequisites to maintain visual consistency
   const depthTypeCounter = new Map<string, number>();
 
   Object.entries(grouped).forEach(([type, typePatterns]) => {
-    typePatterns.forEach((pattern) => {
+    // Sort patterns: first by depth, then by prerequisite IDs to ensure consistent ordering
+    const sortedPatterns = [...typePatterns].sort((a, b) => {
+      const depthA = depthMap.get(a.id) || 0;
+      const depthB = depthMap.get(b.id) || 0;
+
+      // First sort by depth
+      if (depthA !== depthB) return depthA - depthB;
+
+      // If same depth, sort by first prerequisite ID (for consistent stacking)
+      const prereqA =
+        a.prerequisites.length > 0 ? Math.min(...a.prerequisites) : a.id;
+      const prereqB =
+        b.prerequisites.length > 0 ? Math.min(...b.prerequisites) : b.id;
+
+      if (prereqA !== prereqB) return prereqA - prereqB;
+
+      // Finally, sort by pattern ID for complete consistency
+      return a.id - b.id;
+    });
+
+    sortedPatterns.forEach((pattern) => {
       const depth = depthMap.get(pattern.id) || 0;
       const baseY = swimlaneStarts.get(type as WCSPatternType) || 0;
 
