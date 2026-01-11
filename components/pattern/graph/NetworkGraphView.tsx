@@ -86,7 +86,7 @@ const NetworkGraphView: React.FC<NetworkGraphViewProps> = ({
     });
 
     // Add padding around content (100px on each side for nodes + margin)
-    const padding = 200;
+    const padding = 300; // Increased padding for better initial view
     const contentWidth = maxX - minX + padding;
     const contentHeight = maxY - minY + padding;
     const contentCenterX = (minX + maxX) / 2;
@@ -96,9 +96,15 @@ const NetworkGraphView: React.FC<NetworkGraphViewProps> = ({
     const svgWidth = Math.max(initialWidth, contentWidth);
     const svgHeight = Math.max(initialHeight, contentHeight);
 
+    // Calculate scale to fit all content in view
+    // Use Math.min to ensure BOTH dimensions fit (smaller scale = zoom out more)
     const scaleX = width / contentWidth;
     const scaleY = height / contentHeight;
-    const autoFitScale = Math.min(Math.max(scaleX, scaleY, 0.3), 1.0);
+    const fittedScale = Math.min(scaleX, scaleY) * 0.9; // 0.9 factor adds 10% breathing room
+
+    // Constrain scale to reasonable bounds (0.1 to 1.5)
+    // This prevents extreme zoom levels while still allowing content to fit
+    const autoFitScale = Math.max(0.1, Math.min(fittedScale, 1.5));
 
     return {
       positions,

@@ -319,13 +319,14 @@ export function calculateGraphLayout(
   const grouped = groupPatternsByLevel(patterns);
 
   const maxDepth = Math.max(...Array.from(depthMap.values()), 0);
-  const horizontalSpacing = Math.max(150, width / (maxDepth + 2));
+  // Use fixed reasonable spacing instead of width-based to prevent extreme spreading
+  const horizontalSpacing = 200;
 
-  // Vertical tiers by level
+  // Vertical tiers by level with better distribution
   const levelYPositions = {
-    [WCSPatternLevel.BEGINNER]: height * 0.2,
+    [WCSPatternLevel.BEGINNER]: height * 0.25,
     [WCSPatternLevel.INTERMEDIATE]: height * 0.5,
-    [WCSPatternLevel.ADVANCED]: height * 0.8,
+    [WCSPatternLevel.ADVANCED]: height * 0.75,
   };
 
   // Position patterns within each level tier
@@ -339,7 +340,7 @@ export function calculateGraphLayout(
 
     sorted.forEach((pattern) => {
       const depth = depthMap.get(pattern.id) || 0;
-      const x = 100 + depth * horizontalSpacing;
+      const x = 150 + depth * horizontalSpacing;
       const baseY = levelYPositions[level as WCSPatternLevel];
 
       // Apply small vertical jitter to reduce overlap
