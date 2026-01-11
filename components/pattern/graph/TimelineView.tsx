@@ -79,155 +79,151 @@ const TimelineView: React.FC<TimelineViewProps> = ({
     })),
   );
 
-  const needsVerticalScroll = true;
-
   return (
     <ScrollView
       horizontal
       style={styles.container}
-      contentContainerStyle={{ minWidth: svgWidth + 100 }}
+      contentContainerStyle={{ width: svgWidth, height: svgHeight }}
     >
-      <ScrollView style={{ flex: 1 }} scrollEnabled={needsVerticalScroll}>
-        <Svg
+      <Svg
+        width={svgWidth}
+        height={svgHeight}
+        shouldRasterizeIOS={patterns.length > 100}
+      >
+        {/* Define arrowhead marker */}
+        <Defs>
+          <Marker
+            id="arrowhead"
+            markerWidth="10"
+            markerHeight="10"
+            refX="8"
+            refY="3"
+            orient="auto"
+          >
+            <Polygon
+              points="0 0, 10 3, 0 6"
+              fill={palette[PaletteColor.Primary]}
+            />
+          </Marker>
+        </Defs>
+
+        {/* Swimlane backgrounds */}
+        <Rect
+          x={0}
+          y={swimlanes[WCSPatternType.PUSH].y}
           width={svgWidth}
-          height={svgHeight}
-          shouldRasterizeIOS={patterns.length > 100}
+          height={swimlanes[WCSPatternType.PUSH].height}
+          fill={palette[PaletteColor.Primary]}
+          fillOpacity={0.1}
+        />
+        <Rect
+          x={0}
+          y={swimlanes[WCSPatternType.PASS].y}
+          width={svgWidth}
+          height={swimlanes[WCSPatternType.PASS].height}
+          fill={palette[PaletteColor.SecondaryText]}
+          fillOpacity={0.1}
+        />
+        <Rect
+          x={0}
+          y={swimlanes[WCSPatternType.WHIP].y}
+          width={svgWidth}
+          height={swimlanes[WCSPatternType.WHIP].height}
+          fill={palette[PaletteColor.Accent]}
+          fillOpacity={0.1}
+        />
+        <Rect
+          x={0}
+          y={swimlanes[WCSPatternType.TUCK].y}
+          width={svgWidth}
+          height={swimlanes[WCSPatternType.TUCK].height}
+          fill={palette[PaletteColor.Error]}
+          fillOpacity={0.1}
+        />
+
+        {/* Swimlane labels */}
+        <SvgText
+          x={20}
+          y={swimlanes[WCSPatternType.PUSH].y + 25}
+          fontSize={16}
+          fontWeight="bold"
+          fill={palette[PaletteColor.Primary]}
+          fillOpacity={0.5}
         >
-          {/* Define arrowhead marker */}
-          <Defs>
-            <Marker
-              id="arrowhead"
-              markerWidth="10"
-              markerHeight="10"
-              refX="8"
-              refY="3"
-              orient="auto"
-            >
-              <Polygon
-                points="0 0, 10 3, 0 6"
-                fill={palette[PaletteColor.Primary]}
-              />
-            </Marker>
-          </Defs>
+          {WCSPatternType.PUSH.toUpperCase()}
+        </SvgText>
+        <SvgText
+          x={20}
+          y={swimlanes[WCSPatternType.PASS].y + 25}
+          fontSize={16}
+          fontWeight="bold"
+          fill={palette[PaletteColor.SecondaryText]}
+          fillOpacity={0.5}
+        >
+          {WCSPatternType.PASS.toUpperCase()}
+        </SvgText>
+        <SvgText
+          x={20}
+          y={swimlanes[WCSPatternType.WHIP].y + 25}
+          fontSize={16}
+          fontWeight="bold"
+          fill={palette[PaletteColor.Accent]}
+          fillOpacity={0.5}
+        >
+          {WCSPatternType.WHIP.toUpperCase()}
+        </SvgText>
+        <SvgText
+          x={20}
+          y={swimlanes[WCSPatternType.TUCK].y + 25}
+          fontSize={16}
+          fontWeight="bold"
+          fill={palette[PaletteColor.Error]}
+          fillOpacity={0.5}
+        >
+          {WCSPatternType.TUCK.toUpperCase()}
+        </SvgText>
 
-          {/* Swimlane backgrounds */}
-          <Rect
-            x={0}
-            y={swimlanes[WCSPatternType.PUSH].y}
-            width={svgWidth}
-            height={swimlanes[WCSPatternType.PUSH].height}
-            fill={palette[PaletteColor.Primary]}
-            fillOpacity={0.1}
-          />
-          <Rect
-            x={0}
-            y={swimlanes[WCSPatternType.PASS].y}
-            width={svgWidth}
-            height={swimlanes[WCSPatternType.PASS].height}
-            fill={palette[PaletteColor.SecondaryText]}
-            fillOpacity={0.1}
-          />
-          <Rect
-            x={0}
-            y={swimlanes[WCSPatternType.WHIP].y}
-            width={svgWidth}
-            height={swimlanes[WCSPatternType.WHIP].height}
-            fill={palette[PaletteColor.Accent]}
-            fillOpacity={0.1}
-          />
-          <Rect
-            x={0}
-            y={swimlanes[WCSPatternType.TUCK].y}
-            width={svgWidth}
-            height={swimlanes[WCSPatternType.TUCK].height}
-            fill={palette[PaletteColor.Error]}
-            fillOpacity={0.1}
-          />
+        {/* Draw edges */}
+        {edges.map((edge, index) => {
+          const fromPos = positions.get(edge.from);
+          const toPos = positions.get(edge.to);
+          if (!fromPos || !toPos) return null;
 
-          {/* Swimlane labels */}
-          <SvgText
-            x={20}
-            y={swimlanes[WCSPatternType.PUSH].y + 25}
-            fontSize={16}
-            fontWeight="bold"
-            fill={palette[PaletteColor.Primary]}
-            fillOpacity={0.5}
-          >
-            {WCSPatternType.PUSH.toUpperCase()}
-          </SvgText>
-          <SvgText
-            x={20}
-            y={swimlanes[WCSPatternType.PASS].y + 25}
-            fontSize={16}
-            fontWeight="bold"
-            fill={palette[PaletteColor.SecondaryText]}
-            fillOpacity={0.5}
-          >
-            {WCSPatternType.PASS.toUpperCase()}
-          </SvgText>
-          <SvgText
-            x={20}
-            y={swimlanes[WCSPatternType.WHIP].y + 25}
-            fontSize={16}
-            fontWeight="bold"
-            fill={palette[PaletteColor.Accent]}
-            fillOpacity={0.5}
-          >
-            {WCSPatternType.WHIP.toUpperCase()}
-          </SvgText>
-          <SvgText
-            x={20}
-            y={swimlanes[WCSPatternType.TUCK].y + 25}
-            fontSize={16}
-            fontWeight="bold"
-            fill={palette[PaletteColor.Error]}
-            fillOpacity={0.5}
-          >
-            {WCSPatternType.TUCK.toUpperCase()}
-          </SvgText>
+          // Offset to connect from right of source to left of target
+          const fromPoint = { x: fromPos.x + 50, y: fromPos.y };
+          const toPoint = { x: toPos.x - 50, y: toPos.y };
 
-          {/* Draw edges */}
-          {edges.map((edge, index) => {
-            const fromPos = positions.get(edge.from);
-            const toPos = positions.get(edge.to);
-            if (!fromPos || !toPos) return null;
+          const pathData = generateCurvedPath(fromPoint, toPoint);
 
-            // Offset to connect from right of source to left of target
-            const fromPoint = { x: fromPos.x + 50, y: fromPos.y };
-            const toPoint = { x: toPos.x - 50, y: toPos.y };
+          return (
+            <Path
+              key={`edge-${index}`}
+              d={pathData}
+              stroke={palette[PaletteColor.Primary]}
+              strokeWidth={2}
+              fill="none"
+              markerEnd="url(#arrowhead)"
+            />
+          );
+        })}
 
-            const pathData = generateCurvedPath(fromPoint, toPoint);
+        {/* Draw nodes */}
+        {patterns.map((pattern) => {
+          const pos = positions.get(pattern.id);
+          if (!pos) return null;
 
-            return (
-              <Path
-                key={`edge-${index}`}
-                d={pathData}
-                stroke={palette[PaletteColor.Primary]}
-                strokeWidth={2}
-                fill="none"
-                markerEnd="url(#arrowhead)"
-              />
-            );
-          })}
-
-          {/* Draw nodes */}
-          {patterns.map((pattern) => {
-            const pos = positions.get(pattern.id);
-            if (!pos) return null;
-
-            return (
-              <PatternNode
-                key={pattern.id}
-                pattern={pattern}
-                x={pos.x}
-                y={pos.y}
-                palette={palette}
-                onPress={onNodeTap}
-              />
-            );
-          })}
-        </Svg>
-      </ScrollView>
+          return (
+            <PatternNode
+              key={pattern.id}
+              pattern={pattern}
+              x={pos.x}
+              y={pos.y}
+              palette={palette}
+              onPress={onNodeTap}
+            />
+          );
+        })}
+      </Svg>
     </ScrollView>
   );
 };
