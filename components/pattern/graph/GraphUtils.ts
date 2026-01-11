@@ -306,8 +306,8 @@ export function calculateTimelineLayout(
 
 /**
  * Calculate layout positions for network graph view.
- * Uses hierarchical layout with levels as y-tiers,
- * spreading patterns horizontally by depth to minimize crossings.
+ * Uses elliptical layout for foundational nodes, with dependencies
+ * spreading radially outward perpendicular to the ellipse's surface.
  */
 export function calculateGraphLayout(
   patterns: WCSPattern[],
@@ -316,36 +316,90 @@ export function calculateGraphLayout(
 ): Map<number, LayoutPosition> {
   const positions = new Map<number, LayoutPosition>();
   const depthMap = calculatePrerequisiteDepth(patterns);
-  const grouped = groupPatternsByLevel(patterns);
 
-  // Use fixed reasonable spacing instead of width-based to prevent extreme spreading
-  const horizontalSpacing = 200;
+  // Identify foundational patterns (depth 0)
+  const foundationalPatterns = patterns.filter(
+    (p) => (depthMap.get(p.id) || 0) === 0,
+  );
 
-  // Vertical tiers by level with better distribution
-  const levelYPositions = {
-    [WCSPatternLevel.BEGINNER]: height * 0.25,
-    [WCSPatternLevel.INTERMEDIATE]: height * 0.5,
-    [WCSPatternLevel.ADVANCED]: height * 0.75,
-  };
+  // Center of the layout
+  const centerX = width / 2;
+  const centerY = height / 2;
 
-  // Position patterns within each level tier
-  Object.entries(grouped).forEach(([level, levelPatterns]) => {
-    // Sort by depth for left-to-right ordering
-    const sorted = [...levelPatterns].sort((a, b) => {
-      const depthA = depthMap.get(a.id) || 0;
-      const depthB = depthMap.get(b.id) || 0;
-      return depthA - depthB;
-    });
+  // Ellipse parameters (leave room for dependencies)
+  const ellipseRadiusX = Math.min(width * 0.25, 400);
+  const ellipseRadiusY = Math.min(height * 0.25, 300);
 
-    sorted.forEach((pattern) => {
-      const depth = depthMap.get(pattern.id) || 0;
-      const x = 150 + depth * horizontalSpacing;
-      const baseY = levelYPositions[level as WCSPatternLevel];
+  // Spacing between depth levels
+  const depthSpacing = 180;
 
-      // Apply small vertical jitter to reduce overlap
-      const jitter = (Math.random() - 0.5) * 40;
+  // Position foundational patterns around the ellipse
+  foundationalPatterns.forEach((pattern, index) => {
+    const angle = (index / foundationalPatterns.length) * 2 * Math.PI;
 
-      positions.set(pattern.id, { x, y: baseY + jitter });
+    // Position on ellipse
+    const x = centerX + ellipseRadiusX * Math.cos(angle);
+    const y = centerY + ellipseRadiusY * Math.sin(angle);
+
+    positions.set(pattern.id, { x, y });
+  });
+
+  // Build dependency tree for each foundational pattern
+  const patternMap = new Map<number, WCSPattern>();
+  patterns.forEach((p) => patternMap.set(p.id, p));
+
+  // For each foundational pattern, position its descendants radially
+  foundationalPatterns.forEach((foundational, index) => {
+    const angle = (index / foundationalPatterns.length) * 2 * Math.PI;
+    const foundationalPos = positions.get(foundational.id)!;
+
+    // Direction perpendicular to ellipse (radial direction from center)
+    const dirX = Math.cos(angle);
+    const dirY = Math.sin(angle);
+
+    // Find all descendants of this foundational pattern
+    const descendants = new Map<number, WCSPattern[]>(); // depth -> patterns
+
+    function collectDescendants(patternId: number) {
+      patterns.forEach((p) => {
+        if (p.prerequisites.includes(patternId)) {
+          const depth = depthMap.get(p.id) || 0;
+          if (!descendants.has(depth)) {
+            descendants.set(depth, []);
+          }
+          descendants.get(depth)!.push(p);
+          collectDescendants(p.id);
+        }
+      });
+    }
+
+    collectDescendants(foundational.id);
+
+    // Position descendants at each depth level
+    descendants.forEach((patternsAtDepth, depth) => {
+      patternsAtDepth.forEach((pattern, idx) => {
+        // Distance from foundational pattern
+        const distance = depth * depthSpacing;
+
+        // Spread patterns at this depth perpendicular to the radial direction
+        // Calculate perpendicular offset for multiple patterns at same depth
+        const numAtDepth = patternsAtDepth.length;
+        const spreadAngle = numAtDepth > 1 ? Math.PI / 6 : 0; // 30 degrees spread
+        const offsetAngle =
+          numAtDepth > 1
+            ? (idx - (numAtDepth - 1) / 2) * (spreadAngle / (numAtDepth - 1))
+            : 0;
+
+        // Calculate position along the radial direction with perpendicular offset
+        const finalAngle = angle + offsetAngle;
+        const finalDirX = Math.cos(finalAngle);
+        const finalDirY = Math.sin(finalAngle);
+
+        const x = foundationalPos.x + finalDirX * distance;
+        const y = foundationalPos.y + finalDirY * distance;
+
+        positions.set(pattern.id, { x, y });
+      });
     });
   });
 
