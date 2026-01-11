@@ -7,6 +7,7 @@ import {
   HORIZONTAL_SPACING,
   LEFT_MARGIN,
   NODE_HEIGHT,
+  START_OFFSET,
   VERTICAL_STACK_SPACING,
 } from "@/components/pattern/graph/types/Constants";
 
@@ -203,7 +204,6 @@ export function calculateTimelineLayout(
   // Calculate dynamic swimlane heights based on content
   const swimlaneHeights = new Map<WCSPatternType, number>();
   const swimlaneStarts = new Map<WCSPatternType, number>();
-  const LABEL_SPACE = 40; // Space reserved for swimlane labels
 
   const typeOrder = [
     WCSPatternType.PUSH,
@@ -217,10 +217,10 @@ export function calculateTimelineLayout(
   typeOrder.forEach((type) => {
     const maxStack = maxStackPerType.get(type) || 1;
     const height =
-      LABEL_SPACE + NODE_HEIGHT + (maxStack - 1) * VERTICAL_STACK_SPACING;
+      START_OFFSET + NODE_HEIGHT + (maxStack - 1) * VERTICAL_STACK_SPACING;
 
     swimlaneHeights.set(type, height);
-    swimlaneStarts.set(type, currentY + LABEL_SPACE); // Position patterns below label
+    swimlaneStarts.set(type, currentY + START_OFFSET);
     currentY += height;
   });
 
