@@ -1,4 +1,4 @@
-import React, { useEffect, useState } from "react";
+import React, { useCallback, useState } from "react";
 import {
   Modal,
   ScrollView,
@@ -7,6 +7,7 @@ import {
   TouchableOpacity,
   View,
 } from "react-native";
+import { useFocusEffect } from "@react-navigation/native";
 import { WCSPattern } from "@/components/pattern/types/WCSPattern";
 import { loadPatterns } from "@/components/pattern/PatternStorage";
 import { foundationalWCSPatterns } from "@/components/pattern/data/DefaultWCSPatterns";
@@ -38,18 +39,20 @@ const PatternGraphScreen: React.FC = () => {
   >(undefined);
   const [resetKey, setResetKey] = useState(0);
 
-  // Load patterns from storage on mount
-  useEffect(() => {
-    const fetchPatterns = async () => {
-      try {
-        const stored = await loadPatterns();
-        if (stored) setPatterns(stored);
-      } catch {
-        // fallback to defaults
-      }
-    };
-    fetchPatterns();
-  }, []);
+  // Load patterns from storage on mount and when screen comes into focus
+  useFocusEffect(
+    useCallback(() => {
+      const fetchPatterns = async () => {
+        try {
+          const stored = await loadPatterns();
+          if (stored) setPatterns(stored);
+        } catch {
+          // fallback to defaults
+        }
+      };
+      fetchPatterns();
+    }, []),
+  );
 
   const handleToggleView = () => {
     setViewMode((prev) => (prev === "timeline" ? "graph" : "timeline"));
