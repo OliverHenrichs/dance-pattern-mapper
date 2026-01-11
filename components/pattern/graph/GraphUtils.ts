@@ -182,7 +182,7 @@ export function calculateTimelineLayout(
 
   // Calculate max depth to determine required width
   const maxDepth = Math.max(...Array.from(depthMap.values()), 0);
-  const requiredWidth = LEFT_MARGIN + (maxDepth + 1) * HORIZONTAL_SPACING + 100;
+  const requiredWidth = LEFT_MARGIN + (maxDepth + 0.5) * HORIZONTAL_SPACING;
   const actualWidth = Math.max(width, requiredWidth);
 
   // First pass: Calculate maximum stack height for each type group
