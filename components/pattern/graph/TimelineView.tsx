@@ -18,13 +18,16 @@ import { WCSPattern } from "@/components/pattern/types/WCSPattern";
 import { WCSPatternType } from "@/components/pattern/types/WCSPatternEnums";
 import { PaletteColor } from "@/components/common/ColorPalette";
 import {
-  calculatePrerequisiteDepth,
   calculateTimelineLayout,
   detectCircularDependencies,
   generateCurvedPath,
 } from "./GraphUtils";
 import PatternNode from "./PatternNode";
 import { useTranslation } from "react-i18next";
+import {
+  MIN_PATTERN_HEIGHT,
+  MIN_PATTERNS_VISIBLE,
+} from "@/components/pattern/graph/types/Constants";
 
 interface TimelineViewProps {
   patterns: WCSPattern[];
@@ -32,16 +35,13 @@ interface TimelineViewProps {
   onNodeTap: (pattern: WCSPattern) => void;
 }
 
-const MIN_PATTERN_HEIGHT = 100;
-const MIN_PATTERNS_VISIBLE = 2;
-
 const TimelineView: React.FC<TimelineViewProps> = ({
   patterns,
   palette,
   onNodeTap,
 }) => {
   const { t } = useTranslation();
-  const { height: screenHeight } = useWindowDimensions();
+  const { height: screenHeight, width: screenWidth } = useWindowDimensions();
   const styles = getStyles(palette);
 
   // Memoized layout calculations
@@ -52,22 +52,18 @@ const TimelineView: React.FC<TimelineViewProps> = ({
     const minBaseHeight = MIN_PATTERN_HEIGHT * MIN_PATTERNS_VISIBLE;
     const baseHeight = Math.max(screenHeight, minBaseHeight);
 
-    const depthMap = calculatePrerequisiteDepth(patterns);
-    const maxDepth = Math.max(...Array.from(depthMap.values()), 0);
-    const calculatedWidth = Math.max(800, (maxDepth + 2) * 180);
-
-    const { positions, minHeight } = calculateTimelineLayout(
+    const { positions, minHeight, actualWidth } = calculateTimelineLayout(
       patterns,
-      calculatedWidth,
+      screenWidth,
       baseHeight,
     );
 
     return {
       positions,
-      svgWidth: calculatedWidth,
+      svgWidth: actualWidth,
       svgHeight: minHeight,
     };
-  }, [patterns, screenHeight]);
+  }, [patterns, screenHeight, screenWidth]);
 
   if (patterns.length === 0) {
     return (
@@ -86,7 +82,7 @@ const TimelineView: React.FC<TimelineViewProps> = ({
   );
 
   const swimlaneHeight = svgHeight / 4;
-  const needsVerticalScroll = svgHeight > screenHeight;
+  const needsVerticalScroll = true;
 
   return (
     <ScrollView

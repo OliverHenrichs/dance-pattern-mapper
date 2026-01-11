@@ -3,6 +3,13 @@ import {
   WCSPatternLevel,
   WCSPatternType,
 } from "@/components/pattern/types/WCSPatternEnums";
+import {
+  HORIZONTAL_SPACING,
+  LEFT_MARGIN,
+  NODE_HEIGHT,
+  TOP_MARGIN,
+  VERTICAL_STACK_SPACING,
+} from "@/components/pattern/graph/types/Constants";
 
 export interface LayoutPosition {
   x: number;
@@ -151,34 +158,39 @@ export function groupPatternsByType(
  * Calculate layout positions for timeline view.
  * Patterns are arranged in horizontal swimlanes by type (push/pass/whip/tuck),
  * positioned horizontally based on their prerequisite depth,
- * with 30px vertical offsets to stack patterns at the same depth vertically.
+ * with 70px vertical offsets to stack patterns at the same depth vertically.
  * Returns positions and the minimum required height.
  */
 export function calculateTimelineLayout(
   patterns: WCSPattern[],
   width: number,
   baseHeight: number,
-): { positions: Map<number, LayoutPosition>; minHeight: number } {
+): {
+  positions: Map<number, LayoutPosition>;
+  minHeight: number;
+  actualWidth: number;
+} {
   const positions = new Map<number, LayoutPosition>();
   const depthMap = calculatePrerequisiteDepth(patterns);
   const grouped = groupPatternsByType(patterns);
 
+  // Calculate max depth to determine required width
+  const maxDepth = Math.max(...Array.from(depthMap.values()), 0);
+  const requiredWidth = LEFT_MARGIN + (maxDepth + 1) * HORIZONTAL_SPACING + 100;
+  const actualWidth = Math.max(width, requiredWidth);
+
   // Swimlane configuration - 4 lanes for 4 types
   const swimlaneHeight = baseHeight / 4;
   const swimlanes = {
-    [WCSPatternType.PUSH]: swimlaneHeight * 0.5,
-    [WCSPatternType.PASS]: swimlaneHeight * 1.5,
-    [WCSPatternType.WHIP]: swimlaneHeight * 2.5,
-    [WCSPatternType.TUCK]: swimlaneHeight * 3.5,
+    [WCSPatternType.PUSH]: TOP_MARGIN + 20,
+    [WCSPatternType.PASS]: TOP_MARGIN + swimlaneHeight + 20,
+    [WCSPatternType.WHIP]: TOP_MARGIN + swimlaneHeight * 2 + 20,
+    [WCSPatternType.TUCK]: TOP_MARGIN + swimlaneHeight * 3 + 20,
   };
 
   // Track how many patterns we've placed at each depth+type combination
   const depthTypeCounter = new Map<string, number>();
   let maxY = 0;
-
-  // Horizontal spacing based on depth (prerequisite level)
-  const horizontalSpacing = 180; // Space between depth levels
-  const startX = 150; // Left margin
 
   Object.entries(grouped).forEach(([type, typePatterns]) => {
     typePatterns.forEach((pattern) => {
@@ -186,24 +198,28 @@ export function calculateTimelineLayout(
       const baseY = swimlanes[type as WCSPatternType];
 
       // Position horizontally based on depth
-      const x = startX + depth * horizontalSpacing;
+      const x = LEFT_MARGIN + depth * HORIZONTAL_SPACING;
 
       // Track how many patterns at this depth+type for vertical stacking
       const key = `${depth}-${type}`;
       const stackIndex = depthTypeCounter.get(key) || 0;
       depthTypeCounter.set(key, stackIndex + 1);
 
-      // Stack patterns vertically with 30px offset
-      const y = baseY + stackIndex * 30;
+      // Stack patterns vertically with proper spacing to avoid overlap
+      const y = baseY + stackIndex * VERTICAL_STACK_SPACING;
 
       positions.set(pattern.id, { x, y });
 
-      // Track maximum Y for height calculation (add node height + padding)
-      maxY = Math.max(maxY, y + 60 + 40); // 60px node height + 40px bottom padding
+      // Track maximum Y for height calculation (add node height/2 + padding)
+      maxY = Math.max(maxY, y + NODE_HEIGHT / 2 + 40);
     });
   });
 
-  return { positions, minHeight: Math.max(baseHeight, maxY) };
+  return {
+    positions,
+    minHeight: Math.max(baseHeight, maxY),
+    actualWidth,
+  };
 }
 
 /**
