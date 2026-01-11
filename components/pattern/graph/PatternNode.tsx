@@ -97,7 +97,7 @@ const PatternNode: React.FC<PatternNodeProps> = ({
       {/* Pattern name */}
       <SvgText
         x={x}
-        y={y - 8}
+        y={y - 5}
         fontSize={12}
         fontWeight="bold"
         fill={palette[PaletteColor.PrimaryText]}
@@ -109,7 +109,7 @@ const PatternNode: React.FC<PatternNodeProps> = ({
       {/* Counts */}
       <SvgText
         x={x}
-        y={y + 8}
+        y={y + 11}
         fontSize={10}
         fill={palette[PaletteColor.SecondaryText]}
         textAnchor="middle"
