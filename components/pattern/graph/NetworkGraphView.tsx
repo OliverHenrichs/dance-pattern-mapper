@@ -182,16 +182,45 @@ const NetworkGraphView: React.FC<NetworkGraphViewProps> = ({
   const savedScale = useSharedValue(1);
   const savedTranslateX = useSharedValue(0);
   const savedTranslateY = useSharedValue(0);
+  const pinchFocalX = useSharedValue(0);
+  const pinchFocalY = useSharedValue(0);
 
   const pinchGesture = Gesture.Pinch()
-    .onStart(() => {
+    .onStart((event) => {
       savedScale.value = scale.value;
+      savedTranslateX.value = translateX.value;
+      savedTranslateY.value = translateY.value;
+      // Store the focal point in screen coordinates
+      pinchFocalX.value = event.focalX;
+      pinchFocalY.value = event.focalY;
     })
     .onUpdate((event) => {
-      scale.value = Math.min(
+      const newScale = Math.min(
         Math.max(savedScale.value * event.scale, 0.3),
         3.0,
       );
+
+      // To zoom at the focal point, we need to adjust the translation
+      // so that the point in the content that was under the focal point
+      // stays under the focal point after scaling
+
+      // The content point under the focal point before scaling:
+      // contentPoint = (focal - translate) / scale
+      // After scaling, we want: contentPoint = (focal - newTranslate) / newScale
+      // Therefore: (focal - translate) / scale = (focal - newTranslate) / newScale
+      // Solving for newTranslate:
+      // newTranslate = focal - (focal - translate) * (newScale / scale)
+
+      translateX.value =
+        pinchFocalX.value -
+        (pinchFocalX.value - savedTranslateX.value) *
+          (newScale / savedScale.value);
+      translateY.value =
+        pinchFocalY.value -
+        (pinchFocalY.value - savedTranslateY.value) *
+          (newScale / savedScale.value);
+
+      scale.value = newScale;
     });
 
   const panGesture = Gesture.Pan()
@@ -200,7 +229,7 @@ const NetworkGraphView: React.FC<NetworkGraphViewProps> = ({
       savedTranslateY.value = translateY.value;
     })
     .onUpdate((event) => {
-      const maxTranslate = Math.max(width, height) * 3;
+      const maxTranslate = Math.max(width, height) * 10;
 
       const newTranslateX = savedTranslateX.value + event.translationX;
       const newTranslateY = savedTranslateY.value + event.translationY;
@@ -241,70 +270,72 @@ const NetworkGraphView: React.FC<NetworkGraphViewProps> = ({
   return (
     <View style={styles.container}>
       <GestureDetector gesture={composedGesture}>
-        <Animated.View style={[styles.svgWrapper, animatedStyle]}>
-          <Svg
-            width={svgWidth}
-            height={svgHeight}
-            shouldRasterizeIOS={patterns.length > 100}
-          >
-            <Defs>
-              <Marker
-                id="arrowhead-graph"
-                markerWidth="10"
-                markerHeight="10"
-                refX="8"
-                refY="3"
-                orient="auto"
-              >
-                <Polygon
-                  points="0 0, 10 3, 0 6"
-                  fill={palette[PaletteColor.Primary]}
-                />
-              </Marker>
-            </Defs>
+        <Animated.View style={styles.gestureContainer}>
+          <Animated.View style={animatedStyle}>
+            <Svg
+              width={svgWidth}
+              height={svgHeight}
+              shouldRasterizeIOS={patterns.length > 100}
+            >
+              <Defs>
+                <Marker
+                  id="arrowhead-graph"
+                  markerWidth="10"
+                  markerHeight="10"
+                  refX="8"
+                  refY="3"
+                  orient="auto"
+                >
+                  <Polygon
+                    points="0 0, 10 3, 0 6"
+                    fill={palette[PaletteColor.Primary]}
+                  />
+                </Marker>
+              </Defs>
 
-            {/* Draw edges */}
-            {edges.map((edge, index) => {
-              const fromPos = positions.get(edge.from);
-              const toPos = positions.get(edge.to);
-              if (!fromPos || !toPos) return null;
+              {/* Draw edges */}
+              {edges.map((edge, index) => {
+                const fromPos = positions.get(edge.from);
+                const toPos = positions.get(edge.to);
+                if (!fromPos || !toPos) return null;
 
-              // Offset to connect from right of source to left of target
-              const fromPoint = { x: fromPos.x + 50, y: fromPos.y };
-              const toPoint = { x: toPos.x - 50, y: toPos.y };
+                // Offset to connect from right of source to left of target
+                const fromPoint = { x: fromPos.x + 50, y: fromPos.y };
+                const toPoint = { x: toPos.x - 50, y: toPos.y };
 
-              const pathData = generateCurvedPath(fromPoint, toPoint);
+                const pathData = generateCurvedPath(fromPoint, toPoint);
 
-              return (
-                <Path
-                  key={`edge-${index}`}
-                  d={pathData}
-                  stroke={palette[PaletteColor.Primary]}
-                  strokeWidth={2}
-                  fill="none"
-                  markerEnd="url(#arrowhead-graph)"
-                  opacity={0.6}
-                />
-              );
-            })}
+                return (
+                  <Path
+                    key={`edge-${index}`}
+                    d={pathData}
+                    stroke={palette[PaletteColor.Primary]}
+                    strokeWidth={2}
+                    fill="none"
+                    markerEnd="url(#arrowhead-graph)"
+                    opacity={0.6}
+                  />
+                );
+              })}
 
-            {/* Draw nodes */}
-            {patterns.map((pattern) => {
-              const pos = positions.get(pattern.id);
-              if (!pos) return null;
+              {/* Draw nodes */}
+              {patterns.map((pattern) => {
+                const pos = positions.get(pattern.id);
+                if (!pos) return null;
 
-              return (
-                <PatternNode
-                  key={pattern.id}
-                  pattern={pattern}
-                  x={pos.x}
-                  y={pos.y}
-                  palette={palette}
-                  onPress={onNodeTap}
-                />
-              );
-            })}
-          </Svg>
+                return (
+                  <PatternNode
+                    key={pattern.id}
+                    pattern={pattern}
+                    x={pos.x}
+                    y={pos.y}
+                    palette={palette}
+                    onPress={onNodeTap}
+                  />
+                );
+              })}
+            </Svg>
+          </Animated.View>
         </Animated.View>
       </GestureDetector>
     </View>
@@ -318,8 +349,9 @@ const getStyles = (palette: Record<PaletteColor, string>) =>
       backgroundColor: palette[PaletteColor.Background],
       overflow: "hidden",
     },
-    svgWrapper: {
-      // Empty - let transforms handle all positioning
+    gestureContainer: {
+      flex: 1,
+      // This fills the entire screen area to ensure gestures work everywhere
     },
     emptyContainer: {
       flex: 1,
