@@ -226,6 +226,7 @@ const NetworkGraphView: React.FC<NetworkGraphViewProps> = ({
         { translateY: translateY.value },
         { scale: scale.value },
       ],
+      transformOrigin: "top left",
     };
   });
 
@@ -240,16 +241,7 @@ const NetworkGraphView: React.FC<NetworkGraphViewProps> = ({
   return (
     <View style={styles.container}>
       <GestureDetector gesture={composedGesture}>
-        <Animated.View
-          style={[
-            styles.svgWrapper,
-            animatedStyle,
-            {
-              top: -svgHeight / 2,
-              left: -svgWidth / 2,
-            },
-          ]}
-        >
+        <Animated.View style={[styles.svgWrapper, animatedStyle]}>
           <Svg
             width={svgWidth}
             height={svgHeight}
@@ -327,7 +319,7 @@ const getStyles = (palette: Record<PaletteColor, string>) =>
       overflow: "hidden",
     },
     svgWrapper: {
-      position: "absolute",
+      // Empty - let transforms handle all positioning
     },
     emptyContainer: {
       flex: 1,
