@@ -131,8 +131,22 @@ const NetworkGraphView: React.FC<NetworkGraphViewProps> = ({
         const { translationX: tx, translationY: ty, state } = event.nativeEvent;
 
         if (state === State.ACTIVE) {
-          translateX.setValue(lastTranslateX.current + tx);
-          translateY.setValue(lastTranslateY.current + ty);
+          const newTranslateX = lastTranslateX.current + tx;
+          const newTranslateY = lastTranslateY.current + ty;
+
+          // Apply soft bounds to prevent content from going too far off screen
+          const maxTranslate = Math.max(width, height) * 2;
+          const boundedX = Math.max(
+            -maxTranslate,
+            Math.min(maxTranslate, newTranslateX),
+          );
+          const boundedY = Math.max(
+            -maxTranslate,
+            Math.min(maxTranslate, newTranslateY),
+          );
+
+          translateX.setValue(boundedX);
+          translateY.setValue(boundedY);
         } else if (state === State.END) {
           lastTranslateX.current = (translateX as any)._value;
           lastTranslateY.current = (translateY as any)._value;
@@ -144,7 +158,7 @@ const NetworkGraphView: React.FC<NetworkGraphViewProps> = ({
   return (
     <GestureHandlerRootView style={styles.container}>
       <PanGestureHandler onGestureEvent={handlePanGesture}>
-        <Animated.View style={{ flex: 1 }}>
+        <Animated.View style={styles.container}>
           <PinchGestureHandler onGestureEvent={handlePinchGesture}>
             <Animated.View
               style={[
@@ -231,11 +245,13 @@ const getStyles = (palette: Record<PaletteColor, string>) =>
     container: {
       flex: 1,
       backgroundColor: palette[PaletteColor.Background],
+      overflow: "hidden",
     },
     svgContainer: {
       flex: 1,
       justifyContent: "center",
       alignItems: "center",
+      overflow: "hidden",
     },
     emptyContainer: {
       flex: 1,
