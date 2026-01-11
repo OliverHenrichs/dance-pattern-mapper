@@ -54,7 +54,7 @@ const TimelineView: React.FC<TimelineViewProps> = ({
 
     const depthMap = calculatePrerequisiteDepth(patterns);
     const maxDepth = Math.max(...Array.from(depthMap.values()), 0);
-    const calculatedWidth = Math.max(800, (maxDepth + 2) * 150);
+    const calculatedWidth = Math.max(800, (maxDepth + 2) * 180);
 
     const { positions, minHeight } = calculateTimelineLayout(
       patterns,
@@ -158,6 +158,7 @@ const TimelineView: React.FC<TimelineViewProps> = ({
             fontSize={16}
             fontWeight="bold"
             fill={palette[PaletteColor.Primary]}
+            fillOpacity={0.5}
           >
             {WCSPatternType.PUSH.toUpperCase()}
           </SvgText>
@@ -167,6 +168,7 @@ const TimelineView: React.FC<TimelineViewProps> = ({
             fontSize={16}
             fontWeight="bold"
             fill={palette[PaletteColor.SecondaryText]}
+            fillOpacity={0.5}
           >
             {WCSPatternType.PASS.toUpperCase()}
           </SvgText>
@@ -176,6 +178,7 @@ const TimelineView: React.FC<TimelineViewProps> = ({
             fontSize={16}
             fontWeight="bold"
             fill={palette[PaletteColor.Accent]}
+            fillOpacity={0.5}
           >
             {WCSPatternType.WHIP.toUpperCase()}
           </SvgText>
@@ -185,6 +188,7 @@ const TimelineView: React.FC<TimelineViewProps> = ({
             fontSize={16}
             fontWeight="bold"
             fill={palette[PaletteColor.Error]}
+            fillOpacity={0.5}
           >
             {WCSPatternType.TUCK.toUpperCase()}
           </SvgText>
