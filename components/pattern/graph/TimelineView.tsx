@@ -45,23 +45,21 @@ const TimelineView: React.FC<TimelineViewProps> = ({
   const styles = getStyles(palette);
 
   // Memoized layout calculations
-  const { positions, svgWidth, svgHeight } = useMemo(() => {
+  const { positions, svgWidth, svgHeight, swimlanes } = useMemo(() => {
     // Detect circular dependencies
     detectCircularDependencies(patterns);
 
     const minBaseHeight = MIN_PATTERN_HEIGHT * MIN_PATTERNS_VISIBLE;
     const baseHeight = Math.max(screenHeight, minBaseHeight);
 
-    const { positions, minHeight, actualWidth } = calculateTimelineLayout(
-      patterns,
-      screenWidth,
-      baseHeight,
-    );
+    const { positions, minHeight, actualWidth, swimlanes } =
+      calculateTimelineLayout(patterns, screenWidth, baseHeight);
 
     return {
       positions,
       svgWidth: actualWidth,
       svgHeight: minHeight,
+      swimlanes,
     };
   }, [patterns, screenHeight, screenWidth]);
 
@@ -81,7 +79,6 @@ const TimelineView: React.FC<TimelineViewProps> = ({
     })),
   );
 
-  const swimlaneHeight = svgHeight / 4;
   const needsVerticalScroll = true;
 
   return (
@@ -116,33 +113,33 @@ const TimelineView: React.FC<TimelineViewProps> = ({
           {/* Swimlane backgrounds */}
           <Rect
             x={0}
-            y={0}
+            y={swimlanes[WCSPatternType.PUSH].y}
             width={svgWidth}
-            height={swimlaneHeight}
+            height={swimlanes[WCSPatternType.PUSH].height}
             fill={palette[PaletteColor.Primary]}
             fillOpacity={0.1}
           />
           <Rect
             x={0}
-            y={swimlaneHeight}
+            y={swimlanes[WCSPatternType.PASS].y}
             width={svgWidth}
-            height={swimlaneHeight}
+            height={swimlanes[WCSPatternType.PASS].height}
             fill={palette[PaletteColor.SecondaryText]}
             fillOpacity={0.1}
           />
           <Rect
             x={0}
-            y={swimlaneHeight * 2}
+            y={swimlanes[WCSPatternType.WHIP].y}
             width={svgWidth}
-            height={swimlaneHeight}
+            height={swimlanes[WCSPatternType.WHIP].height}
             fill={palette[PaletteColor.Accent]}
             fillOpacity={0.1}
           />
           <Rect
             x={0}
-            y={swimlaneHeight * 3}
+            y={swimlanes[WCSPatternType.TUCK].y}
             width={svgWidth}
-            height={swimlaneHeight}
+            height={swimlanes[WCSPatternType.TUCK].height}
             fill={palette[PaletteColor.Error]}
             fillOpacity={0.1}
           />
@@ -150,7 +147,7 @@ const TimelineView: React.FC<TimelineViewProps> = ({
           {/* Swimlane labels */}
           <SvgText
             x={20}
-            y={30}
+            y={swimlanes[WCSPatternType.PUSH].y + 30}
             fontSize={16}
             fontWeight="bold"
             fill={palette[PaletteColor.Primary]}
@@ -160,7 +157,7 @@ const TimelineView: React.FC<TimelineViewProps> = ({
           </SvgText>
           <SvgText
             x={20}
-            y={swimlaneHeight + 30}
+            y={swimlanes[WCSPatternType.PASS].y + 30}
             fontSize={16}
             fontWeight="bold"
             fill={palette[PaletteColor.SecondaryText]}
@@ -170,7 +167,7 @@ const TimelineView: React.FC<TimelineViewProps> = ({
           </SvgText>
           <SvgText
             x={20}
-            y={swimlaneHeight * 2 + 30}
+            y={swimlanes[WCSPatternType.WHIP].y + 30}
             fontSize={16}
             fontWeight="bold"
             fill={palette[PaletteColor.Accent]}
@@ -180,7 +177,7 @@ const TimelineView: React.FC<TimelineViewProps> = ({
           </SvgText>
           <SvgText
             x={20}
-            y={swimlaneHeight * 3 + 30}
+            y={swimlanes[WCSPatternType.TUCK].y + 30}
             fontSize={16}
             fontWeight="bold"
             fill={palette[PaletteColor.Error]}

@@ -154,6 +154,11 @@ export function groupPatternsByType(
   return grouped;
 }
 
+export interface SwimlaneInfo {
+  y: number;
+  height: number;
+}
+
 /**
  * Calculate layout positions for timeline view.
  * Patterns are arranged in horizontal swimlanes by type (push/pass/whip/tuck),
@@ -169,6 +174,7 @@ export function calculateTimelineLayout(
   positions: Map<number, LayoutPosition>;
   minHeight: number;
   actualWidth: number;
+  swimlanes: Record<WCSPatternType, SwimlaneInfo>;
 } {
   const positions = new Map<number, LayoutPosition>();
   const depthMap = calculatePrerequisiteDepth(patterns);
@@ -179,23 +185,53 @@ export function calculateTimelineLayout(
   const requiredWidth = LEFT_MARGIN + (maxDepth + 1) * HORIZONTAL_SPACING + 100;
   const actualWidth = Math.max(width, requiredWidth);
 
-  // Swimlane configuration - 4 lanes for 4 types
-  const swimlaneHeight = baseHeight / 4;
-  const swimlanes = {
-    [WCSPatternType.PUSH]: TOP_MARGIN + 20,
-    [WCSPatternType.PASS]: TOP_MARGIN + swimlaneHeight + 20,
-    [WCSPatternType.WHIP]: TOP_MARGIN + swimlaneHeight * 2 + 20,
-    [WCSPatternType.TUCK]: TOP_MARGIN + swimlaneHeight * 3 + 20,
-  };
+  // First pass: Calculate maximum stack height for each type group
+  const maxStackPerType = new Map<string, number>();
+  const SWIMLANE_PADDING = 40; // Padding above and below patterns in each lane
 
-  // Track how many patterns we've placed at each depth+type combination
+  Object.entries(grouped).forEach(([type, typePatterns]) => {
+    const depthCounts = new Map<number, number>();
+
+    typePatterns.forEach((pattern) => {
+      const depth = depthMap.get(pattern.id) || 0;
+      depthCounts.set(depth, (depthCounts.get(depth) || 0) + 1);
+    });
+
+    // Maximum stack height for this type is the max patterns at any depth
+    const maxStack = Math.max(...Array.from(depthCounts.values()), 1);
+    maxStackPerType.set(type, maxStack);
+  });
+
+  // Calculate dynamic swimlane heights based on content
+  const swimlaneHeights = new Map<WCSPatternType, number>();
+  const swimlaneStarts = new Map<WCSPatternType, number>();
+
+  const typeOrder = [
+    WCSPatternType.PUSH,
+    WCSPatternType.PASS,
+    WCSPatternType.WHIP,
+    WCSPatternType.TUCK,
+  ];
+
+  let currentY = TOP_MARGIN;
+
+  typeOrder.forEach((type) => {
+    const maxStack = maxStackPerType.get(type) || 1;
+    const height =
+      NODE_HEIGHT + (maxStack - 1) * VERTICAL_STACK_SPACING + SWIMLANE_PADDING;
+
+    swimlaneHeights.set(type, height);
+    swimlaneStarts.set(type, currentY + 20); // +20 for label space
+    currentY += height;
+  });
+
+  // Second pass: Position patterns using calculated swimlane positions
   const depthTypeCounter = new Map<string, number>();
-  let maxY = 0;
 
   Object.entries(grouped).forEach(([type, typePatterns]) => {
     typePatterns.forEach((pattern) => {
       const depth = depthMap.get(pattern.id) || 0;
-      const baseY = swimlanes[type as WCSPatternType];
+      const baseY = swimlaneStarts.get(type as WCSPatternType) || 0;
 
       // Position horizontally based on depth
       const x = LEFT_MARGIN + depth * HORIZONTAL_SPACING;
@@ -209,16 +245,44 @@ export function calculateTimelineLayout(
       const y = baseY + stackIndex * VERTICAL_STACK_SPACING;
 
       positions.set(pattern.id, { x, y });
-
-      // Track maximum Y for height calculation (add node height/2 + padding)
-      maxY = Math.max(maxY, y + NODE_HEIGHT / 2 + 40);
     });
   });
 
+  // Total height is the sum of all swimlane heights
+  const totalHeight = currentY;
+
+  // Build swimlane info for rendering
+  const swimlaneInfo: Record<WCSPatternType, SwimlaneInfo> = {
+    [WCSPatternType.PUSH]: {
+      y: TOP_MARGIN,
+      height: swimlaneHeights.get(WCSPatternType.PUSH) || 0,
+    },
+    [WCSPatternType.PASS]: {
+      y: TOP_MARGIN + (swimlaneHeights.get(WCSPatternType.PUSH) || 0),
+      height: swimlaneHeights.get(WCSPatternType.PASS) || 0,
+    },
+    [WCSPatternType.WHIP]: {
+      y:
+        TOP_MARGIN +
+        (swimlaneHeights.get(WCSPatternType.PUSH) || 0) +
+        (swimlaneHeights.get(WCSPatternType.PASS) || 0),
+      height: swimlaneHeights.get(WCSPatternType.WHIP) || 0,
+    },
+    [WCSPatternType.TUCK]: {
+      y:
+        TOP_MARGIN +
+        (swimlaneHeights.get(WCSPatternType.PUSH) || 0) +
+        (swimlaneHeights.get(WCSPatternType.PASS) || 0) +
+        (swimlaneHeights.get(WCSPatternType.WHIP) || 0),
+      height: swimlaneHeights.get(WCSPatternType.TUCK) || 0,
+    },
+  };
+
   return {
     positions,
-    minHeight: Math.max(baseHeight, maxY),
+    minHeight: Math.max(baseHeight, totalHeight),
     actualWidth,
+    swimlanes: swimlaneInfo,
   };
 }
 
