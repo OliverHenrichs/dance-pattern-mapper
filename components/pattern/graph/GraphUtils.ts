@@ -1,5 +1,8 @@
 import { WCSPattern } from "@/components/pattern/types/WCSPattern";
-import { WCSPatternLevel } from "@/components/pattern/types/WCSPatternEnums";
+import {
+  WCSPatternLevel,
+  WCSPatternType,
+} from "@/components/pattern/types/WCSPatternEnums";
 
 export interface LayoutPosition {
   x: number;
@@ -125,9 +128,29 @@ export function groupPatternsByLevel(
 }
 
 /**
+ * Group patterns by their WCSPatternType.
+ */
+export function groupPatternsByType(
+  patterns: WCSPattern[],
+): Record<WCSPatternType, WCSPattern[]> {
+  const grouped: Record<WCSPatternType, WCSPattern[]> = {
+    [WCSPatternType.PUSH]: [],
+    [WCSPatternType.PASS]: [],
+    [WCSPatternType.WHIP]: [],
+    [WCSPatternType.TUCK]: [],
+  };
+
+  patterns.forEach((p) => {
+    grouped[p.type].push(p);
+  });
+
+  return grouped;
+}
+
+/**
  * Calculate layout positions for timeline view.
- * Patterns are arranged in horizontal swimlanes by level,
- * positioned horizontally by prerequisite depth,
+ * Patterns are arranged in horizontal swimlanes by type (push/pass/whip/tuck),
+ * positioned horizontally with even distribution across the lane,
  * with 70px vertical offsets to avoid collisions.
  * Returns positions and the minimum required height.
  */
@@ -138,45 +161,50 @@ export function calculateTimelineLayout(
 ): { positions: Map<number, LayoutPosition>; minHeight: number } {
   const positions = new Map<number, LayoutPosition>();
   const depthMap = calculatePrerequisiteDepth(patterns);
-  const grouped = groupPatternsByLevel(patterns);
+  const grouped = groupPatternsByType(patterns);
 
-  const maxDepth = Math.max(...Array.from(depthMap.values()), 0);
-  const horizontalSpacing = Math.max(150, width / (maxDepth + 2));
-
-  // Swimlane configuration
-  const swimlaneHeight = baseHeight / 3;
+  // Swimlane configuration - 4 lanes for 4 types
+  const swimlaneHeight = baseHeight / 4;
   const swimlanes = {
-    [WCSPatternLevel.BEGINNER]: swimlaneHeight * 0.5,
-    [WCSPatternLevel.INTERMEDIATE]: swimlaneHeight * 1.5,
-    [WCSPatternLevel.ADVANCED]: swimlaneHeight * 2.5,
+    [WCSPatternType.PUSH]: swimlaneHeight * 0.5,
+    [WCSPatternType.PASS]: swimlaneHeight * 1.5,
+    [WCSPatternType.WHIP]: swimlaneHeight * 2.5,
+    [WCSPatternType.TUCK]: swimlaneHeight * 3.5,
   };
 
-  // Track collisions at each depth/level
+  // Track collisions at each depth/type
   const collisionCounts = new Map<string, number>();
   let maxY = 0;
 
-  Object.entries(grouped).forEach(([level, levelPatterns]) => {
+  Object.entries(grouped).forEach(([type, typePatterns]) => {
     // Sort patterns by depth first to ensure consistent positioning
-    const sortedPatterns = [...levelPatterns].sort((a, b) => {
+    const sortedPatterns = [...typePatterns].sort((a, b) => {
       const depthA = depthMap.get(a.id) || 0;
       const depthB = depthMap.get(b.id) || 0;
       return depthA - depthB;
     });
 
-    sortedPatterns.forEach((pattern) => {
-      const depth = depthMap.get(pattern.id) || 0;
-      const baseX = 100 + depth * horizontalSpacing;
-      const baseY = swimlanes[level as WCSPatternLevel];
+    // Calculate horizontal spacing for this lane based on number of patterns
+    // Distribute patterns more evenly across the available width
+    const laneWidth = width - 200; // Leave margins
+    const patternsInLane = sortedPatterns.length;
+    const spacingForLane =
+      patternsInLane > 1 ? laneWidth / (patternsInLane - 1) : 0;
 
-      // Check for collisions at this depth/level
-      const key = `${depth}-${level}`;
+    sortedPatterns.forEach((pattern, index) => {
+      // Position patterns evenly across the lane width
+      const baseX =
+        100 + (patternsInLane > 1 ? index * spacingForLane : laneWidth / 2);
+      const baseY = swimlanes[type as WCSPatternType];
+
+      // For patterns at similar positions, check for collisions
+      const key = `${Math.floor(baseX / 100)}-${type}`; // Group by approximate x position
       const collisionCount = collisionCounts.get(key) || 0;
 
       // Apply diagonal offset for collisions (70px vertical offset = 60px node height + 10px padding)
-      // Use current count before incrementing
       const offsetY = baseY + collisionCount * 70;
 
-      // Increment collision count for next pattern at same depth/level
+      // Increment collision count for next pattern at similar position/type
       collisionCounts.set(key, collisionCount + 1);
 
       positions.set(pattern.id, { x: baseX, y: offsetY });

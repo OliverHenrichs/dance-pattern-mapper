@@ -43,7 +43,7 @@ const Legend: React.FC<LegendProps> = ({ palette }) => {
               { borderColor: palette[PaletteColor.Primary] },
             ]}
           />
-          <Text style={styles.legendText}>{WCSPatternType.PUSH}</Text>
+          <Text style={styles.legendText}>{WCSPatternType.PUSH} lane</Text>
         </View>
         <View style={styles.legendItem}>
           <View
@@ -52,7 +52,7 @@ const Legend: React.FC<LegendProps> = ({ palette }) => {
               { borderColor: palette[PaletteColor.Border] },
             ]}
           />
-          <Text style={styles.legendText}>{WCSPatternType.PASS}</Text>
+          <Text style={styles.legendText}>{WCSPatternType.PASS} lane</Text>
         </View>
         <View style={styles.legendItem}>
           <View
@@ -61,7 +61,7 @@ const Legend: React.FC<LegendProps> = ({ palette }) => {
               { borderColor: palette[PaletteColor.Accent] },
             ]}
           />
-          <Text style={styles.legendText}>{WCSPatternType.WHIP}</Text>
+          <Text style={styles.legendText}>{WCSPatternType.WHIP} lane</Text>
         </View>
         <View style={styles.legendItem}>
           <View
@@ -70,7 +70,7 @@ const Legend: React.FC<LegendProps> = ({ palette }) => {
               { borderColor: palette[PaletteColor.Error] },
             ]}
           />
-          <Text style={styles.legendText}>{WCSPatternType.TUCK}</Text>
+          <Text style={styles.legendText}>{WCSPatternType.TUCK} lane</Text>
         </View>
       </View>
 

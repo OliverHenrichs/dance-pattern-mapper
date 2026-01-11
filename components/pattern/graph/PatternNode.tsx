@@ -114,7 +114,7 @@ const PatternNode: React.FC<PatternNodeProps> = ({
         fill={palette[PaletteColor.SecondaryText]}
         textAnchor="middle"
       >
-        {pattern.counts} counts
+        {`${pattern.counts} count`}
       </SvgText>
     </G>
   );
