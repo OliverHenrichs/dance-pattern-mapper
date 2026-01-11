@@ -38,50 +38,77 @@ const NetworkGraphView: React.FC<NetworkGraphViewProps> = ({
   const isInitialized = useRef(false);
 
   const { width, height } = Dimensions.get("window");
-  const svgWidth = width * 3;
-  const svgHeight = height * 2;
 
   // Memoized layout calculations
-  const { positions, autoFitScale, contentCenterX, contentCenterY } =
-    useMemo(() => {
-      // Detect circular dependencies
-      detectCircularDependencies(patterns);
+  const {
+    positions,
+    autoFitScale,
+    contentCenterX,
+    contentCenterY,
+    svgWidth,
+    svgHeight,
+  } = useMemo(() => {
+    // Initial canvas size for layout calculation
+    const initialWidth = width * 3;
+    const initialHeight = height * 2;
 
-      const positions = calculateGraphLayout(patterns, svgWidth, svgHeight);
+    // Detect circular dependencies
+    detectCircularDependencies(patterns);
 
-      if (positions.size === 0) {
-        return {
-          positions,
-          autoFitScale: 1,
-          contentCenterX: svgWidth / 2,
-          contentCenterY: svgHeight / 2,
-        };
-      }
+    const positions = calculateGraphLayout(
+      patterns,
+      initialWidth,
+      initialHeight,
+    );
 
-      // Calculate auto-fit scale and center position
-      let minX = Infinity,
-        maxX = -Infinity,
-        minY = Infinity,
-        maxY = -Infinity;
+    if (positions.size === 0) {
+      return {
+        positions,
+        autoFitScale: 1,
+        contentCenterX: initialWidth / 2,
+        contentCenterY: initialHeight / 2,
+        svgWidth: initialWidth,
+        svgHeight: initialHeight,
+      };
+    }
 
-      positions.forEach((pos) => {
-        minX = Math.min(minX, pos.x);
-        maxX = Math.max(maxX, pos.x);
-        minY = Math.min(minY, pos.y);
-        maxY = Math.max(maxY, pos.y);
-      });
+    // Calculate actual bounds of all patterns
+    let minX = Infinity,
+      maxX = -Infinity,
+      minY = Infinity,
+      maxY = -Infinity;
 
-      const contentWidth = maxX - minX + 200;
-      const contentHeight = maxY - minY + 200;
-      const contentCenterX = (minX + maxX) / 2;
-      const contentCenterY = (minY + maxY) / 2;
+    positions.forEach((pos) => {
+      minX = Math.min(minX, pos.x);
+      maxX = Math.max(maxX, pos.x);
+      minY = Math.min(minY, pos.y);
+      maxY = Math.max(maxY, pos.y);
+    });
 
-      const scaleX = width / contentWidth;
-      const scaleY = height / contentHeight;
-      const autoFitScale = Math.min(Math.max(scaleX, scaleY, 0.3), 1.0);
+    // Add padding around content (100px on each side for nodes + margin)
+    const padding = 200;
+    const contentWidth = maxX - minX + padding;
+    const contentHeight = maxY - minY + padding;
+    const contentCenterX = (minX + maxX) / 2;
+    const contentCenterY = (minY + maxY) / 2;
 
-      return { positions, autoFitScale, contentCenterX, contentCenterY };
-    }, [patterns, svgWidth, svgHeight, width, height]);
+    // SVG should be large enough to contain all patterns with padding
+    const svgWidth = Math.max(initialWidth, contentWidth);
+    const svgHeight = Math.max(initialHeight, contentHeight);
+
+    const scaleX = width / contentWidth;
+    const scaleY = height / contentHeight;
+    const autoFitScale = Math.min(Math.max(scaleX, scaleY, 0.3), 1.0);
+
+    return {
+      positions,
+      autoFitScale,
+      contentCenterX,
+      contentCenterY,
+      svgWidth,
+      svgHeight,
+    };
+  }, [patterns, width, height]);
 
   // Set initial scale and position to auto-fit - only once
   React.useEffect(() => {
@@ -259,10 +286,8 @@ const getStyles = (palette: Record<PaletteColor, string>) =>
       overflow: "hidden",
     },
     svgContainer: {
-      flex: 1,
-      justifyContent: "center",
-      alignItems: "center",
-      overflow: "hidden",
+      // Remove flex, justifyContent, alignItems, and overflow to prevent clipping
+      // The Animated.View will be transformed, not positioned
     },
     emptyContainer: {
       flex: 1,
