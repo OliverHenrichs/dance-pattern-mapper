@@ -1,7 +1,11 @@
 import React, { useMemo, useRef } from "react";
-import { Animated, Dimensions, StyleSheet, Text, View } from "react-native";
+import { Dimensions, StyleSheet, Text, View } from "react-native";
 import Svg, { Defs, Marker, Path, Polygon } from "react-native-svg";
 import { Gesture, GestureDetector } from "react-native-gesture-handler";
+import Animated, {
+  useAnimatedStyle,
+  useSharedValue,
+} from "react-native-reanimated";
 import { WCSPattern } from "@/components/pattern/types/WCSPattern";
 import { PaletteColor } from "@/components/common/ColorPalette";
 import {
@@ -26,14 +30,11 @@ const NetworkGraphView: React.FC<NetworkGraphViewProps> = ({
   const { t } = useTranslation();
   const styles = getStyles(palette);
 
-  // Gesture state - initialize with refs to avoid recreating on every render
-  const scale = useRef(new Animated.Value(1)).current;
-  const translateX = useRef(new Animated.Value(0)).current;
-  const translateY = useRef(new Animated.Value(0)).current;
+  // Use Reanimated shared values instead of Animated.Value to work with worklets
+  const scale = useSharedValue(1);
+  const translateX = useSharedValue(0);
+  const translateY = useSharedValue(0);
 
-  const baseScale = useRef(1);
-  const baseTranslateX = useRef(0);
-  const baseTranslateY = useRef(0);
   const isInitialized = useRef(false);
 
   const { width, height } = Dimensions.get("window");
@@ -85,18 +86,15 @@ const NetworkGraphView: React.FC<NetworkGraphViewProps> = ({
   // Set initial scale and position to auto-fit - only once
   React.useEffect(() => {
     if (!isInitialized.current && patterns.length > 0) {
-      scale.setValue(autoFitScale);
-      baseScale.current = autoFitScale;
+      scale.value = autoFitScale;
 
       // Center the actual pattern content in the visible area
       // We need to translate so that the content center is at screen center
       const offsetX = width / 2 - contentCenterX * autoFitScale;
       const offsetY = height / 2 - contentCenterY * autoFitScale;
 
-      translateX.setValue(offsetX);
-      translateY.setValue(offsetY);
-      baseTranslateX.current = offsetX;
-      baseTranslateY.current = offsetY;
+      translateX.value = offsetX;
+      translateY.value = offsetY;
 
       isInitialized.current = true;
     }
@@ -112,14 +110,6 @@ const NetworkGraphView: React.FC<NetworkGraphViewProps> = ({
     patterns.length,
   ]);
 
-  if (patterns.length === 0) {
-    return (
-      <View style={styles.emptyContainer}>
-        <Text style={styles.emptyText}>{t("noPatternsToVisualize")}</Text>
-      </View>
-    );
-  }
-
   // Generate edges
   const edges = patterns.flatMap((pattern) =>
     pattern.prerequisites.map((prereqId) => ({
@@ -128,63 +118,70 @@ const NetworkGraphView: React.FC<NetworkGraphViewProps> = ({
     })),
   );
 
-  // Create gestures using the new Gesture API
+  // Create gestures using the new Gesture API with shared values
+  // Use saved context to track base values for accumulation
+  const savedScale = useSharedValue(1);
+  const savedTranslateX = useSharedValue(0);
+  const savedTranslateY = useSharedValue(0);
+
   const pinchGesture = Gesture.Pinch()
     .onStart(() => {
-      baseScale.current = (scale as any)._value || 1;
+      savedScale.value = scale.value;
     })
     .onUpdate((event) => {
-      const newScale = baseScale.current * event.scale;
-      const clampedScale = Math.min(Math.max(newScale, 0.3), 3.0);
-      scale.setValue(clampedScale);
-    })
-    .onEnd(() => {
-      baseScale.current = (scale as any)._value || baseScale.current;
+      scale.value = Math.min(
+        Math.max(savedScale.value * event.scale, 0.3),
+        3.0,
+      );
     });
 
   const panGesture = Gesture.Pan()
     .onStart(() => {
-      baseTranslateX.current = (translateX as any)._value || 0;
-      baseTranslateY.current = (translateY as any)._value || 0;
+      savedTranslateX.value = translateX.value;
+      savedTranslateY.value = translateY.value;
     })
     .onUpdate((event) => {
-      const newTranslateX = baseTranslateX.current + event.translationX;
-      const newTranslateY = baseTranslateY.current + event.translationY;
-
       const maxTranslate = Math.max(width, height) * 3;
-      const boundedX = Math.max(
+
+      const newTranslateX = savedTranslateX.value + event.translationX;
+      const newTranslateY = savedTranslateY.value + event.translationY;
+
+      translateX.value = Math.max(
         -maxTranslate,
         Math.min(maxTranslate, newTranslateX),
       );
-      const boundedY = Math.max(
+      translateY.value = Math.max(
         -maxTranslate,
         Math.min(maxTranslate, newTranslateY),
       );
-
-      translateX.setValue(boundedX);
-      translateY.setValue(boundedY);
-    })
-    .onEnd(() => {
-      baseTranslateX.current =
-        (translateX as any)._value || baseTranslateX.current;
-      baseTranslateY.current =
-        (translateY as any)._value || baseTranslateY.current;
     });
 
   // Compose gestures to work simultaneously
   const composedGesture = Gesture.Simultaneous(panGesture, pinchGesture);
 
+  // Create animated style using shared values
+  const animatedStyle = useAnimatedStyle(() => {
+    return {
+      transform: [
+        { translateX: translateX.value },
+        { translateY: translateY.value },
+        { scale: scale.value },
+      ],
+    };
+  });
+
+  if (patterns.length === 0) {
+    return (
+      <View style={styles.emptyContainer}>
+        <Text style={styles.emptyText}>{t("noPatternsToVisualize")}</Text>
+      </View>
+    );
+  }
+
   return (
     <View style={styles.container}>
       <GestureDetector gesture={composedGesture}>
-        <Animated.View
-          style={[
-            styles.svgContainer,
-            {
-              transform: [{ translateX }, { translateY }, { scale }],
-            },
-          ]}
-        >
+        <Animated.View style={[styles.svgContainer, animatedStyle]}>
           <Svg
             width={svgWidth}
             height={svgHeight}
