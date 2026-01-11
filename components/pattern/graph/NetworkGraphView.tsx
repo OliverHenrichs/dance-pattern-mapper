@@ -121,10 +121,35 @@ const NetworkGraphView: React.FC<NetworkGraphViewProps> = ({
     if (!isInitialized.current && patterns.length > 0) {
       scale.value = autoFitScale;
 
-      // Center the actual pattern content in the visible area
-      // We need to translate so that the content center is at screen center
-      const offsetX = width / 2 - contentCenterX * autoFitScale;
-      const offsetY = height / 2 - contentCenterY * autoFitScale;
+      // Calculate the bounding box of actual pattern positions
+      let minX = Infinity,
+        maxX = -Infinity,
+        minY = Infinity,
+        maxY = -Infinity;
+      positions.forEach((pos) => {
+        minX = Math.min(minX, pos.x);
+        maxX = Math.max(maxX, pos.x);
+        minY = Math.min(minY, pos.y);
+        maxY = Math.max(maxY, pos.y);
+      });
+
+      // Center of the actual pattern content
+      const actualCenterX = (minX + maxX) / 2;
+      const actualCenterY = (minY + maxY) / 2;
+
+      console.log("Pattern bounds:", { minX, maxX, minY, maxY });
+      console.log("Content center:", { actualCenterX, actualCenterY });
+      console.log("Screen size:", { width, height });
+      console.log("Auto fit scale:", autoFitScale);
+
+      // The SVG's top-left corner is at (0,0)
+      // We need to translate so that when the SVG is scaled,
+      // the content center appears at the screen center
+      // This accounts for both the scale and the offset within the SVG
+      const offsetX = width / 2 - actualCenterX * autoFitScale;
+      const offsetY = height / 2 - actualCenterY * autoFitScale;
+
+      console.log("Applying offset:", { offsetX, offsetY });
 
       translateX.value = offsetX;
       translateY.value = offsetY;
@@ -141,6 +166,7 @@ const NetworkGraphView: React.FC<NetworkGraphViewProps> = ({
     width,
     height,
     patterns.length,
+    positions,
   ]);
 
   // Generate edges
@@ -214,7 +240,16 @@ const NetworkGraphView: React.FC<NetworkGraphViewProps> = ({
   return (
     <View style={styles.container}>
       <GestureDetector gesture={composedGesture}>
-        <Animated.View style={[styles.svgContainer, animatedStyle]}>
+        <Animated.View
+          style={[
+            styles.svgWrapper,
+            animatedStyle,
+            {
+              top: -svgHeight / 2,
+              left: -svgWidth / 2,
+            },
+          ]}
+        >
           <Svg
             width={svgWidth}
             height={svgHeight}
@@ -291,9 +326,8 @@ const getStyles = (palette: Record<PaletteColor, string>) =>
       backgroundColor: palette[PaletteColor.Background],
       overflow: "hidden",
     },
-    svgContainer: {
-      // Remove flex, justifyContent, alignItems, and overflow to prevent clipping
-      // The Animated.View will be transformed, not positioned
+    svgWrapper: {
+      position: "absolute",
     },
     emptyContainer: {
       flex: 1,

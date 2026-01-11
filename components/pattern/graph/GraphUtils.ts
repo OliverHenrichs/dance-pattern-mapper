@@ -318,7 +318,6 @@ export function calculateGraphLayout(
   const depthMap = calculatePrerequisiteDepth(patterns);
   const grouped = groupPatternsByLevel(patterns);
 
-  const maxDepth = Math.max(...Array.from(depthMap.values()), 0);
   // Use fixed reasonable spacing instead of width-based to prevent extreme spreading
   const horizontalSpacing = 200;
 
