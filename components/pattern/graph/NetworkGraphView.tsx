@@ -1,12 +1,7 @@
 import React, { useMemo, useRef } from "react";
 import { Animated, Dimensions, StyleSheet, Text, View } from "react-native";
 import Svg, { Defs, Marker, Path, Polygon } from "react-native-svg";
-import {
-  GestureHandlerRootView,
-  PanGestureHandler,
-  PinchGestureHandler,
-  State,
-} from "react-native-gesture-handler";
+import { Gesture, GestureDetector } from "react-native-gesture-handler";
 import { WCSPattern } from "@/components/pattern/types/WCSPattern";
 import { PaletteColor } from "@/components/common/ColorPalette";
 import {
@@ -31,55 +26,91 @@ const NetworkGraphView: React.FC<NetworkGraphViewProps> = ({
   const { t } = useTranslation();
   const styles = getStyles(palette);
 
-  // Gesture state
+  // Gesture state - initialize with refs to avoid recreating on every render
   const scale = useRef(new Animated.Value(1)).current;
   const translateX = useRef(new Animated.Value(0)).current;
   const translateY = useRef(new Animated.Value(0)).current;
 
   const baseScale = useRef(1);
-  const lastScale = useRef(1);
-  const lastTranslateX = useRef(0);
-  const lastTranslateY = useRef(0);
+  const baseTranslateX = useRef(0);
+  const baseTranslateY = useRef(0);
+  const isInitialized = useRef(false);
 
   const { width, height } = Dimensions.get("window");
   const svgWidth = width * 3;
   const svgHeight = height * 2;
 
   // Memoized layout calculations
-  const { positions, autoFitScale } = useMemo(() => {
-    // Detect circular dependencies
-    detectCircularDependencies(patterns);
+  const { positions, autoFitScale, contentCenterX, contentCenterY } =
+    useMemo(() => {
+      // Detect circular dependencies
+      detectCircularDependencies(patterns);
 
-    const positions = calculateGraphLayout(patterns, svgWidth, svgHeight);
+      const positions = calculateGraphLayout(patterns, svgWidth, svgHeight);
 
-    // Calculate auto-fit scale
-    let minX = Infinity,
-      maxX = -Infinity,
-      minY = Infinity,
-      maxY = -Infinity;
+      if (positions.size === 0) {
+        return {
+          positions,
+          autoFitScale: 1,
+          contentCenterX: svgWidth / 2,
+          contentCenterY: svgHeight / 2,
+        };
+      }
 
-    positions.forEach((pos) => {
-      minX = Math.min(minX, pos.x);
-      maxX = Math.max(maxX, pos.x);
-      minY = Math.min(minY, pos.y);
-      maxY = Math.max(maxY, pos.y);
-    });
+      // Calculate auto-fit scale and center position
+      let minX = Infinity,
+        maxX = -Infinity,
+        minY = Infinity,
+        maxY = -Infinity;
 
-    const contentWidth = maxX - minX + 200;
-    const contentHeight = maxY - minY + 200;
-    const scaleX = width / contentWidth;
-    const scaleY = height / contentHeight;
-    const autoFitScale = Math.min(Math.max(scaleX, scaleY, 0.3), 1.0);
+      positions.forEach((pos) => {
+        minX = Math.min(minX, pos.x);
+        maxX = Math.max(maxX, pos.x);
+        minY = Math.min(minY, pos.y);
+        maxY = Math.max(maxY, pos.y);
+      });
 
-    return { positions, autoFitScale };
-  }, [patterns, svgWidth, svgHeight, width, height]);
+      const contentWidth = maxX - minX + 200;
+      const contentHeight = maxY - minY + 200;
+      const contentCenterX = (minX + maxX) / 2;
+      const contentCenterY = (minY + maxY) / 2;
 
-  // Set initial scale to auto-fit
+      const scaleX = width / contentWidth;
+      const scaleY = height / contentHeight;
+      const autoFitScale = Math.min(Math.max(scaleX, scaleY, 0.3), 1.0);
+
+      return { positions, autoFitScale, contentCenterX, contentCenterY };
+    }, [patterns, svgWidth, svgHeight, width, height]);
+
+  // Set initial scale and position to auto-fit - only once
   React.useEffect(() => {
-    scale.setValue(autoFitScale);
-    baseScale.current = autoFitScale;
-    lastScale.current = autoFitScale;
-  }, [autoFitScale, scale]);
+    if (!isInitialized.current && patterns.length > 0) {
+      scale.setValue(autoFitScale);
+      baseScale.current = autoFitScale;
+
+      // Center the actual pattern content in the visible area
+      // We need to translate so that the content center is at screen center
+      const offsetX = width / 2 - contentCenterX * autoFitScale;
+      const offsetY = height / 2 - contentCenterY * autoFitScale;
+
+      translateX.setValue(offsetX);
+      translateY.setValue(offsetY);
+      baseTranslateX.current = offsetX;
+      baseTranslateY.current = offsetY;
+
+      isInitialized.current = true;
+    }
+  }, [
+    autoFitScale,
+    contentCenterX,
+    contentCenterY,
+    scale,
+    translateX,
+    translateY,
+    width,
+    height,
+    patterns.length,
+  ]);
 
   if (patterns.length === 0) {
     return (
@@ -97,146 +128,129 @@ const NetworkGraphView: React.FC<NetworkGraphViewProps> = ({
     })),
   );
 
-  const handlePinchGesture = Animated.event(
-    [{ nativeEvent: { scale: scale } }],
-    {
-      useNativeDriver: true,
-      listener: (event: any) => {
-        const { scale: eventScale, state } = event.nativeEvent;
+  // Create gestures using the new Gesture API
+  const pinchGesture = Gesture.Pinch()
+    .onStart(() => {
+      baseScale.current = (scale as any)._value || 1;
+    })
+    .onUpdate((event) => {
+      const newScale = baseScale.current * event.scale;
+      const clampedScale = Math.min(Math.max(newScale, 0.3), 3.0);
+      scale.setValue(clampedScale);
+    })
+    .onEnd(() => {
+      baseScale.current = (scale as any)._value || baseScale.current;
+    });
 
-        if (state === State.ACTIVE) {
-          const newScale = lastScale.current * eventScale;
-          // Clamp between 0.3 and 2.0
-          const clampedScale = Math.min(Math.max(newScale, 0.3), 2.0);
-          scale.setValue(clampedScale);
-        } else if (state === State.END) {
-          lastScale.current = (scale as any)._value;
-        }
-      },
-    },
-  );
+  const panGesture = Gesture.Pan()
+    .onStart(() => {
+      baseTranslateX.current = (translateX as any)._value || 0;
+      baseTranslateY.current = (translateY as any)._value || 0;
+    })
+    .onUpdate((event) => {
+      const newTranslateX = baseTranslateX.current + event.translationX;
+      const newTranslateY = baseTranslateY.current + event.translationY;
 
-  const handlePanGesture = Animated.event(
-    [
-      {
-        nativeEvent: {
-          translationX: translateX,
-          translationY: translateY,
-        },
-      },
-    ],
-    {
-      useNativeDriver: true,
-      listener: (event: any) => {
-        const { translationX: tx, translationY: ty, state } = event.nativeEvent;
+      const maxTranslate = Math.max(width, height) * 3;
+      const boundedX = Math.max(
+        -maxTranslate,
+        Math.min(maxTranslate, newTranslateX),
+      );
+      const boundedY = Math.max(
+        -maxTranslate,
+        Math.min(maxTranslate, newTranslateY),
+      );
 
-        if (state === State.ACTIVE) {
-          const newTranslateX = lastTranslateX.current + tx;
-          const newTranslateY = lastTranslateY.current + ty;
+      translateX.setValue(boundedX);
+      translateY.setValue(boundedY);
+    })
+    .onEnd(() => {
+      baseTranslateX.current =
+        (translateX as any)._value || baseTranslateX.current;
+      baseTranslateY.current =
+        (translateY as any)._value || baseTranslateY.current;
+    });
 
-          // Apply soft bounds to prevent content from going too far off screen
-          const maxTranslate = Math.max(width, height) * 2;
-          const boundedX = Math.max(
-            -maxTranslate,
-            Math.min(maxTranslate, newTranslateX),
-          );
-          const boundedY = Math.max(
-            -maxTranslate,
-            Math.min(maxTranslate, newTranslateY),
-          );
-
-          translateX.setValue(boundedX);
-          translateY.setValue(boundedY);
-        } else if (state === State.END) {
-          lastTranslateX.current = (translateX as any)._value;
-          lastTranslateY.current = (translateY as any)._value;
-        }
-      },
-    },
-  );
+  // Compose gestures to work simultaneously
+  const composedGesture = Gesture.Simultaneous(panGesture, pinchGesture);
 
   return (
-    <GestureHandlerRootView style={styles.container}>
-      <PanGestureHandler onGestureEvent={handlePanGesture}>
-        <Animated.View style={styles.container}>
-          <PinchGestureHandler onGestureEvent={handlePinchGesture}>
-            <Animated.View
-              style={[
-                styles.svgContainer,
-                {
-                  transform: [{ translateX }, { translateY }, { scale }],
-                },
-              ]}
-            >
-              <Svg
-                width={svgWidth}
-                height={svgHeight}
-                shouldRasterizeIOS={patterns.length > 100}
+    <View style={styles.container}>
+      <GestureDetector gesture={composedGesture}>
+        <Animated.View
+          style={[
+            styles.svgContainer,
+            {
+              transform: [{ translateX }, { translateY }, { scale }],
+            },
+          ]}
+        >
+          <Svg
+            width={svgWidth}
+            height={svgHeight}
+            shouldRasterizeIOS={patterns.length > 100}
+          >
+            <Defs>
+              <Marker
+                id="arrowhead-graph"
+                markerWidth="10"
+                markerHeight="10"
+                refX="8"
+                refY="3"
+                orient="auto"
               >
-                {/* Define arrowhead marker */}
-                <Defs>
-                  <Marker
-                    id="arrowhead-graph"
-                    markerWidth="10"
-                    markerHeight="10"
-                    refX="8"
-                    refY="3"
-                    orient="auto"
-                  >
-                    <Polygon
-                      points="0 0, 10 3, 0 6"
-                      fill={palette[PaletteColor.Primary]}
-                    />
-                  </Marker>
-                </Defs>
+                <Polygon
+                  points="0 0, 10 3, 0 6"
+                  fill={palette[PaletteColor.Primary]}
+                />
+              </Marker>
+            </Defs>
 
-                {/* Draw edges */}
-                {edges.map((edge, index) => {
-                  const fromPos = positions.get(edge.from);
-                  const toPos = positions.get(edge.to);
-                  if (!fromPos || !toPos) return null;
+            {/* Draw edges */}
+            {edges.map((edge, index) => {
+              const fromPos = positions.get(edge.from);
+              const toPos = positions.get(edge.to);
+              if (!fromPos || !toPos) return null;
 
-                  // Offset to connect from right of source to left of target
-                  const fromPoint = { x: fromPos.x + 50, y: fromPos.y };
-                  const toPoint = { x: toPos.x - 50, y: toPos.y };
+              // Offset to connect from right of source to left of target
+              const fromPoint = { x: fromPos.x + 50, y: fromPos.y };
+              const toPoint = { x: toPos.x - 50, y: toPos.y };
 
-                  const pathData = generateCurvedPath(fromPoint, toPoint);
+              const pathData = generateCurvedPath(fromPoint, toPoint);
 
-                  return (
-                    <Path
-                      key={`edge-${index}`}
-                      d={pathData}
-                      stroke={palette[PaletteColor.Primary]}
-                      strokeWidth={2}
-                      fill="none"
-                      markerEnd="url(#arrowhead-graph)"
-                      opacity={0.6}
-                    />
-                  );
-                })}
+              return (
+                <Path
+                  key={`edge-${index}`}
+                  d={pathData}
+                  stroke={palette[PaletteColor.Primary]}
+                  strokeWidth={2}
+                  fill="none"
+                  markerEnd="url(#arrowhead-graph)"
+                  opacity={0.6}
+                />
+              );
+            })}
 
-                {/* Draw nodes */}
-                {patterns.map((pattern) => {
-                  const pos = positions.get(pattern.id);
-                  if (!pos) return null;
+            {/* Draw nodes */}
+            {patterns.map((pattern) => {
+              const pos = positions.get(pattern.id);
+              if (!pos) return null;
 
-                  return (
-                    <PatternNode
-                      key={pattern.id}
-                      pattern={pattern}
-                      x={pos.x}
-                      y={pos.y}
-                      palette={palette}
-                      onPress={onNodeTap}
-                    />
-                  );
-                })}
-              </Svg>
-            </Animated.View>
-          </PinchGestureHandler>
+              return (
+                <PatternNode
+                  key={pattern.id}
+                  pattern={pattern}
+                  x={pos.x}
+                  y={pos.y}
+                  palette={palette}
+                  onPress={onNodeTap}
+                />
+              );
+            })}
+          </Svg>
         </Animated.View>
-      </PanGestureHandler>
-    </GestureHandlerRootView>
+      </GestureDetector>
+    </View>
   );
 };
 
