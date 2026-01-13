@@ -140,9 +140,9 @@ const NetworkGraphView: React.FC<NetworkGraphViewProps> = ({
       console.log("Applying offset:", { offsetX, offsetY });
 
       // Set initial transform with animation
-      scale.value = withTiming(autoFitScale, { duration: 300 });
-      translateX.value = withTiming(offsetX, { duration: 300 });
-      translateY.value = withTiming(offsetY, { duration: 300 });
+      scale.value = withTiming(autoFitScale, { duration: 1000 });
+      translateX.value = withTiming(offsetX, { duration: 1000 });
+      translateY.value = withTiming(offsetY, { duration: 1000 });
 
       isInitialized.current = true;
     }
@@ -289,7 +289,14 @@ const getStyles = (palette: Record<PaletteColor, string>) =>
       overflow: "hidden",
     },
     gestureContainer: {
-      flex: 1,
+      position: "absolute",
+      top: -500,
+      left: -100,
+      right: 0,
+      bottom: 0,
+
+      alignItems: "center",
+      justifyContent: "center",
       // This fills the entire screen area to ensure gestures work everywhere
     },
     emptyContainer: {
