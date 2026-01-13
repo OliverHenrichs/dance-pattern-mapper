@@ -5,6 +5,7 @@ import { Gesture, GestureDetector } from "react-native-gesture-handler";
 import Animated, {
   useAnimatedStyle,
   useSharedValue,
+  withTiming,
 } from "react-native-reanimated";
 import { WCSPattern } from "@/components/pattern/types/WCSPattern";
 import { PaletteColor } from "@/components/common/ColorPalette";
@@ -30,7 +31,7 @@ const NetworkGraphView: React.FC<NetworkGraphViewProps> = ({
   const { t } = useTranslation();
   const styles = getStyles(palette);
 
-  // Use Reanimated shared values instead of Animated.Value to work with worklets
+  // Shared values for transforms
   const scale = useSharedValue(1);
   const translateX = useSharedValue(0);
   const translateY = useSharedValue(0);
@@ -40,14 +41,7 @@ const NetworkGraphView: React.FC<NetworkGraphViewProps> = ({
   const { width, height } = Dimensions.get("window");
 
   // Memoized layout calculations
-  const {
-    positions,
-    autoFitScale,
-    contentCenterX,
-    contentCenterY,
-    svgWidth,
-    svgHeight,
-  } = useMemo(() => {
+  const { positions, autoFitScale, svgWidth, svgHeight } = useMemo(() => {
     // Initial canvas size for layout calculation
     const initialWidth = width * 3;
     const initialHeight = height * 2;
@@ -119,8 +113,6 @@ const NetworkGraphView: React.FC<NetworkGraphViewProps> = ({
   // Set initial scale and position to auto-fit - only once
   React.useEffect(() => {
     if (!isInitialized.current && patterns.length > 0) {
-      scale.value = autoFitScale;
-
       // Calculate the bounding box of actual pattern positions
       let minX = Infinity,
         maxX = -Infinity,
@@ -139,34 +131,30 @@ const NetworkGraphView: React.FC<NetworkGraphViewProps> = ({
 
       console.log("Pattern bounds:", { minX, maxX, minY, maxY });
       console.log("Content center:", { actualCenterX, actualCenterY });
-      console.log("Screen size:", { width, height });
       console.log("Auto fit scale:", autoFitScale);
 
-      // The SVG's top-left corner is at (0,0)
-      // We need to translate so that when the SVG is scaled,
-      // the content center appears at the screen center
-      // This accounts for both the scale and the offset within the SVG
+      // Calculate offset to center content
       const offsetX = width / 2 - actualCenterX * autoFitScale;
       const offsetY = height / 2 - actualCenterY * autoFitScale;
 
       console.log("Applying offset:", { offsetX, offsetY });
 
-      translateX.value = offsetX;
-      translateY.value = offsetY;
+      // Set initial transform with animation
+      scale.value = withTiming(autoFitScale, { duration: 300 });
+      translateX.value = withTiming(offsetX, { duration: 300 });
+      translateY.value = withTiming(offsetY, { duration: 300 });
 
       isInitialized.current = true;
     }
   }, [
     autoFitScale,
-    contentCenterX,
-    contentCenterY,
-    scale,
-    translateX,
-    translateY,
     width,
     height,
     patterns.length,
     positions,
+    scale,
+    translateX,
+    translateY,
   ]);
 
   // Generate edges
@@ -177,87 +165,40 @@ const NetworkGraphView: React.FC<NetworkGraphViewProps> = ({
     })),
   );
 
-  // Create gestures using the new Gesture API with shared values
-  // Use saved context to track base values for accumulation
+  // Simple gesture handling
   const savedScale = useSharedValue(1);
-  const savedTranslateX = useSharedValue(0);
-  const savedTranslateY = useSharedValue(0);
-  const pinchFocalX = useSharedValue(0);
-  const pinchFocalY = useSharedValue(0);
+  const savedX = useSharedValue(0);
+  const savedY = useSharedValue(0);
 
   const pinchGesture = Gesture.Pinch()
-    .onStart((event) => {
+    .onBegin(() => {
       savedScale.value = scale.value;
-      savedTranslateX.value = translateX.value;
-      savedTranslateY.value = translateY.value;
-      // Store the focal point in screen coordinates
-      pinchFocalX.value = event.focalX;
-      pinchFocalY.value = event.focalY;
+      savedX.value = translateX.value;
+      savedY.value = translateY.value;
     })
-    .onUpdate((event) => {
-      const newScale = Math.min(
-        Math.max(savedScale.value * event.scale, 0.3),
-        3.0,
-      );
-
-      // To zoom at the focal point, we need to adjust the translation
-      // so that the point in the content that was under the focal point
-      // stays under the focal point after scaling
-
-      // The content point under the focal point before scaling:
-      // contentPoint = (focal - translate) / scale
-      // After scaling, we want: contentPoint = (focal - newTranslate) / newScale
-      // Therefore: (focal - translate) / scale = (focal - newTranslate) / newScale
-      // Solving for newTranslate:
-      // newTranslate = focal - (focal - translate) * (newScale / scale)
-
-      translateX.value =
-        pinchFocalX.value -
-        (pinchFocalX.value - savedTranslateX.value) *
-          (newScale / savedScale.value);
-      translateY.value =
-        pinchFocalY.value -
-        (pinchFocalY.value - savedTranslateY.value) *
-          (newScale / savedScale.value);
-
-      scale.value = newScale;
+    .onUpdate((e) => {
+      scale.value = Math.min(Math.max(savedScale.value * e.scale, 0.1), 3);
     });
 
   const panGesture = Gesture.Pan()
-    .onStart(() => {
-      savedTranslateX.value = translateX.value;
-      savedTranslateY.value = translateY.value;
+    .onBegin(() => {
+      savedX.value = translateX.value;
+      savedY.value = translateY.value;
     })
-    .onUpdate((event) => {
-      const maxTranslate = Math.max(width, height) * 10;
-
-      const newTranslateX = savedTranslateX.value + event.translationX;
-      const newTranslateY = savedTranslateY.value + event.translationY;
-
-      translateX.value = Math.max(
-        -maxTranslate,
-        Math.min(maxTranslate, newTranslateX),
-      );
-      translateY.value = Math.max(
-        -maxTranslate,
-        Math.min(maxTranslate, newTranslateY),
-      );
+    .onUpdate((e) => {
+      translateX.value = savedX.value + e.translationX;
+      translateY.value = savedY.value + e.translationY;
     });
 
-  // Compose gestures to work simultaneously
-  const composedGesture = Gesture.Simultaneous(panGesture, pinchGesture);
+  const composed = Gesture.Simultaneous(pinchGesture, panGesture);
 
-  // Create animated style using shared values
-  const animatedStyle = useAnimatedStyle(() => {
-    return {
-      transform: [
-        { translateX: translateX.value },
-        { translateY: translateY.value },
-        { scale: scale.value },
-      ],
-      transformOrigin: "top left",
-    };
-  });
+  const animatedStyle = useAnimatedStyle(() => ({
+    transform: [
+      { translateX: translateX.value },
+      { translateY: translateY.value },
+      { scale: scale.value },
+    ],
+  }));
 
   if (patterns.length === 0) {
     return (
@@ -269,73 +210,71 @@ const NetworkGraphView: React.FC<NetworkGraphViewProps> = ({
 
   return (
     <View style={styles.container}>
-      <GestureDetector gesture={composedGesture}>
-        <Animated.View style={styles.gestureContainer}>
-          <Animated.View style={animatedStyle}>
-            <Svg
-              width={svgWidth}
-              height={svgHeight}
-              shouldRasterizeIOS={patterns.length > 100}
-            >
-              <Defs>
-                <Marker
-                  id="arrowhead-graph"
-                  markerWidth="10"
-                  markerHeight="10"
-                  refX="8"
-                  refY="3"
-                  orient="auto"
-                >
-                  <Polygon
-                    points="0 0, 10 3, 0 6"
-                    fill={palette[PaletteColor.Primary]}
-                  />
-                </Marker>
-              </Defs>
+      <GestureDetector gesture={composed}>
+        <Animated.View style={[styles.gestureContainer, animatedStyle]}>
+          <Svg
+            width={svgWidth}
+            height={svgHeight}
+            shouldRasterizeIOS={patterns.length > 100}
+          >
+            <Defs>
+              <Marker
+                id="arrowhead-graph"
+                markerWidth="10"
+                markerHeight="10"
+                refX="8"
+                refY="3"
+                orient="auto"
+              >
+                <Polygon
+                  points="0 0, 10 3, 0 6"
+                  fill={palette[PaletteColor.Primary]}
+                />
+              </Marker>
+            </Defs>
 
-              {/* Draw edges */}
-              {edges.map((edge, index) => {
-                const fromPos = positions.get(edge.from);
-                const toPos = positions.get(edge.to);
-                if (!fromPos || !toPos) return null;
+            {/* Draw edges */}
+            {edges.map((edge, index) => {
+              const fromPos = positions.get(edge.from);
+              const toPos = positions.get(edge.to);
+              if (!fromPos || !toPos) return null;
 
-                // Offset to connect from right of source to left of target
-                const fromPoint = { x: fromPos.x + 50, y: fromPos.y };
-                const toPoint = { x: toPos.x - 50, y: toPos.y };
+              // Offset to connect from right of source to left of target
+              const fromPoint = { x: fromPos.x + 50, y: fromPos.y };
+              const toPoint = { x: toPos.x - 50, y: toPos.y };
 
-                const pathData = generateCurvedPath(fromPoint, toPoint);
+              const pathData = generateCurvedPath(fromPoint, toPoint);
 
-                return (
-                  <Path
-                    key={`edge-${index}`}
-                    d={pathData}
-                    stroke={palette[PaletteColor.Primary]}
-                    strokeWidth={2}
-                    fill="none"
-                    markerEnd="url(#arrowhead-graph)"
-                    opacity={0.6}
-                  />
-                );
-              })}
+              return (
+                <Path
+                  key={`edge-${index}`}
+                  d={pathData}
+                  stroke={palette[PaletteColor.Primary]}
+                  strokeWidth={2}
+                  fill="none"
+                  markerEnd="url(#arrowhead-graph)"
+                  opacity={0.6}
+                />
+              );
+            })}
 
-              {/* Draw nodes */}
-              {patterns.map((pattern) => {
-                const pos = positions.get(pattern.id);
-                if (!pos) return null;
+            {/* Draw nodes */}
+            {patterns.map((pattern) => {
+              const pos = positions.get(pattern.id);
+              if (!pos) return null;
 
-                return (
-                  <PatternNode
-                    key={pattern.id}
-                    pattern={pattern}
-                    x={pos.x}
-                    y={pos.y}
-                    palette={palette}
-                    onPress={onNodeTap}
-                  />
-                );
-              })}
-            </Svg>
-          </Animated.View>
+              return (
+                <PatternNode
+                  key={pattern.id}
+                  pattern={pattern}
+                  x={pos.x}
+                  y={pos.y}
+                  palette={palette}
+                  onPress={onNodeTap}
+                />
+              );
+            })}
+          </Svg>
         </Animated.View>
       </GestureDetector>
     </View>
