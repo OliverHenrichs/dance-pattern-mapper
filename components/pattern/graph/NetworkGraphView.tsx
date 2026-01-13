@@ -5,7 +5,6 @@ import { Gesture, GestureDetector } from "react-native-gesture-handler";
 import Animated, {
   useAnimatedStyle,
   useSharedValue,
-  withTiming,
 } from "react-native-reanimated";
 import { WCSPattern } from "@/components/pattern/types/WCSPattern";
 import { PaletteColor } from "@/components/common/ColorPalette";
@@ -31,21 +30,14 @@ const NetworkGraphView: React.FC<NetworkGraphViewProps> = ({
   const { t } = useTranslation();
   const styles = getStyles(palette);
 
-  // Shared values for transforms
-  const scale = useSharedValue(1);
-  const translateX = useSharedValue(0);
-  const translateY = useSharedValue(0);
-
   const isInitialized = useRef(false);
 
   const { width, height } = Dimensions.get("window");
 
+  const initialWidth = width * 3;
+  const initialHeight = height * 2;
   // Memoized layout calculations
-  const { positions, autoFitScale, svgWidth, svgHeight } = useMemo(() => {
-    // Initial canvas size for layout calculation
-    const initialWidth = width * 3;
-    const initialHeight = height * 2;
-
+  const { positions, svgWidth, svgHeight } = useMemo(() => {
     // Detect circular dependencies
     detectCircularDependencies(patterns);
 
@@ -59,8 +51,6 @@ const NetworkGraphView: React.FC<NetworkGraphViewProps> = ({
       return {
         positions,
         autoFitScale: 1,
-        contentCenterX: initialWidth / 2,
-        contentCenterY: initialHeight / 2,
         svgWidth: initialWidth,
         svgHeight: initialHeight,
       };
@@ -83,8 +73,6 @@ const NetworkGraphView: React.FC<NetworkGraphViewProps> = ({
     const padding = 300; // Increased padding for better initial view
     const contentWidth = maxX - minX + padding;
     const contentHeight = maxY - minY + padding;
-    const contentCenterX = (minX + maxX) / 2;
-    const contentCenterY = (minY + maxY) / 2;
 
     // SVG should be large enough to contain all patterns with padding
     const svgWidth = Math.max(initialWidth, contentWidth);
@@ -103,59 +91,10 @@ const NetworkGraphView: React.FC<NetworkGraphViewProps> = ({
     return {
       positions,
       autoFitScale,
-      contentCenterX,
-      contentCenterY,
       svgWidth,
       svgHeight,
     };
-  }, [patterns, width, height]);
-
-  // Set initial scale and position to auto-fit - only once
-  React.useEffect(() => {
-    if (!isInitialized.current && patterns.length > 0) {
-      // Calculate the bounding box of actual pattern positions
-      let minX = Infinity,
-        maxX = -Infinity,
-        minY = Infinity,
-        maxY = -Infinity;
-      positions.forEach((pos) => {
-        minX = Math.min(minX, pos.x);
-        maxX = Math.max(maxX, pos.x);
-        minY = Math.min(minY, pos.y);
-        maxY = Math.max(maxY, pos.y);
-      });
-
-      // Center of the actual pattern content
-      const actualCenterX = (minX + maxX) / 2;
-      const actualCenterY = (minY + maxY) / 2;
-
-      console.log("Pattern bounds:", { minX, maxX, minY, maxY });
-      console.log("Content center:", { actualCenterX, actualCenterY });
-      console.log("Auto fit scale:", autoFitScale);
-
-      // Calculate offset to center content
-      const offsetX = width / 2 - actualCenterX * autoFitScale;
-      const offsetY = height / 2 - actualCenterY * autoFitScale;
-
-      console.log("Applying offset:", { offsetX, offsetY });
-
-      // Set initial transform with animation
-      scale.value = withTiming(autoFitScale, { duration: 1000 });
-      translateX.value = withTiming(offsetX, { duration: 1000 });
-      translateY.value = withTiming(offsetY, { duration: 1000 });
-
-      isInitialized.current = true;
-    }
-  }, [
-    autoFitScale,
-    width,
-    height,
-    patterns.length,
-    positions,
-    scale,
-    translateX,
-    translateY,
-  ]);
+  }, [patterns, initialWidth, initialHeight, width, height]);
 
   // Generate edges
   const edges = patterns.flatMap((pattern) =>
@@ -166,37 +105,98 @@ const NetworkGraphView: React.FC<NetworkGraphViewProps> = ({
   );
 
   // Simple gesture handling
-  const savedScale = useSharedValue(1);
-  const savedX = useSharedValue(0);
-  const savedY = useSharedValue(0);
+  const focalX = useSharedValue(0);
+  const focalY = useSharedValue(0);
+  const avgFocalDistanceX = useSharedValue(0);
+  const avgFocalDistanceY = useSharedValue(0);
+  const xCurrent = useSharedValue(0);
+  const yCurrent = useSharedValue(0);
+  const xPrevious = useSharedValue(0);
+  const yPrevious = useSharedValue(0);
+  const scaleCurrent = useSharedValue(1);
+  const scalePrevious = useSharedValue(1);
 
   const pinchGesture = Gesture.Pinch()
-    .onBegin(() => {
-      savedScale.value = scale.value;
-      savedX.value = translateX.value;
-      savedY.value = translateY.value;
+    .onBegin((event) => {
+      focalX.value = event.focalX;
+      focalY.value = event.focalY;
+      avgFocalDistanceX.value = 0;
+      avgFocalDistanceY.value = 0;
+      // console.log(
+      //   `Pinch start: S: ${scaleCurrent.value}, ${scalePrevious.value}, ${event.scale}\n`,
+      //   `F: ${focalX.value}, ${focalY.value}\n`,
+      //   `, x:${xCurrent.value}, y:${yCurrent.value}\n`,
+      // );
+      scalePrevious.value = scaleCurrent.value;
     })
-    .onUpdate((e) => {
-      scale.value = Math.min(Math.max(savedScale.value * e.scale, 0.1), 3);
+    .onUpdate((event) => {
+      if (event.numberOfPointers === 2) {
+        const focalDistanceX = event.focalX - focalX.value;
+        const focalDistanceY = event.focalY - focalY.value;
+        if (avgFocalDistanceX.value === 0 || avgFocalDistanceY.value === 0) {
+          avgFocalDistanceX.value = focalDistanceX;
+          avgFocalDistanceY.value = focalDistanceY;
+        } else {
+          avgFocalDistanceX.value =
+            avgFocalDistanceX.value * 0.9 + focalDistanceX * 0.1;
+          avgFocalDistanceY.value =
+            avgFocalDistanceY.value * 0.9 + focalDistanceY * 0.1;
+        }
+
+        if (
+          Math.abs(focalDistanceX) > Math.abs(10 * avgFocalDistanceX.value) ||
+          Math.abs(focalDistanceY) > Math.abs(10 * avgFocalDistanceY.value)
+        ) {
+          // jumping focal point - likely due to letting go of one finger
+          // ignore this update
+          console.log("Ignoring jumpy focal point");
+          return;
+        }
+        scaleCurrent.value = scalePrevious.value * event.scale;
+        xCurrent.value += scaleCurrent.value * focalDistanceX;
+        yCurrent.value += scaleCurrent.value * focalDistanceY;
+        // console.log(
+        //   `s: ${scaleCurrent.value}, x: ${xCurrent.value}y: ${yCurrent.value}\n`,
+        //   `f: ${focalDistanceX}, ${focalDistanceY}`,
+        // );
+        // console.log(event.state, event.numberOfPointers, event.pointerType);
+        console.log(
+          "onUpdate: " + event.numberOfPointers,
+          event.focalX,
+          event.focalY,
+        );
+      }
+    })
+    .onEnd(() => {
+      console.log(
+        "poop onFinalize: " + scalePrevious.value + ", " + scaleCurrent.value,
+      );
+      scalePrevious.value = scaleCurrent.value;
     });
 
   const panGesture = Gesture.Pan()
-    .onBegin(() => {
-      savedX.value = translateX.value;
-      savedY.value = translateY.value;
+    .onStart((event) => {
+      if (event.numberOfPointers === 1) {
+        console.log("piep onStart");
+        xPrevious.value = xCurrent.value;
+        yPrevious.value = yCurrent.value;
+      }
     })
-    .onUpdate((e) => {
-      translateX.value = savedX.value + e.translationX;
-      translateY.value = savedY.value + e.translationY;
+    .onUpdate((event) => {
+      if (event.numberOfPointers === 1) {
+        console.log("piep onUpdate");
+        xCurrent.value = xPrevious.value + event.translationX;
+        yCurrent.value = yPrevious.value + event.translationY;
+      }
     });
 
   const composed = Gesture.Simultaneous(pinchGesture, panGesture);
 
   const animatedStyle = useAnimatedStyle(() => ({
     transform: [
-      { translateX: translateX.value },
-      { translateY: translateY.value },
-      { scale: scale.value },
+      { translateX: xCurrent.value },
+      { translateY: yCurrent.value },
+      { scale: scaleCurrent.value },
     ],
   }));
 
@@ -211,7 +211,13 @@ const NetworkGraphView: React.FC<NetworkGraphViewProps> = ({
   return (
     <View style={styles.container}>
       <GestureDetector gesture={composed}>
-        <Animated.View style={[styles.gestureContainer, animatedStyle]}>
+        <Animated.View
+          style={[
+            styles.gestureContainer,
+            animatedStyle,
+            { width: svgWidth, height: svgHeight },
+          ]}
+        >
           <Svg
             width={svgWidth}
             height={svgHeight}
@@ -290,13 +296,10 @@ const getStyles = (palette: Record<PaletteColor, string>) =>
     },
     gestureContainer: {
       position: "absolute",
-      top: -500,
-      left: -100,
+      top: 0,
+      left: 0,
       right: 0,
       bottom: 0,
-
-      alignItems: "center",
-      justifyContent: "center",
       // This fills the entire screen area to ensure gestures work everywhere
     },
     emptyContainer: {
