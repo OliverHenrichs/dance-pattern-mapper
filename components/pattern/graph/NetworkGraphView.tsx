@@ -115,37 +115,48 @@ const NetworkGraphView: React.FC<NetworkGraphViewProps> = ({
   const yPrevious = useSharedValue(0);
   const scaleCurrent = useSharedValue(1);
   const scalePrevious = useSharedValue(1);
+  const updateCount = useSharedValue(0);
 
   const pinchGesture = Gesture.Pinch()
     .onBegin((event) => {
+      updateCount.value = 0;
       focalX.value = event.focalX;
       focalY.value = event.focalY;
       avgFocalDistanceX.value = 0;
       avgFocalDistanceY.value = 0;
-      // console.log(
-      //   `Pinch start: S: ${scaleCurrent.value}, ${scalePrevious.value}, ${event.scale}\n`,
-      //   `F: ${focalX.value}, ${focalY.value}\n`,
-      //   `, x:${xCurrent.value}, y:${yCurrent.value}\n`,
-      // );
       scalePrevious.value = scaleCurrent.value;
     })
     .onUpdate((event) => {
       if (event.numberOfPointers === 2) {
+        updateCount.value++;
+        // Skip first 2 updates to let focal point stabilize
+        if (updateCount.value <= 2) {
+          focalX.value = event.focalX;
+          focalY.value = event.focalY;
+          console.log("Ignoring first couple updates");
+          console.log(`f: ${focalX.value}, ${focalY.value}`);
+          return;
+        }
+
         const focalDistanceX = event.focalX - focalX.value;
         const focalDistanceY = event.focalY - focalY.value;
         if (avgFocalDistanceX.value === 0 || avgFocalDistanceY.value === 0) {
-          avgFocalDistanceX.value = focalDistanceX;
-          avgFocalDistanceY.value = focalDistanceY;
+          avgFocalDistanceX.value = Math.abs(focalDistanceX);
+          avgFocalDistanceY.value = Math.abs(focalDistanceY);
         } else {
           avgFocalDistanceX.value =
-            avgFocalDistanceX.value * 0.9 + focalDistanceX * 0.1;
+            avgFocalDistanceX.value * 0.9 + Math.abs(focalDistanceX) * 0.1;
           avgFocalDistanceY.value =
-            avgFocalDistanceY.value * 0.9 + focalDistanceY * 0.1;
+            avgFocalDistanceY.value * 0.9 + Math.abs(focalDistanceY) * 0.1;
         }
 
+        console.log(
+          "fd: " + focalDistanceX + ", " + focalDistanceY,
+          "avg: " + avgFocalDistanceX.value + ", " + avgFocalDistanceY.value,
+        );
         if (
-          Math.abs(focalDistanceX) > Math.abs(10 * avgFocalDistanceX.value) ||
-          Math.abs(focalDistanceY) > Math.abs(10 * avgFocalDistanceY.value)
+          Math.abs(focalDistanceX) > 3 * avgFocalDistanceX.value ||
+          Math.abs(focalDistanceY) > 3 * avgFocalDistanceY.value
         ) {
           // jumping focal point - likely due to letting go of one finger
           // ignore this update
@@ -175,19 +186,16 @@ const NetworkGraphView: React.FC<NetworkGraphViewProps> = ({
     });
 
   const panGesture = Gesture.Pan()
+    .maxPointers(1)
     .onStart((event) => {
-      if (event.numberOfPointers === 1) {
-        console.log("piep onStart");
-        xPrevious.value = xCurrent.value;
-        yPrevious.value = yCurrent.value;
-      }
+      console.log("piep onStart");
+      xPrevious.value = xCurrent.value;
+      yPrevious.value = yCurrent.value;
     })
     .onUpdate((event) => {
-      if (event.numberOfPointers === 1) {
-        console.log("piep onUpdate");
-        xCurrent.value = xPrevious.value + event.translationX;
-        yCurrent.value = yPrevious.value + event.translationY;
-      }
+      console.log("piep onUpdate");
+      xCurrent.value = xPrevious.value + event.translationX;
+      yCurrent.value = yPrevious.value + event.translationY;
     });
 
   const composed = Gesture.Simultaneous(pinchGesture, panGesture);
