@@ -1,4 +1,4 @@
-import React, { useMemo, useRef } from "react";
+import React, { useMemo } from "react";
 import { Dimensions, StyleSheet, Text, View } from "react-native";
 import Svg, { Defs, Marker, Path, Polygon } from "react-native-svg";
 import { Gesture, GestureDetector } from "react-native-gesture-handler";
@@ -29,8 +29,6 @@ const NetworkGraphView: React.FC<NetworkGraphViewProps> = ({
 }) => {
   const { t } = useTranslation();
   const styles = getStyles(palette);
-
-  const isInitialized = useRef(false);
 
   const { width, height } = Dimensions.get("window");
 
@@ -113,7 +111,7 @@ const NetworkGraphView: React.FC<NetworkGraphViewProps> = ({
   const yCurrent = useSharedValue(0);
   const xPrevious = useSharedValue(0);
   const yPrevious = useSharedValue(0);
-  const scaleCurrent = useSharedValue(1);
+  const scaleCurrent = useSharedValue(0.5);
   const scalePrevious = useSharedValue(1);
   const updateCount = useSharedValue(0);
 
@@ -140,60 +138,32 @@ const NetworkGraphView: React.FC<NetworkGraphViewProps> = ({
 
         const focalDistanceX = event.focalX - focalX.value;
         const focalDistanceY = event.focalY - focalY.value;
-        if (avgFocalDistanceX.value === 0 || avgFocalDistanceY.value === 0) {
-          avgFocalDistanceX.value = Math.abs(focalDistanceX);
-          avgFocalDistanceY.value = Math.abs(focalDistanceY);
-        } else {
-          avgFocalDistanceX.value =
-            avgFocalDistanceX.value * 0.9 + Math.abs(focalDistanceX) * 0.1;
-          avgFocalDistanceY.value =
-            avgFocalDistanceY.value * 0.9 + Math.abs(focalDistanceY) * 0.1;
-        }
 
-        console.log(
-          "fd: " + focalDistanceX + ", " + focalDistanceY,
-          "avg: " + avgFocalDistanceX.value + ", " + avgFocalDistanceY.value,
+        // Calculate total distance from last focal point
+        const distance = Math.sqrt(
+          focalDistanceX * focalDistanceX + focalDistanceY * focalDistanceY,
         );
-        if (
-          Math.abs(focalDistanceX) > 3 * avgFocalDistanceX.value ||
-          Math.abs(focalDistanceY) > 3 * avgFocalDistanceY.value
-        ) {
-          // jumping focal point - likely due to letting go of one finger
-          // ignore this update
-          console.log("Ignoring jumpy focal point");
+        // Reject if jump exceeds threshold (30-50px is typical)
+        const maxJumpDistance = 50;
+        if (distance > maxJumpDistance) {
           return;
         }
         scaleCurrent.value = scalePrevious.value * event.scale;
         xCurrent.value += scaleCurrent.value * focalDistanceX;
         yCurrent.value += scaleCurrent.value * focalDistanceY;
-        // console.log(
-        //   `s: ${scaleCurrent.value}, x: ${xCurrent.value}y: ${yCurrent.value}\n`,
-        //   `f: ${focalDistanceX}, ${focalDistanceY}`,
-        // );
-        // console.log(event.state, event.numberOfPointers, event.pointerType);
-        console.log(
-          "onUpdate: " + event.numberOfPointers,
-          event.focalX,
-          event.focalY,
-        );
       }
     })
     .onEnd(() => {
-      console.log(
-        "poop onFinalize: " + scalePrevious.value + ", " + scaleCurrent.value,
-      );
       scalePrevious.value = scaleCurrent.value;
     });
 
   const panGesture = Gesture.Pan()
     .maxPointers(1)
-    .onStart((event) => {
-      console.log("piep onStart");
+    .onStart(() => {
       xPrevious.value = xCurrent.value;
       yPrevious.value = yCurrent.value;
     })
     .onUpdate((event) => {
-      console.log("piep onUpdate");
       xCurrent.value = xPrevious.value + event.translationX;
       yCurrent.value = yPrevious.value + event.translationY;
     });
@@ -304,11 +274,10 @@ const getStyles = (palette: Record<PaletteColor, string>) =>
     },
     gestureContainer: {
       position: "absolute",
-      top: 0,
-      left: 0,
+      top: -500,
+      left: -430,
       right: 0,
       bottom: 0,
-      // This fills the entire screen area to ensure gestures work everywhere
     },
     emptyContainer: {
       flex: 1,
