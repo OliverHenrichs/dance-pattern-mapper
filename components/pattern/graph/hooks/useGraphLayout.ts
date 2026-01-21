@@ -87,8 +87,19 @@ export function useGraphLayout(patterns: WCSPattern[]): GraphLayoutResult {
       initialWidth,
       initialHeight,
     );
+    // Normalize positions to ensure they fit within the SVG with proper padding
+    // This prevents clipping on the left and top edges
+    const normalizedPositions = new Map<number, LayoutPosition>();
+    const offsetX = -bounds.minX + CONTENT_PADDING / 2;
+    const offsetY = -bounds.minY + CONTENT_PADDING / 2;
+    positions.forEach((pos, id) => {
+      normalizedPositions.set(id, {
+        x: pos.x + offsetX,
+        y: pos.y + offsetY,
+      });
+    });
     return {
-      positions,
+      positions: normalizedPositions,
       ...dimensions,
     };
   }, [patterns, width, height]);
