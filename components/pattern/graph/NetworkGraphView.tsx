@@ -1,5 +1,5 @@
-import React from "react";
-import { StyleSheet, Text, View } from "react-native";
+import React, { useMemo } from "react";
+import { StyleSheet, Text, useWindowDimensions, View } from "react-native";
 import { GestureDetector } from "react-native-gesture-handler";
 import Animated, { useAnimatedStyle } from "react-native-reanimated";
 import { WCSPattern } from "@/components/pattern/types/WCSPattern";
@@ -22,12 +22,33 @@ const NetworkGraphView: React.FC<NetworkGraphViewProps> = ({
 }) => {
   const { t } = useTranslation();
   const styles = getStyles(palette);
+  const { width: viewportWidth, height: viewportHeight } =
+    useWindowDimensions();
 
   // Layout calculation
   const { positions, svgWidth, svgHeight } = useGraphLayout(patterns);
 
-  // Gesture handling
-  const { composedGesture, gestureState } = useGraphGestures();
+  // Calculate initial scale and position to fit and center the graph
+  const { initialX, initialY, initialScale } = useMemo(() => {
+    // Calculate scale to fit the entire SVG in the viewport with some padding
+    const padding = 40;
+    const scaleX = (viewportWidth - padding * 2) / svgWidth;
+    const scaleY = (viewportHeight - padding * 2) / svgHeight;
+    // keep mid-range scaling between 0.5 and 1
+    const scale = Math.max(0.5, Math.min(scaleX, scaleY, 1));
+    return {
+      initialX: (viewportWidth - svgWidth) / 2,
+      initialY: (viewportHeight - svgHeight) / 2,
+      initialScale: scale,
+    };
+  }, [svgWidth, svgHeight, viewportWidth, viewportHeight]);
+
+  // Gesture handling with initial values
+  const { composedGesture, gestureState } = useGraphGestures({
+    initialX,
+    initialY,
+    initialScale,
+  });
   const { xCurrent, yCurrent, scaleCurrent } = gestureState;
   const animatedStyle = useAnimatedStyle(() => ({
     transform: [
@@ -79,8 +100,8 @@ const getStyles = (palette: Record<PaletteColor, string>) =>
     },
     gestureContainer: {
       position: "absolute",
-      top: -500,
-      left: -430,
+      top: 0,
+      left: 0,
       right: 0,
       bottom: 0,
     },

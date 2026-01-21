@@ -1,16 +1,24 @@
 import { Gesture } from "react-native-gesture-handler";
 import { useSharedValue } from "react-native-reanimated";
 
-export const useGraphGestures = () => {
+interface GraphGestureOptions {
+  initialX?: number;
+  initialY?: number;
+  initialScale?: number;
+}
+
+export const useGraphGestures = (options: GraphGestureOptions = {}) => {
+  const { initialX = 0, initialY = 0, initialScale = 0.5 } = options;
+
   const focalX = useSharedValue(0);
   const focalY = useSharedValue(0);
   const avgFocalDistanceX = useSharedValue(0);
   const avgFocalDistanceY = useSharedValue(0);
-  const xCurrent = useSharedValue(0);
-  const yCurrent = useSharedValue(0);
+  const xCurrent = useSharedValue(initialX);
+  const yCurrent = useSharedValue(initialY);
   const xPrevious = useSharedValue(0);
   const yPrevious = useSharedValue(0);
-  const scaleCurrent = useSharedValue(0.5);
+  const scaleCurrent = useSharedValue(initialScale);
   const scalePrevious = useSharedValue(1);
   const updateCount = useSharedValue(0);
 
