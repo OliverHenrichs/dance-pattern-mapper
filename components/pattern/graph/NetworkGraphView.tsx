@@ -62,6 +62,7 @@ const NetworkGraphView: React.FC<NetworkGraphViewProps> = ({
             positions={positions}
             palette={palette}
             onNodeTap={onNodeTap}
+            viewMode="network"
           />
         </Animated.View>
       </GestureDetector>

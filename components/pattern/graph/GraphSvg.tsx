@@ -2,8 +2,10 @@ import React from "react";
 import Svg, { Defs, Marker, Path, Polygon } from "react-native-svg";
 import { WCSPattern } from "@/components/pattern/types/WCSPattern";
 import { PaletteColor } from "@/components/common/ColorPalette";
-import { generateCurvedPath } from "./GraphUtils";
+import { generateCurvedPath, generateOrthogonalPath } from "./GraphUtils";
 import PatternNode from "./PatternNode";
+
+export type GraphViewMode = "timeline" | "network";
 
 interface GraphSvgProps {
   svgWidth: number;
@@ -12,6 +14,7 @@ interface GraphSvgProps {
   positions: Map<number, { x: number; y: number }>;
   palette: Record<PaletteColor, string>;
   onNodeTap: (pattern: WCSPattern) => void;
+  viewMode: GraphViewMode;
 }
 
 const GraphSvg: React.FC<GraphSvgProps> = ({
@@ -21,6 +24,7 @@ const GraphSvg: React.FC<GraphSvgProps> = ({
   positions,
   palette,
   onNodeTap,
+  viewMode,
 }) => {
   // Generate edges
   const edges = patterns.flatMap((pattern) =>
@@ -39,9 +43,9 @@ const GraphSvg: React.FC<GraphSvgProps> = ({
       <Defs>
         <Marker
           id="arrowhead-graph"
-          markerWidth="10"
-          markerHeight="10"
-          refX="8"
+          markerWidth="5"
+          markerHeight="5"
+          refX="0"
           refY="3"
           orient="auto"
         >
@@ -58,11 +62,17 @@ const GraphSvg: React.FC<GraphSvgProps> = ({
         const toPos = positions.get(edge.to);
         if (!fromPos || !toPos) return null;
 
-        // Offset to connect from right of source to left of target
-        const fromPoint = { x: fromPos.x + 50, y: fromPos.y };
-        const toPoint = { x: toPos.x - 50, y: toPos.y };
+        let pathData: string;
 
-        const pathData = generateCurvedPath(fromPoint, toPoint);
+        if (viewMode === "network") {
+          // Use orthogonal paths that connect from the closest sides
+          pathData = generateOrthogonalPath(fromPos, toPos);
+        } else {
+          // Timeline view: use curved paths from right to left
+          const fromPoint = { x: fromPos.x + 50, y: fromPos.y };
+          const toPoint = { x: toPos.x - 50, y: toPos.y };
+          pathData = generateCurvedPath(fromPoint, toPoint);
+        }
 
         return (
           <Path

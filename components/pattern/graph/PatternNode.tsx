@@ -6,6 +6,10 @@ import {
   WCSPatternType,
 } from "@/components/pattern/types/WCSPatternEnums";
 import { PaletteColor } from "@/components/common/ColorPalette";
+import {
+  NODE_HEIGHT,
+  NODE_WIDTH,
+} from "@/components/pattern/graph/types/Constants";
 
 interface PatternNodeProps {
   pattern: WCSPattern;
@@ -14,9 +18,6 @@ interface PatternNodeProps {
   palette: Record<PaletteColor, string>;
   onPress: (pattern: WCSPattern) => void;
 }
-
-const NODE_WIDTH = 100;
-const NODE_HEIGHT = 60;
 
 const PatternNode: React.FC<PatternNodeProps> = ({
   pattern,
