@@ -1,11 +1,8 @@
 import React, { useMemo } from "react";
 import { Dimensions, StyleSheet, Text, View } from "react-native";
 import Svg, { Defs, Marker, Path, Polygon } from "react-native-svg";
-import { Gesture, GestureDetector } from "react-native-gesture-handler";
-import Animated, {
-  useAnimatedStyle,
-  useSharedValue,
-} from "react-native-reanimated";
+import { GestureDetector } from "react-native-gesture-handler";
+import Animated, { useAnimatedStyle } from "react-native-reanimated";
 import { WCSPattern } from "@/components/pattern/types/WCSPattern";
 import { PaletteColor } from "@/components/common/ColorPalette";
 import {
@@ -15,6 +12,7 @@ import {
 } from "./GraphUtils";
 import PatternNode from "./PatternNode";
 import { useTranslation } from "react-i18next";
+import { useGraphGestures } from "./GraphGestureHandler";
 
 interface NetworkGraphViewProps {
   patterns: WCSPattern[];
@@ -102,74 +100,9 @@ const NetworkGraphView: React.FC<NetworkGraphViewProps> = ({
     })),
   );
 
-  // Simple gesture handling
-  const focalX = useSharedValue(0);
-  const focalY = useSharedValue(0);
-  const avgFocalDistanceX = useSharedValue(0);
-  const avgFocalDistanceY = useSharedValue(0);
-  const xCurrent = useSharedValue(0);
-  const yCurrent = useSharedValue(0);
-  const xPrevious = useSharedValue(0);
-  const yPrevious = useSharedValue(0);
-  const scaleCurrent = useSharedValue(0.5);
-  const scalePrevious = useSharedValue(1);
-  const updateCount = useSharedValue(0);
-
-  const pinchGesture = Gesture.Pinch()
-    .onBegin((event) => {
-      updateCount.value = 0;
-      focalX.value = event.focalX;
-      focalY.value = event.focalY;
-      avgFocalDistanceX.value = 0;
-      avgFocalDistanceY.value = 0;
-      scalePrevious.value = scaleCurrent.value;
-    })
-    .onUpdate((event) => {
-      if (event.numberOfPointers === 2) {
-        updateCount.value++;
-        // Skip first 2 updates to let focal point stabilize
-        if (updateCount.value <= 2) {
-          focalX.value = event.focalX;
-          focalY.value = event.focalY;
-          console.log("Ignoring first couple updates");
-          console.log(`f: ${focalX.value}, ${focalY.value}`);
-          return;
-        }
-
-        const focalDistanceX = event.focalX - focalX.value;
-        const focalDistanceY = event.focalY - focalY.value;
-
-        // Calculate total distance from last focal point
-        const distance = Math.sqrt(
-          focalDistanceX * focalDistanceX + focalDistanceY * focalDistanceY,
-        );
-        // Reject if jump exceeds threshold (30-50px is typical)
-        const maxJumpDistance = 50;
-        if (distance > maxJumpDistance) {
-          return;
-        }
-        scaleCurrent.value = scalePrevious.value * event.scale;
-        xCurrent.value += scaleCurrent.value * focalDistanceX;
-        yCurrent.value += scaleCurrent.value * focalDistanceY;
-      }
-    })
-    .onEnd(() => {
-      scalePrevious.value = scaleCurrent.value;
-    });
-
-  const panGesture = Gesture.Pan()
-    .maxPointers(1)
-    .onStart(() => {
-      xPrevious.value = xCurrent.value;
-      yPrevious.value = yCurrent.value;
-    })
-    .onUpdate((event) => {
-      xCurrent.value = xPrevious.value + event.translationX;
-      yCurrent.value = yPrevious.value + event.translationY;
-    });
-
-  const composed = Gesture.Simultaneous(pinchGesture, panGesture);
-
+  // Gesture handling
+  const { composedGesture, gestureState } = useGraphGestures();
+  const { xCurrent, yCurrent, scaleCurrent } = gestureState;
   const animatedStyle = useAnimatedStyle(() => ({
     transform: [
       { translateX: xCurrent.value },
@@ -188,7 +121,7 @@ const NetworkGraphView: React.FC<NetworkGraphViewProps> = ({
 
   return (
     <View style={styles.container}>
-      <GestureDetector gesture={composed}>
+      <GestureDetector gesture={composedGesture}>
         <Animated.View
           style={[
             styles.gestureContainer,
