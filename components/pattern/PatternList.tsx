@@ -43,7 +43,7 @@ const PatternList: React.FC<PatternListProps> = (props) => {
   const styles = getStyles(palette);
   return (
     <View style={styles.listContainer}>
-      <View style={commonStyles.sectionHeaderRow}>
+      <View style={[commonStyles.sectionHeaderRow, styles.stickyHeader]}>
         <Text style={commonStyles.sectionTitle}>{t("patternList")}</Text>
         <TouchableOpacity
           onPress={props.onAdd}
@@ -57,7 +57,7 @@ const PatternList: React.FC<PatternListProps> = (props) => {
           />
         </TouchableOpacity>
       </View>
-      <ScrollView>
+      <ScrollView style={styles.scrollView}>
         {props.patterns.map((pattern) => (
           <View key={pattern.id}>
             {mapPatternToScrollViewItem({
@@ -142,7 +142,19 @@ function mapPatternToScrollViewItem({
 
 const getStyles = (palette: Record<PaletteColor, string>) =>
   StyleSheet.create({
-    listContainer: getCommonListContainer(palette),
+    listContainer: {
+      ...getCommonListContainer(palette),
+      flex: 1,
+    },
+    stickyHeader: {
+      backgroundColor: palette[PaletteColor.Background],
+      paddingBottom: 8,
+      borderBottomWidth: 1,
+      borderBottomColor: palette[PaletteColor.Border],
+    },
+    scrollView: {
+      flex: 1,
+    },
     plusButton: {
       marginLeft: 8,
       padding: 4,

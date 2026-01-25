@@ -83,55 +83,51 @@ const PatternListManager = () => {
         style={{ backgroundColor: palette[PaletteColor.Background] }}
       >
         <AppHeader />
-        <ScrollView style={styles.container}>
-          <Modal
-            visible={isAddingNew}
-            animationType="slide"
-            transparent={true}
-            onRequestClose={() => setIsAddingNew(false)}
-          >
-            <View style={styles.modalOverlay}>
-              <View style={styles.modalContent}>
-                <ScrollView contentContainerStyle={{ flexGrow: 1 }}>
-                  <EditPatternForm
-                    patterns={patterns}
-                    onAccepted={addPattern}
-                    onCancel={() => setIsAddingNew(false)}
-                  />
-                </ScrollView>
-              </View>
+        <Modal
+          visible={isAddingNew}
+          animationType="slide"
+          transparent={true}
+          onRequestClose={() => setIsAddingNew(false)}
+        >
+          <View style={styles.modalOverlay}>
+            <View style={styles.modalContent}>
+              <ScrollView contentContainerStyle={{ flexGrow: 1 }}>
+                <EditPatternForm
+                  patterns={patterns}
+                  onAccepted={addPattern}
+                  onCancel={() => setIsAddingNew(false)}
+                />
+              </ScrollView>
             </View>
-          </Modal>
-          <Modal
-            visible={isEditing && selectedPattern != null}
-            animationType="slide"
-            transparent={true}
-            onRequestClose={() => setIsEditing(false)}
-          >
-            <View style={styles.modalOverlay}>
-              <View style={styles.modalContent}>
-                <ScrollView contentContainerStyle={{ flexGrow: 1 }}>
-                  <EditPatternForm
-                    patterns={patterns}
-                    onAccepted={editPattern}
-                    onCancel={() => setIsEditing(false)}
-                    existing={selectedPattern}
-                  />
-                </ScrollView>
-              </View>
-            </View>
-          </Modal>
-          <View>
-            <PatternList
-              patterns={patterns}
-              onSelect={setSelectedPattern}
-              onDelete={deletePattern}
-              onAdd={() => setIsAddingNew(!isAddingNew)}
-              onEdit={handleEditPattern}
-              selectedPattern={selectedPattern}
-            />
           </View>
-        </ScrollView>
+        </Modal>
+        <Modal
+          visible={isEditing && selectedPattern != null}
+          animationType="slide"
+          transparent={true}
+          onRequestClose={() => setIsEditing(false)}
+        >
+          <View style={styles.modalOverlay}>
+            <View style={styles.modalContent}>
+              <ScrollView contentContainerStyle={{ flexGrow: 1 }}>
+                <EditPatternForm
+                  patterns={patterns}
+                  onAccepted={editPattern}
+                  onCancel={() => setIsEditing(false)}
+                  existing={selectedPattern}
+                />
+              </ScrollView>
+            </View>
+          </View>
+        </Modal>
+        <PatternList
+          patterns={patterns}
+          onSelect={setSelectedPattern}
+          onDelete={deletePattern}
+          onAdd={() => setIsAddingNew(!isAddingNew)}
+          onEdit={handleEditPattern}
+          selectedPattern={selectedPattern}
+        />
       </PageContainer>
     </View>
   );
