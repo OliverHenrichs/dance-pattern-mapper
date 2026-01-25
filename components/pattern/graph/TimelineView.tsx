@@ -6,24 +6,17 @@ import {
   useWindowDimensions,
   View,
 } from "react-native";
-import Svg, {
-  Defs,
-  Marker,
-  Path,
-  Polygon,
-  Rect,
-  Text as SvgText,
-} from "react-native-svg";
+import Svg, { Rect, Text as SvgText } from "react-native-svg";
 import { WCSPattern } from "@/components/pattern/types/WCSPattern";
 import { WCSPatternType } from "@/components/pattern/types/WCSPatternEnums";
 import { PaletteColor } from "@/components/common/ColorPalette";
 import {
   calculateTimelineLayout,
   detectCircularDependencies,
-  generateCurvedPath,
   generateEdges,
+  SwimlaneInfo,
 } from "./GraphUtils";
-import PatternNode from "./PatternNode";
+import { ArrowheadMarker, drawEdges, drawNodes } from "./GraphSvg";
 import { useTranslation } from "react-i18next";
 import {
   MIN_PATTERN_HEIGHT,
@@ -45,9 +38,7 @@ const TimelineView: React.FC<TimelineViewProps> = ({
   const { height: screenHeight, width: screenWidth } = useWindowDimensions();
   const styles = getStyles(palette);
 
-  // Memoized layout calculations
   const { positions, svgWidth, svgHeight, swimlanes } = useMemo(() => {
-    // Detect circular dependencies
     detectCircularDependencies(patterns);
 
     const minBaseHeight = MIN_PATTERN_HEIGHT * MIN_PATTERNS_VISIBLE;
@@ -83,143 +74,102 @@ const TimelineView: React.FC<TimelineViewProps> = ({
         height={svgHeight}
         shouldRasterizeIOS={patterns.length > 100}
       >
-        {/* Define arrowhead marker */}
-        <Defs>
-          <Marker
-            id="arrowhead"
-            markerWidth="10"
-            markerHeight="10"
-            refX="8"
-            refY="3"
-            orient="auto"
-          >
-            <Polygon
-              points="0 0, 10 3, 0 6"
-              fill={palette[PaletteColor.Primary]}
-            />
-          </Marker>
-        </Defs>
-
-        {/* Swimlane backgrounds */}
-        <Rect
-          x={0}
-          y={swimlanes[WCSPatternType.PUSH].y}
-          width={svgWidth}
-          height={swimlanes[WCSPatternType.PUSH].height}
-          fill={palette[PaletteColor.Primary]}
-          fillOpacity={0.1}
-        />
-        <Rect
-          x={0}
-          y={swimlanes[WCSPatternType.PASS].y}
-          width={svgWidth}
-          height={swimlanes[WCSPatternType.PASS].height}
-          fill={palette[PaletteColor.SecondaryText]}
-          fillOpacity={0.1}
-        />
-        <Rect
-          x={0}
-          y={swimlanes[WCSPatternType.WHIP].y}
-          width={svgWidth}
-          height={swimlanes[WCSPatternType.WHIP].height}
-          fill={palette[PaletteColor.Accent]}
-          fillOpacity={0.1}
-        />
-        <Rect
-          x={0}
-          y={swimlanes[WCSPatternType.TUCK].y}
-          width={svgWidth}
-          height={swimlanes[WCSPatternType.TUCK].height}
-          fill={palette[PaletteColor.Error]}
-          fillOpacity={0.1}
-        />
-
-        {/* Swimlane labels */}
-        <SvgText
-          x={20}
-          y={swimlanes[WCSPatternType.PUSH].y + 25}
-          fontSize={16}
-          fontWeight="bold"
-          fill={palette[PaletteColor.Primary]}
-          fillOpacity={0.5}
-        >
-          {WCSPatternType.PUSH.toUpperCase()}
-        </SvgText>
-        <SvgText
-          x={20}
-          y={swimlanes[WCSPatternType.PASS].y + 25}
-          fontSize={16}
-          fontWeight="bold"
-          fill={palette[PaletteColor.SecondaryText]}
-          fillOpacity={0.5}
-        >
-          {WCSPatternType.PASS.toUpperCase()}
-        </SvgText>
-        <SvgText
-          x={20}
-          y={swimlanes[WCSPatternType.WHIP].y + 25}
-          fontSize={16}
-          fontWeight="bold"
-          fill={palette[PaletteColor.Accent]}
-          fillOpacity={0.5}
-        >
-          {WCSPatternType.WHIP.toUpperCase()}
-        </SvgText>
-        <SvgText
-          x={20}
-          y={swimlanes[WCSPatternType.TUCK].y + 25}
-          fontSize={16}
-          fontWeight="bold"
-          fill={palette[PaletteColor.Error]}
-          fillOpacity={0.5}
-        >
-          {WCSPatternType.TUCK.toUpperCase()}
-        </SvgText>
-
-        {/* Draw edges */}
-        {edges.map((edge, index) => {
-          const fromPos = positions.get(edge.from);
-          const toPos = positions.get(edge.to);
-          if (!fromPos || !toPos) return null;
-
-          // Offset to connect from right of source to left of target
-          const fromPoint = { x: fromPos.x + 50, y: fromPos.y };
-          const toPoint = { x: toPos.x - 50, y: toPos.y };
-
-          const pathData = generateCurvedPath(fromPoint, toPoint);
-
-          return (
-            <Path
-              key={`edge-${index}`}
-              d={pathData}
-              stroke={palette[PaletteColor.Primary]}
-              strokeWidth={2}
-              fill="none"
-              markerEnd="url(#arrowhead)"
-            />
-          );
-        })}
-
-        {/* Draw nodes */}
-        {patterns.map((pattern) => {
-          const pos = positions.get(pattern.id);
-          if (!pos) return null;
-
-          return (
-            <PatternNode
-              key={pattern.id}
-              pattern={pattern}
-              x={pos.x}
-              y={pos.y}
-              palette={palette}
-              onPress={onNodeTap}
-            />
-          );
-        })}
+        <ArrowheadMarker palette={palette} />
+        {drawSwimlanes(swimlanes, svgWidth, palette)}
+        {drawEdges(edges, positions, palette)}
+        {drawNodes(patterns, positions, palette, onNodeTap)}
       </Svg>
     </ScrollView>
   );
 };
+
+function drawSwimlanes(
+  swimlanes: Record<WCSPatternType, SwimlaneInfo>,
+  svgWidth: number,
+  palette: Record<PaletteColor, string>,
+) {
+  return (
+    <>
+      {createSwimlaneBackground(
+        swimlanes[WCSPatternType.PUSH],
+        svgWidth,
+        palette[PaletteColor.Primary],
+      )}
+      {createSwimlaneBackground(
+        swimlanes[WCSPatternType.PASS],
+        svgWidth,
+        palette[PaletteColor.SecondaryText],
+      )}
+      {createSwimlaneBackground(
+        swimlanes[WCSPatternType.WHIP],
+        svgWidth,
+        palette[PaletteColor.Accent],
+      )}
+      {createSwimlaneBackground(
+        swimlanes[WCSPatternType.TUCK],
+        svgWidth,
+        palette[PaletteColor.Error],
+      )}
+
+      {createSwimlaneLabel(
+        WCSPatternType.PUSH,
+        swimlanes[WCSPatternType.PUSH],
+        palette[PaletteColor.Primary],
+      )}
+      {createSwimlaneLabel(
+        WCSPatternType.PASS,
+        swimlanes[WCSPatternType.PASS],
+        palette[PaletteColor.SecondaryText],
+      )}
+      {createSwimlaneLabel(
+        WCSPatternType.WHIP,
+        swimlanes[WCSPatternType.WHIP],
+        palette[PaletteColor.Accent],
+      )}
+      {createSwimlaneLabel(
+        WCSPatternType.TUCK,
+        swimlanes[WCSPatternType.TUCK],
+        palette[PaletteColor.Error],
+      )}
+    </>
+  );
+}
+
+function createSwimlaneBackground(
+  swimlanes: SwimlaneInfo,
+  svgWidth: number,
+  color: string,
+) {
+  return (
+    <Rect
+      x={0}
+      y={swimlanes.y}
+      width={svgWidth}
+      height={swimlanes.height}
+      fill={color}
+      fillOpacity={0.1}
+    />
+  );
+}
+
+function createSwimlaneLabel(
+  patternType: WCSPatternType,
+  swimlane: SwimlaneInfo,
+  color: string,
+) {
+  return (
+    <SvgText
+      x={20}
+      y={swimlane.y + 25}
+      fontSize={16}
+      fontWeight="bold"
+      fill={color}
+      fillOpacity={0.5}
+    >
+      {patternType.toUpperCase()}
+    </SvgText>
+  );
+}
 
 const getStyles = (palette: Record<PaletteColor, string>) =>
   StyleSheet.create({

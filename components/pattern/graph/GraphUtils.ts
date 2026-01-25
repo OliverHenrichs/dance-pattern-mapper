@@ -475,7 +475,6 @@ function getOrthogonalOffset(
   adjustedEndPoint: LayoutPosition,
   startPoint: LayoutPosition,
 ): number {
-  // Calculate distance between points to determine control point offset
   const dx = adjustedEndPoint.x - startPoint.x;
   const dy = adjustedEndPoint.y - startPoint.y;
   const distance = Math.sqrt(dx * dx + dy * dy);
@@ -535,21 +534,4 @@ export function generateOrthogonalPath(
   // Use cubic Bézier curve (C command) for smooth, continuous curve
   // This creates a smooth curve from start to end with orthogonal tangents at both ends
   return `M ${startPoint.x} ${startPoint.y} C ${cp1.x} ${cp1.y}, ${cp2.x} ${cp2.y}, ${adjustedEndPoint.x} ${adjustedEndPoint.y}`;
-}
-
-/**
- * Generate SVG path string for a curved edge between two points.
- * Uses quadratic Bézier curve for smooth connections.
- */
-export function generateCurvedPath(
-  from: LayoutPosition,
-  to: LayoutPosition,
-): string {
-  const dx = to.x - from.x;
-
-  // Control point for quadratic curve
-  const controlX = from.x + dx * 0.5;
-  const controlY = from.y; // Horizontal-first curve
-
-  return `M ${from.x} ${from.y} Q ${controlX} ${controlY}, ${to.x} ${to.y}`;
 }

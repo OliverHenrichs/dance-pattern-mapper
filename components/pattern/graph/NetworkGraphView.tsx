@@ -4,7 +4,7 @@ import { WCSPattern } from "@/components/pattern/types/WCSPattern";
 import { PaletteColor } from "@/components/common/ColorPalette";
 import { useTranslation } from "react-i18next";
 import { useGraphLayout } from "./hooks/useGraphLayout";
-import GraphSvg from "./GraphSvg";
+import NetworkGraphSvg from "./GraphSvg";
 import { ReactNativeZoomableView } from "@openspacelabs/react-native-zoomable-view";
 import { LayoutPosition } from "@/components/pattern/graph/GraphUtils";
 
@@ -63,14 +63,13 @@ function createNetworkGraph(
         initialZoom={1}
         bindToBorders={false}
       >
-        <GraphSvg
+        <NetworkGraphSvg
           svgWidth={svgWidth}
           svgHeight={svgHeight}
           patterns={patterns}
           positions={positions}
           palette={palette}
           onNodeTap={onNodeTap}
-          viewMode="network"
         />
       </ReactNativeZoomableView>
     </View>
