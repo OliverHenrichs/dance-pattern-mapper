@@ -1,8 +1,5 @@
 import { WCSPattern } from "@/components/pattern/types/WCSPattern";
-import {
-  WCSPatternLevel,
-  WCSPatternType,
-} from "@/components/pattern/types/WCSPatternEnums";
+import { WCSPatternType } from "@/components/pattern/types/WCSPatternEnums";
 import {
   HORIZONTAL_SPACING,
   LEFT_MARGIN,
@@ -122,26 +119,6 @@ export function detectCircularDependencies(patterns: WCSPattern[]): number[][] {
   patterns.forEach((p) => findCycles(p.id, new Set(), []));
 
   return cycles;
-}
-
-/**
- * Group patterns by their WCSPatternLevel.
- */
-export function groupPatternsByLevel(
-  patterns: WCSPattern[],
-): Record<WCSPatternLevel, WCSPattern[]> {
-  const grouped: Record<WCSPatternLevel, WCSPattern[]> = {
-    [WCSPatternLevel.BEGINNER]: [],
-    [WCSPatternLevel.INTERMEDIATE]: [],
-    [WCSPatternLevel.ADVANCED]: [],
-  };
-
-  patterns.forEach((p) => {
-    const level = p.level || WCSPatternLevel.BEGINNER;
-    grouped[level].push(p);
-  });
-
-  return grouped;
 }
 
 /**
@@ -362,10 +339,6 @@ export function calculateGraphLayout(
   foundationalPatterns.forEach((foundational, index) => {
     const angle = (index / foundationalPatterns.length) * 2 * Math.PI;
     const foundationalPos = positions.get(foundational.id)!;
-
-    // Direction perpendicular to ellipse (radial direction from center)
-    const dirX = Math.cos(angle);
-    const dirY = Math.sin(angle);
 
     // Find all descendants of this foundational pattern
     const descendants = new Map<number, WCSPattern[]>(); // depth -> patterns

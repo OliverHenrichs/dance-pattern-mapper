@@ -8,11 +8,17 @@ const resources = {
   de: { translation: de },
 };
 
-i18n.use(initReactI18next).init({
-  resources,
-  lng: "en",
-  fallbackLng: "en",
-  interpolation: { escapeValue: false },
-});
+// eslint-disable-next-line import/no-named-as-default-member
+i18n
+  .use(initReactI18next)
+  .init({
+    resources,
+    lng: "en",
+    fallbackLng: "en",
+    interpolation: { escapeValue: false },
+  })
+  .catch((err) => {
+    console.log("i18n initialization error:", err);
+  });
 
 export default i18n;
