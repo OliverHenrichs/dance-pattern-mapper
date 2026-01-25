@@ -1,13 +1,12 @@
-import React, { useMemo } from "react";
-import { StyleSheet, Text, useWindowDimensions, View } from "react-native";
-import { GestureDetector } from "react-native-gesture-handler";
-import Animated, { useAnimatedStyle } from "react-native-reanimated";
+import React from "react";
+import { StyleSheet, Text, View } from "react-native";
 import { WCSPattern } from "@/components/pattern/types/WCSPattern";
 import { PaletteColor } from "@/components/common/ColorPalette";
 import { useTranslation } from "react-i18next";
-import { useGraphGestures } from "./GraphGestureHandler";
 import { useGraphLayout } from "./hooks/useGraphLayout";
 import GraphSvg from "./GraphSvg";
+import { ReactNativeZoomableView } from "@openspacelabs/react-native-zoomable-view";
+import { LayoutPosition } from "@/components/pattern/graph/GraphUtils";
 
 interface NetworkGraphViewProps {
   patterns: WCSPattern[];
@@ -20,76 +19,63 @@ const NetworkGraphView: React.FC<NetworkGraphViewProps> = ({
   palette,
   onNodeTap,
 }) => {
-  const { t } = useTranslation();
-  const styles = getStyles(palette);
-  const { width: viewportWidth, height: viewportHeight } =
-    useWindowDimensions();
-
-  // Layout calculation
   const { positions, svgWidth, svgHeight } = useGraphLayout(patterns);
-
-  // Calculate initial scale and position to fit and center the graph
-  const { initialX, initialY, initialScale } = useMemo(() => {
-    // Calculate scale to fit the entire SVG in the viewport with some padding
-    const padding = 40;
-    const scaleX = (viewportWidth - padding * 2) / svgWidth;
-    const scaleY = (viewportHeight - padding * 2) / svgHeight;
-    // keep mid-range scaling between 0.5 and 1
-    const scale = Math.max(0.5, Math.min(scaleX, scaleY, 1));
-    return {
-      initialX: (viewportWidth - svgWidth) / 2,
-      initialY: (viewportHeight - svgHeight) / 2,
-      initialScale: scale,
-    };
-  }, [svgWidth, svgHeight, viewportWidth, viewportHeight]);
-
-  // Gesture handling with initial values
-  const { composedGesture, gestureState } = useGraphGestures({
-    initialX,
-    initialY,
-    initialScale,
-  });
-  const { xCurrent, yCurrent, scaleCurrent } = gestureState;
-  const animatedStyle = useAnimatedStyle(() => ({
-    transform: [
-      { translateX: xCurrent.value },
-      { translateY: yCurrent.value },
-      { scale: scaleCurrent.value },
-    ],
-  }));
-
   if (patterns.length === 0) {
-    return (
-      <View style={styles.emptyContainer}>
-        <Text style={styles.emptyText}>{t("noPatternsToVisualize")}</Text>
-      </View>
-    );
+    return createEmptyNetworkGraph(palette);
   }
 
-  return (
-    <View style={styles.container}>
-      <GestureDetector gesture={composedGesture}>
-        <Animated.View
-          style={[
-            styles.gestureContainer,
-            animatedStyle,
-            { width: svgWidth, height: svgHeight },
-          ]}
-        >
-          <GraphSvg
-            svgWidth={svgWidth}
-            svgHeight={svgHeight}
-            patterns={patterns}
-            positions={positions}
-            palette={palette}
-            onNodeTap={onNodeTap}
-            viewMode="network"
-          />
-        </Animated.View>
-      </GestureDetector>
-    </View>
+  return createNetworkGraph(
+    svgWidth,
+    svgHeight,
+    patterns,
+    positions,
+    palette,
+    onNodeTap,
   );
 };
+
+function createEmptyNetworkGraph(palette: Record<PaletteColor, string>) {
+  // eslint-disable-next-line react-hooks/rules-of-hooks
+  const { t } = useTranslation();
+  const styles = getStyles(palette);
+  return (
+    <View style={styles.emptyContainer}>
+      <Text style={styles.emptyText}>{t("noPatternsToVisualize")}</Text>
+    </View>
+  );
+}
+
+function createNetworkGraph(
+  svgWidth: number,
+  svgHeight: number,
+  patterns: WCSPattern[],
+  positions: Map<number, LayoutPosition>,
+  palette: Record<PaletteColor, string>,
+  onNodeTap: (pattern: WCSPattern) => void,
+) {
+  const styles = getStyles(palette);
+  return (
+    <View style={styles.container}>
+      <ReactNativeZoomableView
+        maxZoom={4.5}
+        minZoom={0.15}
+        zoomStep={0.5}
+        initialZoom={1}
+        bindToBorders={false}
+      >
+        <GraphSvg
+          svgWidth={svgWidth}
+          svgHeight={svgHeight}
+          patterns={patterns}
+          positions={positions}
+          palette={palette}
+          onNodeTap={onNodeTap}
+          viewMode="network"
+        />
+      </ReactNativeZoomableView>
+    </View>
+  );
+}
 
 const getStyles = (palette: Record<PaletteColor, string>) =>
   StyleSheet.create({
@@ -97,13 +83,6 @@ const getStyles = (palette: Record<PaletteColor, string>) =>
       flex: 1,
       backgroundColor: palette[PaletteColor.Background],
       overflow: "hidden",
-    },
-    gestureContainer: {
-      position: "absolute",
-      top: 0,
-      left: 0,
-      right: 0,
-      bottom: 0,
     },
     emptyContainer: {
       flex: 1,
