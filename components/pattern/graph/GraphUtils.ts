@@ -17,6 +17,15 @@ export interface LayoutPosition {
   y: number;
 }
 
+export function generateEdges(patterns: WCSPattern[]) {
+  return patterns.flatMap((pattern) =>
+    pattern.prerequisites.map((prereqId) => ({
+      from: prereqId,
+      to: pattern.id,
+    })),
+  );
+}
+
 /**
  * Calculate the prerequisite depth for each pattern using DFS.
  * Depth is the longest chain from foundational patterns (prerequisites: []).
@@ -410,7 +419,7 @@ export function calculateGraphLayout(
 /**
  * Represents a side of a rectangular node
  */
-export enum NodeSide {
+enum NodeSide {
   TOP = "top",
   RIGHT = "right",
   BOTTOM = "bottom",

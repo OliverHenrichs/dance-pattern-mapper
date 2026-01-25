@@ -21,6 +21,7 @@ import {
   calculateTimelineLayout,
   detectCircularDependencies,
   generateCurvedPath,
+  generateEdges,
 } from "./GraphUtils";
 import PatternNode from "./PatternNode";
 import { useTranslation } from "react-i18next";
@@ -70,15 +71,7 @@ const TimelineView: React.FC<TimelineViewProps> = ({
       </View>
     );
   }
-
-  // Generate edges
-  const edges = patterns.flatMap((pattern) =>
-    pattern.prerequisites.map((prereqId) => ({
-      from: prereqId,
-      to: pattern.id,
-    })),
-  );
-
+  const edges = generateEdges(patterns);
   return (
     <ScrollView
       horizontal

@@ -2,7 +2,11 @@ import React from "react";
 import Svg, { Defs, Marker, Path, Polygon } from "react-native-svg";
 import { WCSPattern } from "@/components/pattern/types/WCSPattern";
 import { PaletteColor } from "@/components/common/ColorPalette";
-import { generateCurvedPath, generateOrthogonalPath } from "./GraphUtils";
+import {
+  generateCurvedPath,
+  generateEdges,
+  generateOrthogonalPath,
+} from "./GraphUtils";
 import PatternNode from "./PatternNode";
 
 export type GraphViewMode = "timeline" | "network";
@@ -26,14 +30,7 @@ const GraphSvg: React.FC<GraphSvgProps> = ({
   onNodeTap,
   viewMode,
 }) => {
-  // Generate edges
-  const edges = patterns.flatMap((pattern) =>
-    pattern.prerequisites.map((prereqId) => ({
-      from: prereqId,
-      to: pattern.id,
-    })),
-  );
-
+  const edges = generateEdges(patterns);
   return (
     <Svg
       width={svgWidth}
