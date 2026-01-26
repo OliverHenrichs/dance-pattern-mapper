@@ -5,6 +5,7 @@ import { useTranslation } from "react-i18next";
 import { useThemeContext } from "@/components/common/ThemeContext";
 import { WCSPattern } from "@/components/pattern/types/WCSPattern";
 import {
+  getCommonAddButtonContainer,
   getCommonBorder,
   getCommonLabel,
   getCommonRow,
@@ -59,13 +60,13 @@ const PatternTags: React.FC<PatternTagsProps> = ({
             </TouchableOpacity>
           </View>
         ))}
-        <View style={styles.addButtonContainer}>
-          <PlusButton
-            onPress={() => setIsBottomSheetVisible(true)}
-            palette={palette}
-            accessibilityLabel={t("addTag")}
-          />
-        </View>
+      </View>
+      <View style={styles.addButtonContainer}>
+        <PlusButton
+          onPress={() => setIsBottomSheetVisible(true)}
+          palette={palette}
+          accessibilityLabel={t("addTag")}
+        />
       </View>
 
       <TagPickerBottomSheet
@@ -85,8 +86,14 @@ const getStyles = (palette: Record<PaletteColor, string>) => {
       ...getCommonBorder(palette),
       padding: 6,
       backgroundColor: palette[PaletteColor.TagBg],
+      position: "relative",
     },
-    tagsRow: { ...getCommonRow(), flexWrap: "wrap", gap: 4, marginTop: 8 },
+    tagsRow: {
+      ...getCommonRow(),
+      flexWrap: "wrap",
+      gap: 4,
+      marginTop: 8,
+    },
     tagItem: {
       ...getCommonBorder(palette),
       ...getCommonRow(),
@@ -100,10 +107,7 @@ const getStyles = (palette: Record<PaletteColor, string>) => {
       marginLeft: 4,
     },
     label: { ...getCommonLabel(palette) },
-    addButtonContainer: {
-      justifyContent: "center",
-      alignItems: "center",
-    },
+    addButtonContainer: getCommonAddButtonContainer(),
   };
 };
 

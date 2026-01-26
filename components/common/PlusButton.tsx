@@ -39,7 +39,7 @@ const PlusButton: React.FC<PlusButtonProps> = ({
 const getStyles = () =>
   StyleSheet.create({
     plusButton: {
-      padding: 4,
+      padding: 1,
       borderRadius: 16,
     },
   });

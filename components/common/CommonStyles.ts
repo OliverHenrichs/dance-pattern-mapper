@@ -100,6 +100,13 @@ export const getCommonListContainer = (
   backgroundColor: palette[PaletteColor.Background],
 });
 
+export const getCommonAddButtonContainer = (): ViewStyle => ({
+  position: "absolute",
+  bottom: 0,
+  right: 0,
+  zIndex: 10,
+});
+
 export const getCommonStyles = (colorScheme: "light" | "dark") => {
   const palette = getPalette(colorScheme);
   return StyleSheet.create({

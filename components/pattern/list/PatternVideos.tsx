@@ -10,6 +10,7 @@ import {
 import { PaletteColor } from "@/components/common/ColorPalette";
 import { useTranslation } from "react-i18next";
 import {
+  getCommonAddButtonContainer,
   getCommonLabel,
   getCommonPrereqContainer,
   getCommonRow,
@@ -75,14 +76,14 @@ const PatternVideos: React.FC<PatternVideosProps> = ({
         >
           {renderThumbnails()}
         </ScrollView>
-        <View style={styles.addButtonContainer}>
-          <PlusButton
-            onPress={onAddVideo}
-            palette={palette}
-            accessibilityLabel={t("add")}
-            disabled={disabled}
-          />
-        </View>
+      </View>
+      <View style={styles.addButtonContainer}>
+        <PlusButton
+          onPress={onAddVideo}
+          palette={palette}
+          accessibilityLabel={t("add")}
+          disabled={disabled}
+        />
       </View>
     </View>
   );
@@ -90,7 +91,10 @@ const PatternVideos: React.FC<PatternVideosProps> = ({
 
 const getStyles = (palette: Record<PaletteColor, string>) => {
   return StyleSheet.create({
-    prereqContainer: getCommonPrereqContainer(palette),
+    prereqContainer: {
+      ...getCommonPrereqContainer(palette),
+      position: "relative",
+    },
     label: { ...getCommonLabel(palette) }, // TextStyle only
     videosRow: { ...getCommonRow(), gap: 4 }, // ViewStyle only
     videosInputRow: {
@@ -126,12 +130,7 @@ const getStyles = (palette: Record<PaletteColor, string>) => {
       fontSize: 14,
       lineHeight: 18,
     },
-    addButtonContainer: {
-      justifyContent: "center",
-      alignItems: "center",
-      height: 64,
-      marginLeft: 8,
-    },
+    addButtonContainer: getCommonAddButtonContainer(),
   });
 };
 
