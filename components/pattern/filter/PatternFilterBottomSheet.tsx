@@ -3,7 +3,6 @@ import {
   ScrollView,
   StyleSheet,
   Text,
-  TextInput,
   TouchableOpacity,
   View,
 } from "react-native";
@@ -15,12 +14,12 @@ import {
   WCSPatternLevel,
   WCSPatternType,
 } from "@/components/pattern/types/WCSPatternEnums";
-import {
-  getCommonBorder,
-  getCommonInput,
-  getCommonLabel,
-} from "@/components/common/CommonStyles";
 import BottomSheet from "@/components/common/BottomSheet";
+import NameFilter from "./NameFilter";
+import TypeFilter from "./TypeFilter";
+import LevelFilter from "./LevelFilter";
+import CountsFilter from "./CountsFilter";
+import TagFilter from "./TagFilter";
 
 export interface PatternFilter {
   name: string;
@@ -127,134 +126,38 @@ const PatternFilterBottomSheet: React.FC<PatternFilterBottomSheetProps> = ({
         style={styles.scrollView}
         contentContainerStyle={styles.scrollContent}
       >
-        {/* Name Filter */}
-        <View style={styles.filterSection}>
-          <Text style={styles.label}>{t("name")}</Text>
-          <TextInput
-            placeholder={t("searchByName")}
-            value={filter.name}
-            onChangeText={(text) => setFilter({ ...filter, name: text })}
-            style={styles.input}
-            placeholderTextColor={palette[PaletteColor.SecondaryText]}
-          />
-        </View>
+        <NameFilter
+          value={filter.name}
+          onChange={(text) => setFilter({ ...filter, name: text })}
+          palette={palette}
+        />
 
-        {/* Type Filter */}
-        <View style={styles.filterSection}>
-          <Text style={styles.label}>{t("type")}</Text>
-          <View style={styles.chipContainer}>
-            {Object.values(WCSPatternType).map((type) => (
-              <TouchableOpacity
-                key={type}
-                style={[
-                  styles.chip,
-                  filter.types.includes(type) && styles.chipSelected,
-                ]}
-                onPress={() => toggleType(type)}
-              >
-                <Text
-                  style={[
-                    styles.chipText,
-                    filter.types.includes(type) && styles.chipTextSelected,
-                  ]}
-                >
-                  {t(type)}
-                </Text>
-              </TouchableOpacity>
-            ))}
-          </View>
-        </View>
+        <TypeFilter
+          selectedTypes={filter.types}
+          onToggle={toggleType}
+          palette={palette}
+        />
 
-        {/* Level Filter */}
-        <View style={styles.filterSection}>
-          <Text style={styles.label}>{t("level")}</Text>
-          <View style={styles.chipContainer}>
-            {Object.values(WCSPatternLevel).map((level) => (
-              <TouchableOpacity
-                key={level}
-                style={[
-                  styles.chip,
-                  filter.levels.includes(level) && styles.chipSelected,
-                ]}
-                onPress={() => toggleLevel(level)}
-              >
-                <Text
-                  style={[
-                    styles.chipText,
-                    filter.levels.includes(level) && styles.chipTextSelected,
-                  ]}
-                >
-                  {t(level)}
-                </Text>
-              </TouchableOpacity>
-            ))}
-          </View>
-        </View>
+        <LevelFilter
+          selectedLevels={filter.levels}
+          onToggle={toggleLevel}
+          palette={palette}
+        />
 
-        {/* Counts Filter */}
-        <View style={styles.filterSection}>
-          <Text style={styles.label}>{t("counts")}</Text>
-          <View style={styles.countsRow}>
-            <View style={styles.countsInput}>
-              <Text style={styles.countsLabel}>{t("min")}</Text>
-              <TextInput
-                placeholder="0"
-                value={filter.minCounts?.toString() || ""}
-                onChangeText={(text) =>
-                  setFilter({
-                    ...filter,
-                    minCounts: text ? parseInt(text) || 0 : undefined,
-                  })
-                }
-                style={styles.input}
-                keyboardType="numeric"
-                placeholderTextColor={palette[PaletteColor.SecondaryText]}
-              />
-            </View>
-            <View style={styles.countsInput}>
-              <Text style={styles.countsLabel}>{t("max")}</Text>
-              <TextInput
-                placeholder="∞"
-                value={filter.maxCounts?.toString() || ""}
-                onChangeText={(text) =>
-                  setFilter({
-                    ...filter,
-                    maxCounts: text ? parseInt(text) || 0 : undefined,
-                  })
-                }
-                style={styles.input}
-                keyboardType="numeric"
-                placeholderTextColor={palette[PaletteColor.SecondaryText]}
-              />
-            </View>
-          </View>
-        </View>
+        <CountsFilter
+          minCounts={filter.minCounts}
+          maxCounts={filter.maxCounts}
+          onMinChange={(value) => setFilter({ ...filter, minCounts: value })}
+          onMaxChange={(value) => setFilter({ ...filter, maxCounts: value })}
+          palette={palette}
+        />
 
-        {/* Tags Filter */}
-        <View style={styles.filterSection}>
-          <Text style={styles.label}>{t("tags")}</Text>
-          <View style={styles.chipContainer}>
-            {allTags.map((tag) => (
-              <TouchableOpacity
-                key={tag}
-                style={[
-                  styles.chip,
-                  filter.tags.includes(tag) && styles.chipSelected,
-                ]}
-                onPress={() => toggleTag(tag)}
-              >
-                <Text
-                  style={[
-                    styles.chipText,
-                    filter.tags.includes(tag) && styles.chipTextSelected,
-                  ]}
-                >
-                  {tag}
-                </Text>
-              </TouchableOpacity>
-            ))}
-          </View>
-        </View>
+        <TagFilter
+          allTags={allTags}
+          selectedTags={filter.tags}
+          onToggle={toggleTag}
+          palette={palette}
+        />
       </ScrollView>
 
       {/* Action Buttons */}
@@ -278,56 +181,6 @@ const getStyles = (palette: Record<PaletteColor, string>) => {
     scrollContent: {
       paddingBottom: 16,
     },
-    filterSection: {
-      marginBottom: 20,
-    },
-    label: {
-      ...getCommonLabel(palette),
-      fontSize: 16,
-      fontWeight: "600",
-      marginBottom: 8,
-    },
-    input: {
-      ...getCommonInput(palette),
-      fontSize: 16,
-    },
-    chipContainer: {
-      flexDirection: "row" as const,
-      flexWrap: "wrap" as const,
-      gap: 8,
-    },
-    chip: {
-      ...getCommonBorder(palette),
-      backgroundColor: palette[PaletteColor.TagBg],
-      paddingVertical: 8,
-      paddingHorizontal: 12,
-      borderRadius: 16,
-    },
-    chipSelected: {
-      backgroundColor: palette[PaletteColor.Primary],
-      borderColor: palette[PaletteColor.Primary],
-    },
-    chipText: {
-      color: palette[PaletteColor.TagText],
-      fontSize: 14,
-    },
-    chipTextSelected: {
-      color: palette[PaletteColor.PrimaryText],
-      fontWeight: "bold" as const,
-    },
-    countsRow: {
-      flexDirection: "row" as const,
-      gap: 12,
-    },
-    countsInput: {
-      flex: 1,
-    },
-    countsLabel: {
-      fontSize: 12,
-      color: palette[PaletteColor.SecondaryText],
-      marginBottom: 4,
-      textTransform: "uppercase" as const,
-    },
     buttonRow: {
       flexDirection: "row" as const,
       gap: 12,
@@ -335,10 +188,11 @@ const getStyles = (palette: Record<PaletteColor, string>) => {
     },
     resetButton: {
       flex: 1,
-      ...getCommonBorder(palette),
+      borderWidth: 1,
+      borderColor: palette[PaletteColor.Border],
+      borderRadius: 8,
       backgroundColor: palette[PaletteColor.Surface],
       padding: 12,
-      borderRadius: 8,
       alignItems: "center" as const,
     },
     resetButtonText: {
