@@ -9,7 +9,7 @@ import {
 } from "react-native";
 import { useFocusEffect } from "@react-navigation/native";
 import { WCSPattern } from "@/components/pattern/types/WCSPattern";
-import { loadPatterns } from "@/components/pattern/PatternStorage";
+import { loadPatterns } from "@/components/pattern/data/PatternStorage";
 import { foundationalWCSPatterns } from "@/components/pattern/data/DefaultWCSPatterns";
 import AppHeader from "@/components/common/AppHeader";
 import PageContainer from "@/components/common/PageContainer";
@@ -17,10 +17,10 @@ import { useThemeContext } from "@/components/common/ThemeContext";
 import { getPalette, PaletteColor } from "@/components/common/ColorPalette";
 import { useTranslation } from "react-i18next";
 import Icon from "react-native-vector-icons/MaterialCommunityIcons";
-import TimelineView from "./graph/TimelineView";
-import NetworkGraphView from "./graph/NetworkGraphView";
-import Legend from "./graph/Legend";
-import PatternDetails from "./PatternDetails";
+import TimelineView from "./TimelineView";
+import NetworkGraphView from "./NetworkGraphView";
+import Legend from "./Legend";
+import PatternDetails from "../common/PatternDetails";
 
 type ViewMode = "timeline" | "graph";
 

@@ -9,7 +9,7 @@ import {
   IExportData,
 } from "@/components/pattern/data/types/IExportData";
 import { Alert } from "react-native";
-import { loadPatterns } from "@/components/pattern/PatternStorage";
+import { loadPatterns } from "@/components/pattern/data/PatternStorage";
 import { Dispatch, SetStateAction } from "react";
 
 interface IVideoList {

@@ -9,7 +9,7 @@ import {
 import { WCSPattern } from "@/components/pattern/types/WCSPattern";
 import Icon from "react-native-vector-icons/MaterialCommunityIcons";
 import handleDelete from "@/components/common/DeleteConfirmationDialog";
-import PatternDetails from "@/components/pattern/PatternDetails";
+import PatternDetails from "@/components/pattern/common/PatternDetails";
 import { useTranslation } from "react-i18next";
 import { useThemeContext } from "@/components/common/ThemeContext";
 import {

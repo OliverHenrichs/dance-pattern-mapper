@@ -10,7 +10,7 @@ import { Alert } from "react-native";
 import {
   loadPatterns,
   savePatternsAsync,
-} from "@/components/pattern/PatternStorage";
+} from "@/components/pattern/data/PatternStorage";
 
 interface IImportPatternResult {
   success: boolean;

@@ -5,12 +5,12 @@ import {
   WCSPattern,
 } from "@/components/pattern/types/WCSPattern";
 import { foundationalWCSPatterns } from "@/components/pattern/data/DefaultWCSPatterns";
-import PatternList from "@/components/pattern/PatternList";
-import EditPatternForm from "@/components/pattern/EditPatternForm";
+import PatternList from "@/components/pattern/list/PatternList";
+import EditPatternForm from "@/components/pattern/list/EditPatternForm";
 import {
   loadPatterns,
   savePatterns,
-} from "@/components/pattern/PatternStorage";
+} from "@/components/pattern/data/PatternStorage";
 import AppHeader from "@/components/common/AppHeader";
 import PageContainer from "@/components/common/PageContainer";
 import { useThemeContext } from "@/components/common/ThemeContext";
