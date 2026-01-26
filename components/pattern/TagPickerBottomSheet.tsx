@@ -140,7 +140,7 @@ const TagPickerBottomSheet: React.FC<TagPickerBottomSheetProps> = ({
             {filteredExistingTags.length > 0 && (
               <View style={styles.existingTagsSection}>
                 <Text style={styles.sectionTitle}>
-                  {searchQuery ? "Matching tags" : "Existing tags"}
+                  {searchQuery ? t("matchingTags") : t("existingTags")}
                 </Text>
                 <View style={styles.tagsGrid}>
                   {filteredExistingTags.map((tag, idx) => (
@@ -159,9 +159,7 @@ const TagPickerBottomSheet: React.FC<TagPickerBottomSheetProps> = ({
             {/* Empty state */}
             {!isNewTag && filteredExistingTags.length === 0 && (
               <View style={styles.emptyState}>
-                <Text style={styles.emptyStateText}>
-                  {"No unused matching tags found"}
-                </Text>
+                <Text style={styles.emptyStateText}>{t("noMatchingTags")}</Text>
               </View>
             )}
           </ScrollView>
