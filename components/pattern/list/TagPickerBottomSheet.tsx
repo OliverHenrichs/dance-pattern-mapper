@@ -1,7 +1,5 @@
 import React, { useMemo, useState } from "react";
 import {
-  Modal,
-  Pressable,
   ScrollView,
   StyleSheet,
   Text,
@@ -17,6 +15,7 @@ import {
   getCommonBorder,
   getCommonInput,
 } from "@/components/common/CommonStyles";
+import BottomSheet from "@/components/common/BottomSheet";
 
 interface TagPickerBottomSheetProps {
   visible: boolean;
@@ -93,115 +92,70 @@ const TagPickerBottomSheet: React.FC<TagPickerBottomSheetProps> = ({
   };
 
   return (
-    <Modal
+    <BottomSheet
       visible={visible}
-      animationType="slide"
-      transparent={true}
-      onRequestClose={handleClose}
+      onClose={handleClose}
+      title={t("addTag")}
+      palette={palette}
     >
-      <Pressable style={styles.modalOverlay} onPress={handleClose}>
-        <Pressable
-          style={styles.bottomSheet}
-          onPress={(e) => e.stopPropagation()}
-        >
-          <View style={styles.bottomSheetHeader}>
-            <Text style={styles.bottomSheetTitle}>{t("addTag")}</Text>
-            <TouchableOpacity onPress={handleClose}>
-              <Text style={styles.closeButton}>✕</Text>
-            </TouchableOpacity>
-          </View>
+      <TextInput
+        placeholder={t("addTag")}
+        value={searchQuery}
+        onChangeText={setSearchQuery}
+        style={styles.searchInput}
+        placeholderTextColor={palette[PaletteColor.SecondaryText]}
+        autoFocus={true}
+      />
 
-          <TextInput
-            placeholder={t("addTag")}
-            value={searchQuery}
-            onChangeText={setSearchQuery}
-            style={styles.searchInput}
-            placeholderTextColor={palette[PaletteColor.SecondaryText]}
-            autoFocus={true}
-          />
-
-          <ScrollView
-            style={styles.tagsScrollView}
-            contentContainerStyle={styles.tagsScrollContent}
+      <ScrollView
+        style={styles.tagsScrollView}
+        contentContainerStyle={styles.tagsScrollContent}
+      >
+        {/* Create new tag option */}
+        {isNewTag && (
+          <TouchableOpacity
+            style={styles.createNewTagButton}
+            onPress={handleAddNewTag}
           >
-            {/* Create new tag option */}
-            {isNewTag && (
-              <TouchableOpacity
-                style={styles.createNewTagButton}
-                onPress={handleAddNewTag}
-              >
-                <Text style={styles.createNewTagText}>
-                  + Create &quot;{searchQuery}&quot;
-                </Text>
-              </TouchableOpacity>
-            )}
+            <Text style={styles.createNewTagText}>
+              + Create &quot;{searchQuery}&quot;
+            </Text>
+          </TouchableOpacity>
+        )}
 
-            {/* Existing tags */}
-            {filteredExistingTags.length > 0 && (
-              <View style={styles.existingTagsSection}>
-                <Text style={styles.sectionTitle}>
-                  {searchQuery ? t("matchingTags") : t("existingTags")}
-                </Text>
-                <View style={styles.tagsGrid}>
-                  {filteredExistingTags.map((tag, idx) => (
-                    <TouchableOpacity
-                      key={idx}
-                      style={styles.existingTagChip}
-                      onPress={() => handleAddTag(tag)}
-                    >
-                      <Text style={styles.existingTagText}>{tag}</Text>
-                    </TouchableOpacity>
-                  ))}
-                </View>
-              </View>
-            )}
+        {/* Existing tags */}
+        {filteredExistingTags.length > 0 && (
+          <View style={styles.existingTagsSection}>
+            <Text style={styles.sectionTitle}>
+              {searchQuery ? t("matchingTags") : t("existingTags")}
+            </Text>
+            <View style={styles.tagsGrid}>
+              {filteredExistingTags.map((tag, idx) => (
+                <TouchableOpacity
+                  key={idx}
+                  style={styles.existingTagChip}
+                  onPress={() => handleAddTag(tag)}
+                >
+                  <Text style={styles.existingTagText}>{tag}</Text>
+                </TouchableOpacity>
+              ))}
+            </View>
+          </View>
+        )}
 
-            {/* Empty state */}
-            {!isNewTag && filteredExistingTags.length === 0 && (
-              <View style={styles.emptyState}>
-                <Text style={styles.emptyStateText}>{t("noMatchingTags")}</Text>
-              </View>
-            )}
-          </ScrollView>
-        </Pressable>
-      </Pressable>
-    </Modal>
+        {/* Empty state */}
+        {!isNewTag && filteredExistingTags.length === 0 && (
+          <View style={styles.emptyState}>
+            <Text style={styles.emptyStateText}>{t("noMatchingTags")}</Text>
+          </View>
+        )}
+      </ScrollView>
+    </BottomSheet>
   );
 };
 
 const getStyles = (palette: Record<PaletteColor, string>) => {
   return StyleSheet.create({
-    modalOverlay: {
-      flex: 1,
-      backgroundColor: "rgba(0, 0, 0, 0.5)",
-      justifyContent: "flex-end" as const,
-    },
-    bottomSheet: {
-      backgroundColor: palette[PaletteColor.Surface],
-      borderTopLeftRadius: 20,
-      borderTopRightRadius: 20,
-      paddingTop: 16,
-      paddingHorizontal: 16,
-      paddingBottom: 32,
-      maxHeight: "80%" as const,
-      minHeight: "50%" as const,
-    },
-    bottomSheetHeader: {
-      flexDirection: "row" as const,
-      justifyContent: "space-between" as const,
-      alignItems: "center" as const,
-      marginBottom: 16,
-    },
-    bottomSheetTitle: {
-      fontSize: 18,
-      fontWeight: "bold" as const,
-      color: palette[PaletteColor.PrimaryText],
-    },
-    closeButton: {
-      fontSize: 24,
-      color: palette[PaletteColor.SecondaryText],
-      padding: 4,
-    },
     searchInput: {
       ...getCommonInput(palette),
       marginBottom: 16,

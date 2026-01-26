@@ -53,5 +53,18 @@
   "typeColors": "Typ-Farben",
   "levelShading": "Niveau-Schattierung",
   "foundationalPattern": "Grundlegende Figur",
-  "noPatternsToVisualize": "Keine Figuren zum Visualisieren. Füge Figuren im Figuren-Tab hinzu."
+  "noPatternsToVisualize": "Keine Figuren zum Visualisieren. Füge Figuren im Figuren-Tab hinzu.",
+  "filterPatterns": "Figuren filtern",
+  "name": "Name",
+  "searchByName": "Nach Name suchen...",
+  "min": "Min",
+  "max": "Max",
+  "reset": "Zurücksetzen",
+  "apply": "Anwenden",
+  "noMatchingPatterns": "Keine Figuren entsprechen den aktuellen Filtern.",
+  "selectPattern": "Figur auswählen",
+  "push": "Push",
+  "pass": "Pass",
+  "whip": "Whip",
+  "tuck": "Tuck"
 }

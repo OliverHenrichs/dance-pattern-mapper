@@ -1,4 +1,4 @@
-import React from "react";
+import React, { useMemo, useState } from "react";
 import {
   ScrollView,
   StyleSheet,
@@ -18,6 +18,9 @@ import {
 } from "@/components/common/CommonStyles";
 import { getPalette, PaletteColor } from "@/components/common/ColorPalette";
 import PlusButton from "@/components/common/PlusButton";
+import PatternFilterBottomSheet, {
+  PatternFilter,
+} from "../filter/PatternFilterBottomSheet";
 
 type PatternListProps = {
   patterns: WCSPattern[];
@@ -42,18 +45,105 @@ const PatternList: React.FC<PatternListProps> = (props) => {
   const commonStyles = getCommonStyles(colorScheme);
   const palette = getPalette(colorScheme);
   const styles = getStyles(palette);
+
+  const [isFilterVisible, setIsFilterVisible] = useState(false);
+  const [filter, setFilter] = useState<PatternFilter>({
+    name: "",
+    types: [],
+    levels: [],
+    minCounts: undefined,
+    maxCounts: undefined,
+    tags: [],
+  });
+
+  // Filter patterns based on current filter
+  const filteredPatterns = useMemo(() => {
+    return props.patterns.filter((pattern) => {
+      // Name filter
+      if (
+        filter.name &&
+        !pattern.name.toLowerCase().includes(filter.name.toLowerCase())
+      ) {
+        return false;
+      }
+
+      // Type filter
+      if (filter.types.length > 0 && !filter.types.includes(pattern.type)) {
+        return false;
+      }
+
+      // Level filter
+      if (
+        filter.levels.length > 0 &&
+        (!pattern.level || !filter.levels.includes(pattern.level))
+      ) {
+        return false;
+      }
+
+      // Counts filter
+      if (filter.minCounts !== undefined && pattern.counts < filter.minCounts) {
+        return false;
+      }
+      if (filter.maxCounts !== undefined && pattern.counts > filter.maxCounts) {
+        return false;
+      }
+
+      // Tags filter - pattern must have ALL selected tags
+      if (filter.tags.length > 0) {
+        const hasAllTags = filter.tags.every((tag) =>
+          pattern.tags.some(
+            (patternTag) => patternTag.toLowerCase() === tag.toLowerCase(),
+          ),
+        );
+        if (!hasAllTags) {
+          return false;
+        }
+      }
+
+      return true;
+    });
+  }, [props.patterns, filter]);
+
+  const hasActiveFilter = useMemo(() => {
+    return (
+      filter.name !== "" ||
+      filter.types.length > 0 ||
+      filter.levels.length > 0 ||
+      filter.minCounts !== undefined ||
+      filter.maxCounts !== undefined ||
+      filter.tags.length > 0
+    );
+  }, [filter]);
+
   return (
     <View style={styles.listContainer}>
       <View style={[commonStyles.sectionHeaderRow, styles.stickyHeader]}>
         <Text style={commonStyles.sectionTitle}>{t("patternList")}</Text>
-        <PlusButton
-          onPress={props.onAdd}
-          palette={palette}
-          accessibilityLabel={t("addPattern")}
-        />
+        <View style={styles.headerButtons}>
+          <TouchableOpacity
+            onPress={() => setIsFilterVisible(true)}
+            style={styles.iconButton}
+            accessibilityLabel={t("filterPatterns")}
+          >
+            <Icon
+              name={hasActiveFilter ? "filter" : "filter-outline"}
+              size={24}
+              color={
+                hasActiveFilter
+                  ? palette[PaletteColor.Accent]
+                  : palette[PaletteColor.Primary]
+              }
+            />
+          </TouchableOpacity>
+          <PlusButton
+            onPress={props.onAdd}
+            palette={palette}
+            accessibilityLabel={t("addPattern")}
+          />
+        </View>
       </View>
       <ScrollView style={styles.scrollView}>
-        {props.patterns.map((pattern) => (
+        {filteredPatterns.map((pattern) => (
           <View key={pattern.id}>
             {mapPatternToScrollViewItem({
               ...props,
@@ -65,7 +155,22 @@ const PatternList: React.FC<PatternListProps> = (props) => {
             })}
           </View>
         ))}
+        {filteredPatterns.length === 0 && (
+          <View style={styles.emptyState}>
+            <Text style={styles.emptyStateText}>
+              {hasActiveFilter ? t("noMatchingPatterns") : t("noPatterns")}
+            </Text>
+          </View>
+        )}
       </ScrollView>
+
+      <PatternFilterBottomSheet
+        visible={isFilterVisible}
+        onClose={() => setIsFilterVisible(false)}
+        onApplyFilter={setFilter}
+        currentFilter={filter}
+        allPatterns={props.patterns}
+      />
     </View>
   );
 };
@@ -150,6 +255,11 @@ const getStyles = (palette: Record<PaletteColor, string>) =>
     scrollView: {
       flex: 1,
     },
+    headerButtons: {
+      flexDirection: "row",
+      alignItems: "center",
+      gap: 8,
+    },
     patternItem: {
       padding: 12,
       borderRadius: 8,
@@ -179,6 +289,15 @@ const getStyles = (palette: Record<PaletteColor, string>) =>
     iconButton: {
       paddingHorizontal: 4,
       paddingVertical: 2,
+    },
+    emptyState: {
+      paddingVertical: 32,
+      alignItems: "center",
+    },
+    emptyStateText: {
+      color: palette[PaletteColor.SecondaryText],
+      fontSize: 14,
+      fontStyle: "italic",
     },
   });
 
