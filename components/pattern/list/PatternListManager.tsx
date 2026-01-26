@@ -29,7 +29,6 @@ const PatternListManager = () => {
   const [isEditing, setIsEditing] = useState(false);
   const styles = getStyles(palette);
 
-  // Load patterns from storage on mount
   useEffect(() => {
     const fetchPatterns = async () => {
       try {
