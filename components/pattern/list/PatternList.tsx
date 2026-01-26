@@ -51,8 +51,7 @@ const PatternList: React.FC<PatternListProps> = (props) => {
     name: "",
     types: [],
     levels: [],
-    minCounts: undefined,
-    maxCounts: undefined,
+    counts: undefined,
     tags: [],
   });
 
@@ -81,10 +80,7 @@ const PatternList: React.FC<PatternListProps> = (props) => {
       }
 
       // Counts filter
-      if (filter.minCounts !== undefined && pattern.counts < filter.minCounts) {
-        return false;
-      }
-      if (filter.maxCounts !== undefined && pattern.counts > filter.maxCounts) {
+      if (filter.counts !== undefined && pattern.counts !== filter.counts) {
         return false;
       }
 
@@ -109,8 +105,7 @@ const PatternList: React.FC<PatternListProps> = (props) => {
       filter.name !== "" ||
       filter.types.length > 0 ||
       filter.levels.length > 0 ||
-      filter.minCounts !== undefined ||
-      filter.maxCounts !== undefined ||
+      filter.counts !== undefined ||
       filter.tags.length > 0
     );
   }, [filter]);

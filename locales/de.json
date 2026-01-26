@@ -57,6 +57,7 @@
   "filterPatterns": "Figuren filtern",
   "name": "Name",
   "searchByName": "Nach Name suchen...",
+  "exactCounts": "Exakte Counts (z.B. 6, 8)...",
   "min": "Min",
   "max": "Max",
   "reset": "Zurücksetzen",

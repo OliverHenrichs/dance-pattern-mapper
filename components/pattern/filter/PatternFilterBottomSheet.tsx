@@ -25,8 +25,7 @@ export interface PatternFilter {
   name: string;
   types: WCSPatternType[];
   levels: WCSPatternLevel[];
-  minCounts?: number;
-  maxCounts?: number;
+  counts?: number;
   tags: string[];
 }
 
@@ -100,8 +99,7 @@ const PatternFilterBottomSheet: React.FC<PatternFilterBottomSheetProps> = ({
       name: "",
       types: [],
       levels: [],
-      minCounts: undefined,
-      maxCounts: undefined,
+      counts: undefined,
       tags: [],
     };
     setFilter(emptyFilter);
@@ -145,10 +143,8 @@ const PatternFilterBottomSheet: React.FC<PatternFilterBottomSheetProps> = ({
         />
 
         <CountsFilter
-          minCounts={filter.minCounts}
-          maxCounts={filter.maxCounts}
-          onMinChange={(value) => setFilter({ ...filter, minCounts: value })}
-          onMaxChange={(value) => setFilter({ ...filter, maxCounts: value })}
+          counts={filter.counts}
+          onChange={(value) => setFilter({ ...filter, counts: value })}
           palette={palette}
         />
 

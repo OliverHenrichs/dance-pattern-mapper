@@ -57,6 +57,7 @@
   "filterPatterns": "Filter Patterns",
   "name": "Name",
   "searchByName": "Search by name...",
+  "exactCounts": "Exact counts (e.g., 6, 8)...",
   "min": "Min",
   "max": "Max",
   "reset": "Reset",
