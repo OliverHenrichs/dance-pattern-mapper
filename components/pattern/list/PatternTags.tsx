@@ -6,11 +6,11 @@ import { useThemeContext } from "@/components/common/ThemeContext";
 import { WCSPattern } from "@/components/pattern/types/WCSPattern";
 import {
   getCommonBorder,
-  getCommonButton,
   getCommonLabel,
   getCommonRow,
 } from "@/components/common/CommonStyles";
 import TagPickerBottomSheet from "./TagPickerBottomSheet";
+import PlusButton from "@/components/common/PlusButton";
 
 interface PatternTagsProps {
   tags: string[];
@@ -50,12 +50,6 @@ const PatternTags: React.FC<PatternTagsProps> = ({
   return (
     <View style={styles.tagsContainer}>
       <Text style={styles.label}>{t("tags")}</Text>
-      <TouchableOpacity
-        onPress={() => setIsBottomSheetVisible(true)}
-        style={styles.addTagButton}
-      >
-        <Text style={styles.addTagButtonText}>+ {t("addTag")}</Text>
-      </TouchableOpacity>
       <View style={styles.tagsRow}>
         {tags.map((tag: string, idx: number) => (
           <View key={idx} style={styles.tagItem}>
@@ -65,6 +59,13 @@ const PatternTags: React.FC<PatternTagsProps> = ({
             </TouchableOpacity>
           </View>
         ))}
+        <View style={styles.addButtonContainer}>
+          <PlusButton
+            onPress={() => setIsBottomSheetVisible(true)}
+            palette={palette}
+            accessibilityLabel={t("addTag")}
+          />
+        </View>
       </View>
 
       <TagPickerBottomSheet
@@ -99,16 +100,9 @@ const getStyles = (palette: Record<PaletteColor, string>) => {
       marginLeft: 4,
     },
     label: { ...getCommonLabel(palette) },
-    addTagButton: {
-      ...getCommonButton(palette),
-      marginTop: 4,
-      paddingVertical: 8,
-      paddingHorizontal: 12,
-    },
-    addTagButtonText: {
-      color: palette[PaletteColor.PrimaryText],
-      fontWeight: "bold",
-      fontSize: 14,
+    addButtonContainer: {
+      justifyContent: "center",
+      alignItems: "center",
     },
   };
 };

@@ -17,6 +17,7 @@ import {
   getCommonStyles,
 } from "@/components/common/CommonStyles";
 import { getPalette, PaletteColor } from "@/components/common/ColorPalette";
+import PlusButton from "@/components/common/PlusButton";
 
 type PatternListProps = {
   patterns: WCSPattern[];
@@ -45,17 +46,11 @@ const PatternList: React.FC<PatternListProps> = (props) => {
     <View style={styles.listContainer}>
       <View style={[commonStyles.sectionHeaderRow, styles.stickyHeader]}>
         <Text style={commonStyles.sectionTitle}>{t("patternList")}</Text>
-        <TouchableOpacity
+        <PlusButton
           onPress={props.onAdd}
-          style={styles.plusButton}
+          palette={palette}
           accessibilityLabel={t("addPattern")}
-        >
-          <Icon
-            name="plus-circle"
-            size={28}
-            color={palette[PaletteColor.Accent]}
-          />
-        </TouchableOpacity>
+        />
       </View>
       <ScrollView style={styles.scrollView}>
         {props.patterns.map((pattern) => (
@@ -154,11 +149,6 @@ const getStyles = (palette: Record<PaletteColor, string>) =>
     },
     scrollView: {
       flex: 1,
-    },
-    plusButton: {
-      marginLeft: 8,
-      padding: 4,
-      borderRadius: 16,
     },
     patternItem: {
       padding: 12,

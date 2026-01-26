@@ -10,11 +10,11 @@ import {
 import { PaletteColor } from "@/components/common/ColorPalette";
 import { useTranslation } from "react-i18next";
 import {
-  getCommonButton,
   getCommonLabel,
   getCommonPrereqContainer,
   getCommonRow,
 } from "@/components/common/CommonStyles";
+import PlusButton from "@/components/common/PlusButton";
 
 export type PatternVideosProps = {
   thumbnails: string[];
@@ -76,13 +76,12 @@ const PatternVideos: React.FC<PatternVideosProps> = ({
           {renderThumbnails()}
         </ScrollView>
         <View style={styles.addButtonContainer}>
-          <TouchableOpacity
+          <PlusButton
             onPress={onAddVideo}
-            style={styles.buttonIndigo}
+            palette={palette}
+            accessibilityLabel={t("add")}
             disabled={disabled}
-          >
-            <Text style={styles.buttonText}>{t("add")}</Text>
-          </TouchableOpacity>
+          />
         </View>
       </View>
     </View>
@@ -90,14 +89,9 @@ const PatternVideos: React.FC<PatternVideosProps> = ({
 };
 
 const getStyles = (palette: Record<PaletteColor, string>) => {
-  const baseButton = getCommonButton(palette);
   return StyleSheet.create({
     prereqContainer: getCommonPrereqContainer(palette),
     label: { ...getCommonLabel(palette) }, // TextStyle only
-    buttonText: {
-      color: palette[PaletteColor.PrimaryText],
-      fontWeight: "bold",
-    }, // TextStyle only
     videosRow: { ...getCommonRow(), gap: 4 }, // ViewStyle only
     videosInputRow: {
       ...getCommonRow(),
@@ -138,7 +132,6 @@ const getStyles = (palette: Record<PaletteColor, string>) => {
       height: 64,
       marginLeft: 8,
     },
-    buttonIndigo: { ...baseButton },
   });
 };
 
