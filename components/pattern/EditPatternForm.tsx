@@ -230,6 +230,7 @@ const EditPatternForm: React.FC<EditPatternFormProps> = ({
       <PatternTags
         tags={newPattern.tags}
         setTags={(tags) => setNewPattern({ ...newPattern, tags })}
+        allPatterns={patterns}
         styles={styles}
       />
       <PatternVideos
