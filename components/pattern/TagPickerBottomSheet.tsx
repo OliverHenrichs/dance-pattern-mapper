@@ -160,9 +160,7 @@ const TagPickerBottomSheet: React.FC<TagPickerBottomSheetProps> = ({
             {!isNewTag && filteredExistingTags.length === 0 && (
               <View style={styles.emptyState}>
                 <Text style={styles.emptyStateText}>
-                  {searchQuery
-                    ? "No matching tags found"
-                    : "No existing tags yet"}
+                  {"No unused matching tags found"}
                 </Text>
               </View>
             )}
