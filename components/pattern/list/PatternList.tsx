@@ -3,7 +3,6 @@ import { ScrollView, StyleSheet, Text, View } from "react-native";
 import { WCSPattern } from "@/components/pattern/types/WCSPattern";
 import { useTranslation } from "react-i18next";
 import { useThemeContext } from "@/components/common/ThemeContext";
-import { getCommonListContainer } from "@/components/common/CommonStyles";
 import { getPalette, PaletteColor } from "@/components/common/ColorPalette";
 import PatternFilterBottomSheet, {
   PatternFilter,
@@ -51,7 +50,7 @@ const PatternList: React.FC<PatternListProps> = (props) => {
   const { sortedPatterns } = usePatternSort(filteredPatterns, sortConfig);
 
   return (
-    <View style={styles.listContainer}>
+    <>
       <PatternListHeader
         hasActiveFilter={hasActiveFilter}
         onSort={() => setIsSortVisible(true)}
@@ -94,16 +93,12 @@ const PatternList: React.FC<PatternListProps> = (props) => {
         onApplySort={setSortConfig}
         currentSort={sortConfig}
       />
-    </View>
+    </>
   );
 };
 
 const getStyles = (palette: Record<PaletteColor, string>) =>
   StyleSheet.create({
-    listContainer: {
-      ...getCommonListContainer(palette),
-      flex: 1,
-    },
     scrollView: {
       flex: 1,
     },

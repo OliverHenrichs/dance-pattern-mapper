@@ -15,6 +15,7 @@ import AppHeader from "@/components/common/AppHeader";
 import PageContainer from "@/components/common/PageContainer";
 import { useThemeContext } from "@/components/common/ThemeContext";
 import { getPalette, PaletteColor } from "@/components/common/ColorPalette";
+import { getCommonListContainer } from "@/components/common/CommonStyles";
 
 const PatternListManager = () => {
   const { colorScheme } = useThemeContext();
@@ -119,14 +120,16 @@ const PatternListManager = () => {
             </View>
           </View>
         </Modal>
-        <PatternList
-          patterns={patterns}
-          onSelect={setSelectedPattern}
-          onDelete={deletePattern}
-          onAdd={() => setIsAddingNew(!isAddingNew)}
-          onEdit={handleEditPattern}
-          selectedPattern={selectedPattern}
-        />
+        <View style={styles.contentContainer}>
+          <PatternList
+            patterns={patterns}
+            onSelect={setSelectedPattern}
+            onDelete={deletePattern}
+            onAdd={() => setIsAddingNew(!isAddingNew)}
+            onEdit={handleEditPattern}
+            selectedPattern={selectedPattern}
+          />
+        </View>
       </PageContainer>
     </View>
   );
@@ -134,6 +137,10 @@ const PatternListManager = () => {
 
 const getStyles = (palette: Record<PaletteColor, string>) =>
   StyleSheet.create({
+    contentContainer: {
+      ...getCommonListContainer(palette),
+      flex: 1,
+    },
     container: {
       flex: 1,
     },

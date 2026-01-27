@@ -16,6 +16,7 @@ import PageContainer from "@/components/common/PageContainer";
 import SectionHeader from "@/components/common/SectionHeader";
 import { useThemeContext } from "@/components/common/ThemeContext";
 import { getPalette, PaletteColor } from "@/components/common/ColorPalette";
+import { getCommonListContainer } from "@/components/common/CommonStyles";
 import { useTranslation } from "react-i18next";
 import Icon from "react-native-vector-icons/MaterialCommunityIcons";
 import TimelineView from "./TimelineView";
@@ -76,46 +77,48 @@ const PatternGraphScreen: React.FC = () => {
       >
         <AppHeader />
 
-        {/* Control Bar */}
-        <SectionHeader
-          title={viewMode === "timeline" ? t("timelineView") : t("graphView")}
-          rightActions={
-            <TouchableOpacity
-              style={styles.controlButton}
-              onPress={handleToggleView}
-              accessibilityLabel={t("toggleView")}
-            >
-              <Icon
-                name={viewMode === "timeline" ? "graph" : "timeline"}
-                size={20}
-                color={palette[PaletteColor.Surface]}
+        <View style={styles.contentContainer}>
+          {/* Control Bar */}
+          <SectionHeader
+            title={viewMode === "timeline" ? t("timelineView") : t("graphView")}
+            rightActions={
+              <TouchableOpacity
+                style={styles.controlButton}
+                onPress={handleToggleView}
+                accessibilityLabel={t("toggleView")}
+              >
+                <Icon
+                  name={viewMode === "timeline" ? "graph" : "timeline"}
+                  size={15}
+                  color={palette[PaletteColor.Surface]}
+                />
+                <Text style={styles.buttonText}>{t("toggleView")}</Text>
+              </TouchableOpacity>
+            }
+          />
+
+          {/* View Container */}
+          <View style={styles.viewContainer}>
+            {viewMode === "timeline" ? (
+              <TimelineView
+                key={`timeline-${resetKey}`}
+                patterns={patterns}
+                palette={palette}
+                onNodeTap={handleNodeTap}
               />
-              <Text style={styles.buttonText}>{t("toggleView")}</Text>
-            </TouchableOpacity>
-          }
-        />
+            ) : (
+              <NetworkGraphView
+                key={`graph-${resetKey}`}
+                patterns={patterns}
+                palette={palette}
+                onNodeTap={handleNodeTap}
+              />
+            )}
+          </View>
 
-        {/* View Container */}
-        <View style={styles.viewContainer}>
-          {viewMode === "timeline" ? (
-            <TimelineView
-              key={`timeline-${resetKey}`}
-              patterns={patterns}
-              palette={palette}
-              onNodeTap={handleNodeTap}
-            />
-          ) : (
-            <NetworkGraphView
-              key={`graph-${resetKey}`}
-              patterns={patterns}
-              palette={palette}
-              onNodeTap={handleNodeTap}
-            />
-          )}
+          {/* Legend */}
+          <Legend palette={palette} />
         </View>
-
-        {/* Legend */}
-        <Legend palette={palette} />
 
         {/* Pattern Details Modal */}
         <Modal
@@ -160,6 +163,10 @@ const PatternGraphScreen: React.FC = () => {
 
 const getStyles = (palette: Record<PaletteColor, string>) =>
   StyleSheet.create({
+    contentContainer: {
+      ...getCommonListContainer(palette),
+      flex: 1,
+    },
     controlButton: {
       flexDirection: "row",
       alignItems: "center",
