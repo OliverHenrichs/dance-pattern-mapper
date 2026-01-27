@@ -67,5 +67,7 @@
   "push": "Push",
   "pass": "Pass",
   "whip": "Whip",
-  "tuck": "Tuck"
+  "tuck": "Tuck",
+  "sortPatterns": "Figuren sortieren",
+  "dateCreated": "Erstellungsdatum"
 }

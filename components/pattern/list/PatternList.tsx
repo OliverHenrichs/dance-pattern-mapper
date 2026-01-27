@@ -21,6 +21,7 @@ import PlusButton from "@/components/common/PlusButton";
 import PatternFilterBottomSheet, {
   PatternFilter,
 } from "../filter/PatternFilterBottomSheet";
+import SortBottomSheet, { SortConfig } from "../sort/SortBottomSheet";
 
 type PatternListProps = {
   patterns: WCSPattern[];
@@ -53,6 +54,12 @@ const PatternList: React.FC<PatternListProps> = (props) => {
     levels: [],
     counts: undefined,
     tags: [],
+  });
+
+  const [isSortVisible, setIsSortVisible] = useState(false);
+  const [sortConfig, setSortConfig] = useState<SortConfig>({
+    field: "name",
+    order: "asc",
   });
 
   // Filter patterns based on current filter
@@ -100,6 +107,27 @@ const PatternList: React.FC<PatternListProps> = (props) => {
     });
   }, [props.patterns, filter]);
 
+  // Sort patterns based on current sort config
+  const sortedPatterns = useMemo(() => {
+    return [...filteredPatterns].sort((pattern, otherPattern) => {
+      let aValue: string | number | undefined = pattern[sortConfig.field];
+      let bValue: string | number | undefined = otherPattern[sortConfig.field];
+
+      // Handle undefined/null values
+      if (aValue === undefined || aValue === null) return 1;
+      if (bValue === undefined || bValue === null) return -1;
+
+      // Convert to comparable values
+      if (typeof aValue === "string" && typeof bValue === "string") {
+        aValue = aValue.toLowerCase();
+        bValue = bValue.toLowerCase();
+      }
+
+      const comparison = aValue < bValue ? -1 : aValue > bValue ? 1 : 0;
+      return sortConfig.order === "asc" ? comparison : -comparison;
+    });
+  }, [filteredPatterns, sortConfig]);
+
   const hasActiveFilter = useMemo(() => {
     return (
       filter.name !== "" ||
@@ -115,6 +143,13 @@ const PatternList: React.FC<PatternListProps> = (props) => {
       <View style={[commonStyles.sectionHeaderRow, styles.stickyHeader]}>
         <Text style={commonStyles.sectionTitle}>{t("patternList")}</Text>
         <View style={styles.headerButtons}>
+          <TouchableOpacity
+            onPress={() => setIsSortVisible(true)}
+            style={styles.iconButton}
+            accessibilityLabel={t("sortPatterns")}
+          >
+            <Icon name="sort" size={24} color={palette[PaletteColor.Primary]} />
+          </TouchableOpacity>
           <TouchableOpacity
             onPress={() => setIsFilterVisible(true)}
             style={styles.iconButton}
@@ -138,7 +173,7 @@ const PatternList: React.FC<PatternListProps> = (props) => {
         </View>
       </View>
       <ScrollView style={styles.scrollView}>
-        {filteredPatterns.map((pattern) => (
+        {sortedPatterns.map((pattern) => (
           <View key={pattern.id}>
             {mapPatternToScrollViewItem({
               ...props,
@@ -150,7 +185,7 @@ const PatternList: React.FC<PatternListProps> = (props) => {
             })}
           </View>
         ))}
-        {filteredPatterns.length === 0 && (
+        {sortedPatterns.length === 0 && (
           <View style={styles.emptyState}>
             <Text style={styles.emptyStateText}>
               {hasActiveFilter ? t("noMatchingPatterns") : t("noPatterns")}
@@ -165,6 +200,13 @@ const PatternList: React.FC<PatternListProps> = (props) => {
         onApplyFilter={setFilter}
         currentFilter={filter}
         allPatterns={props.patterns}
+      />
+
+      <SortBottomSheet
+        visible={isSortVisible}
+        onClose={() => setIsSortVisible(false)}
+        onApplySort={setSortConfig}
+        currentSort={sortConfig}
       />
     </View>
   );
