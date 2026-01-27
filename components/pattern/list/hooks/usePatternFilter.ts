@@ -1,0 +1,64 @@
+import { useMemo } from "react";
+import { WCSPattern } from "@/components/pattern/types/WCSPattern";
+import { PatternFilter } from "@/components/pattern/filter/PatternFilterBottomSheet";
+
+export function usePatternFilter(
+  patterns: WCSPattern[],
+  filter: PatternFilter,
+) {
+  const filteredPatterns = useMemo(() => {
+    return patterns.filter((pattern) => {
+      // Name filter
+      if (
+        filter.name &&
+        !pattern.name.toLowerCase().includes(filter.name.toLowerCase())
+      ) {
+        return false;
+      }
+
+      // Type filter
+      if (filter.types.length > 0 && !filter.types.includes(pattern.type)) {
+        return false;
+      }
+
+      // Level filter
+      if (
+        filter.levels.length > 0 &&
+        (!pattern.level || !filter.levels.includes(pattern.level))
+      ) {
+        return false;
+      }
+
+      // Counts filter
+      if (filter.counts !== undefined && pattern.counts !== filter.counts) {
+        return false;
+      }
+
+      // Tags filter - pattern must have ALL selected tags
+      if (filter.tags.length > 0) {
+        const hasAllTags = filter.tags.every((tag) =>
+          pattern.tags.some(
+            (patternTag) => patternTag.toLowerCase() === tag.toLowerCase(),
+          ),
+        );
+        if (!hasAllTags) {
+          return false;
+        }
+      }
+
+      return true;
+    });
+  }, [patterns, filter]);
+
+  const hasActiveFilter = useMemo(() => {
+    return (
+      filter.name !== "" ||
+      filter.types.length > 0 ||
+      filter.levels.length > 0 ||
+      filter.counts !== undefined ||
+      filter.tags.length > 0
+    );
+  }, [filter]);
+
+  return { filteredPatterns, hasActiveFilter };
+}
