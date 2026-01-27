@@ -87,7 +87,8 @@ const PatternListItem: React.FC<PatternListItemProps> = ({
 const getStyles = (palette: Record<PaletteColor, string>) =>
   StyleSheet.create({
     patternItem: {
-      padding: 12,
+      paddingVertical: 4,
+      paddingHorizontal: 12,
       borderRadius: 8,
       borderWidth: 2,
       marginBottom: 8,
