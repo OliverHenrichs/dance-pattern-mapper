@@ -13,6 +13,7 @@ import { loadPatterns } from "@/components/pattern/data/PatternStorage";
 import { foundationalWCSPatterns } from "@/components/pattern/data/DefaultWCSPatterns";
 import AppHeader from "@/components/common/AppHeader";
 import PageContainer from "@/components/common/PageContainer";
+import SectionHeader from "@/components/common/SectionHeader";
 import { useThemeContext } from "@/components/common/ThemeContext";
 import { getPalette, PaletteColor } from "@/components/common/ColorPalette";
 import { useTranslation } from "react-i18next";
@@ -76,11 +77,9 @@ const PatternGraphScreen: React.FC = () => {
         <AppHeader />
 
         {/* Control Bar */}
-        <View style={styles.controlBar}>
-          <Text style={styles.titleText}>
-            {viewMode === "timeline" ? t("timelineView") : t("graphView")}
-          </Text>
-          <View style={styles.buttonGroup}>
+        <SectionHeader
+          title={viewMode === "timeline" ? t("timelineView") : t("graphView")}
+          rightActions={
             <TouchableOpacity
               style={styles.controlButton}
               onPress={handleToggleView}
@@ -93,8 +92,8 @@ const PatternGraphScreen: React.FC = () => {
               />
               <Text style={styles.buttonText}>{t("toggleView")}</Text>
             </TouchableOpacity>
-          </View>
-        </View>
+          }
+        />
 
         {/* View Container */}
         <View style={styles.viewContainer}>
@@ -161,24 +160,6 @@ const PatternGraphScreen: React.FC = () => {
 
 const getStyles = (palette: Record<PaletteColor, string>) =>
   StyleSheet.create({
-    controlBar: {
-      flexDirection: "row",
-      justifyContent: "space-between",
-      alignItems: "center",
-      paddingHorizontal: 2,
-      paddingVertical: 2,
-      borderBottomWidth: 2,
-      borderBottomColor: palette[PaletteColor.Primary],
-    },
-    titleText: {
-      fontSize: 18,
-      fontWeight: "bold",
-      color: palette[PaletteColor.PrimaryText],
-    },
-    buttonGroup: {
-      flexDirection: "row",
-      gap: 8,
-    },
     controlButton: {
       flexDirection: "row",
       alignItems: "center",
