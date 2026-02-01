@@ -176,12 +176,13 @@ export function generateSkipLevelPath(
   const segment1EndX = firstIntermediateX;
   const segment2EndX = lastIntermediateX;
 
+  const distanceFactor = 0.7; // Control point distance factor for smoothness
   // First segment: start to routing level (curve down)
   // Control points create smooth curve from start to first intermediate column
   const distance1 = segment1EndX - startPoint.x;
-  const cp1X = startPoint.x + distance1 * 0.7;
+  const cp1X = startPoint.x + distance1 * distanceFactor;
   const cp1Y = startPoint.y;
-  const cp2X = segment1EndX - distance1 * 0.7;
+  const cp2X = segment1EndX - distance1 * distanceFactor;
   const cp2Y = routingY;
 
   // Second segment: horizontal at routing level (straight line through cleared space)
@@ -190,9 +191,9 @@ export function generateSkipLevelPath(
   // Third segment: routing level to end (curve up)
   // Control points create smooth curve from last intermediate column to end
   const distance2 = adjustedEndPoint.x - segment2EndX;
-  const cp3X = segment2EndX + distance2 * 0.3;
+  const cp3X = segment2EndX + distance2 * distanceFactor;
   const cp3Y = routingY;
-  const cp4X = adjustedEndPoint.x - distance2 * 0.5;
+  const cp4X = adjustedEndPoint.x - distance2 * distanceFactor;
   const cp4Y = adjustedEndPoint.y;
 
   // Build path with explicit cubic Bézier curves
