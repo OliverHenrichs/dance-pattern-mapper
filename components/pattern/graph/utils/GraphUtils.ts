@@ -153,11 +153,14 @@ export function generateOrthogonalPath(
 /**
  * Generate optimized SVG path for skip-level edges that routes through cleared space.
  * The path takes advantage of vertically shifted intermediate nodes by routing below them.
+ * Curves complete at the first intermediate column and start at the last intermediate column.
  */
 export function generateSkipLevelPath(
   fromPos: LayoutPosition,
   toPos: LayoutPosition,
   originalIntermediateY: number, // Y coordinate where edge should route
+  firstIntermediateX: number, // X position of first intermediate column
+  lastIntermediateX: number, // X position of last intermediate column
 ): string {
   const fromSide = getClosestSide(fromPos, toPos);
   const toSide = getClosestSide(toPos, fromPos);
@@ -168,29 +171,28 @@ export function generateSkipLevelPath(
 
   const routingY = originalIntermediateY;
 
-  // Calculate horizontal spacing between columns
-  // Assume HORIZONTAL_SPACING is the distance between depth levels
-  const totalDistance = adjustedEndPoint.x - startPoint.x;
-  const HORIZONTAL_SPACING = 170; // Should match constant from TimelineGraphUtils
-
-  // Curve should complete within one column spacing from start/end
-  // This ensures curves finish before first intermediate column
-  const curveDistance = Math.min(HORIZONTAL_SPACING * 0.8, totalDistance * 0.3);
+  // Curve should reach routing level AT the first intermediate column X position
+  // and leave routing level AT the last intermediate column X position
+  const segment1EndX = firstIntermediateX;
+  const segment2EndX = lastIntermediateX;
 
   // First segment: start to routing level (curve down)
-  const segment1EndX = startPoint.x + curveDistance;
-  const cp1X = startPoint.x + curveDistance * 0.5;
+  // Control points create smooth curve from start to first intermediate column
+  const distance1 = segment1EndX - startPoint.x;
+  const cp1X = startPoint.x + distance1 * 0.7;
   const cp1Y = startPoint.y;
-  const cp2X = segment1EndX - curveDistance * 0.3;
+  const cp2X = segment1EndX - distance1 * 0.7;
   const cp2Y = routingY;
 
   // Second segment: horizontal at routing level (straight line through cleared space)
-  const segment2EndX = adjustedEndPoint.x - curveDistance;
+  // This travels from first intermediate column to last intermediate column
 
   // Third segment: routing level to end (curve up)
-  const cp3X = segment2EndX + curveDistance * 0.3;
+  // Control points create smooth curve from last intermediate column to end
+  const distance2 = adjustedEndPoint.x - segment2EndX;
+  const cp3X = segment2EndX + distance2 * 0.3;
   const cp3Y = routingY;
-  const cp4X = adjustedEndPoint.x - curveDistance * 0.5;
+  const cp4X = adjustedEndPoint.x - distance2 * 0.5;
   const cp4Y = adjustedEndPoint.y;
 
   // Build path with explicit cubic Bézier curves

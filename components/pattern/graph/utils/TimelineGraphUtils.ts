@@ -25,6 +25,8 @@ export interface SkipLevelEdgeInfo {
   toDepth: number;
   intermediateNodeIds: number[]; // Nodes that were shifted to make room
   originalIntermediateY: number; // Y coordinate where edge should route (above shifted nodes for horizontal edges)
+  firstIntermediateX: number; // X position of first intermediate column (where to finish curving down)
+  lastIntermediateX: number; // X position of last intermediate column (where to start curving up)
 }
 
 /**
@@ -351,8 +353,13 @@ function applyCollisionAvoidance(
   const nodesToShift = new Map<number, number>(); // patternId -> vertical offset needed
   const edgeToIntermediateNodes = new Map<
     string,
-    { nodeIds: number[]; routingY: number }
-  >(); // "fromId-toId" -> {intermediateNodeIds, routingY}
+    {
+      nodeIds: number[];
+      routingY: number;
+      firstIntermediateX: number;
+      lastIntermediateX: number;
+    }
+  >(); // "fromId-toId" -> {intermediateNodeIds, routingY, column positions}
 
   skipLevelEdges.forEach((edge) => {
     const edgeType = patternMap.get(edge.fromId)?.type;
@@ -423,9 +430,20 @@ function applyCollisionAvoidance(
       const slotIndex = Math.max(0, 3 - depthSpan); // Invert: longer span = lower index = higher position
       const routingY = clearedSpaceTop + slotIndex * slotHeight;
 
+      // Calculate X positions of first and last intermediate columns
+      // These define where the curve should reach/leave the routing level
+      const firstIntermediateDepth = edge.fromDepth + 1 - 0.5;
+      const lastIntermediateDepth = edge.toDepth - 1 + 0.5;
+      const firstIntermediateX =
+        LEFT_MARGIN + firstIntermediateDepth * HORIZONTAL_SPACING;
+      const lastIntermediateX =
+        LEFT_MARGIN + lastIntermediateDepth * HORIZONTAL_SPACING;
+
       edgeToIntermediateNodes.set(edgeKey, {
         nodeIds: intermediateNodeIds,
         routingY: routingY,
+        firstIntermediateX: firstIntermediateX,
+        lastIntermediateX: lastIntermediateX,
       });
     }
   });
@@ -507,6 +525,8 @@ function applyCollisionAvoidance(
       toDepth: edge.toDepth,
       intermediateNodeIds: info?.nodeIds || [],
       originalIntermediateY: info?.routingY || 0,
+      firstIntermediateX: info?.firstIntermediateX || 0,
+      lastIntermediateX: info?.lastIntermediateX || 0,
     };
   });
 
