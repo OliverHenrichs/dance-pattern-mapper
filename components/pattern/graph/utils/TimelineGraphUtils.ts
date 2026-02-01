@@ -84,7 +84,7 @@ export function calculateTimelineLayout(
     adjustedSwimlaneStarts.set(type, newSwimlaneY);
 
     // Calculate the shift needed for this swimlane
-    const swimlaneShift = newSwimlaneY - originalSwimlaneY + NODE_HEIGHT;
+    const swimlaneShift = newSwimlaneY - originalSwimlaneY + NODE_HEIGHT - 10;
 
     if (swimlaneShift !== 0) {
       // Shift all node positions in this swimlane
@@ -403,24 +403,25 @@ function applyCollisionAvoidance(
       }, intermediateNodeIds[0]);
 
       const topmostOriginalY = originalPositions.get(topmostNodeId);
-      const shiftAmount =
-        nodesToShift.get(topmostNodeId) || EDGE_VERTICAL_SPACING;
 
       // The cleared space is created ABOVE the shifted node
       // Original node occupies: [originalY - NODE_HEIGHT/2, originalY + NODE_HEIGHT/2]
       // After shift by shiftAmount, node occupies: [originalY + shiftAmount - NODE_HEIGHT/2, ...]
       // Cleared space is: [originalY - NODE_HEIGHT/2, originalY + shiftAmount - NODE_HEIGHT/2]
-      // Route in the middle of this gap
+
       const halfNodeHeight = NODE_HEIGHT / 2;
       const clearedSpaceTop =
         topmostOriginalY !== undefined
           ? topmostOriginalY - halfNodeHeight
           : edge.fromY;
-      const clearedSpaceBottom =
-        topmostOriginalY !== undefined
-          ? topmostOriginalY + shiftAmount - halfNodeHeight
-          : edge.fromY;
-      const routingY = (clearedSpaceTop + clearedSpaceBottom) / 2;
+
+      // Longer edges (spanning more columns) route higher to avoid later intersections
+      // Divide cleared space into slots based on depth span
+      // Edge spanning 3 columns gets slot 0 (highest), spanning 2 gets slot 1, etc.
+      const depthSpan = edge.toDepth - edge.fromDepth;
+      const slotHeight = EDGE_VERTICAL_SPACING;
+      const slotIndex = Math.max(0, 3 - depthSpan); // Invert: longer span = lower index = higher position
+      const routingY = clearedSpaceTop + slotIndex * slotHeight;
 
       edgeToIntermediateNodes.set(edgeKey, {
         nodeIds: intermediateNodeIds,

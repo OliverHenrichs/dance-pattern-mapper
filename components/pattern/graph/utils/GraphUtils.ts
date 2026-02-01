@@ -157,7 +157,7 @@ export function generateOrthogonalPath(
 export function generateSkipLevelPath(
   fromPos: LayoutPosition,
   toPos: LayoutPosition,
-  originalIntermediateY: number, // Original Y position before shifting
+  originalIntermediateY: number, // Y coordinate where edge should route
 ): string {
   const fromSide = getClosestSide(fromPos, toPos);
   const toSide = getClosestSide(toPos, fromPos);
@@ -166,35 +166,35 @@ export function generateSkipLevelPath(
   const endPoint = getConnectionPoint(toPos, toSide);
   const adjustedEndPoint = adjustEndpointForArrow(toSide, endPoint);
 
-  // Route the path to go through the cleared space (original Y position of shifted nodes)
-  const midX = (startPoint.x + adjustedEndPoint.x) / 2;
-  const routingY = originalIntermediateY; // Use the original Y where space was cleared
+  const routingY = originalIntermediateY;
 
-  // Create a smooth path with three segments:
-  // 1. Start → curve down to routing level
-  // 2. Travel horizontally at routing level
-  // 3. Curve up → end
+  // Calculate horizontal spacing between columns
+  // Assume HORIZONTAL_SPACING is the distance between depth levels
+  const totalDistance = adjustedEndPoint.x - startPoint.x;
+  const HORIZONTAL_SPACING = 170; // Should match constant from TimelineGraphUtils
 
-  // First segment: start to routing level
-  const segment1EndX = startPoint.x + (midX - startPoint.x) * 0.5;
-  const cp1X = startPoint.x + (segment1EndX - startPoint.x) * 0.6;
+  // Curve should complete within one column spacing from start/end
+  // This ensures curves finish before first intermediate column
+  const curveDistance = Math.min(HORIZONTAL_SPACING * 0.8, totalDistance * 0.3);
+
+  // First segment: start to routing level (curve down)
+  const segment1EndX = startPoint.x + curveDistance;
+  const cp1X = startPoint.x + curveDistance * 0.5;
   const cp1Y = startPoint.y;
-  const cp2X = segment1EndX - (segment1EndX - startPoint.x) * 0.4;
+  const cp2X = segment1EndX - curveDistance * 0.3;
   const cp2Y = routingY;
 
-  // Second segment: horizontal at routing level
-  const segment2EndX = adjustedEndPoint.x - (adjustedEndPoint.x - midX) * 0.5;
+  // Second segment: horizontal at routing level (straight line through cleared space)
+  const segment2EndX = adjustedEndPoint.x - curveDistance;
 
-  // Third segment: routing level to end
-  const cp3X = segment2EndX + (adjustedEndPoint.x - segment2EndX) * 0.4;
+  // Third segment: routing level to end (curve up)
+  const cp3X = segment2EndX + curveDistance * 0.3;
   const cp3Y = routingY;
-  const cp4X = adjustedEndPoint.x - (adjustedEndPoint.x - segment2EndX) * 0.6;
+  const cp4X = adjustedEndPoint.x - curveDistance * 0.5;
   const cp4Y = adjustedEndPoint.y;
 
   // Build path with explicit cubic Bézier curves
-  const result = `M ${startPoint.x} ${startPoint.y} C ${cp1X} ${cp1Y}, ${cp2X} ${cp2Y}, ${segment1EndX} ${routingY} L ${segment2EndX} ${routingY} C ${cp3X} ${cp3Y}, ${cp4X} ${cp4Y}, ${adjustedEndPoint.x} ${adjustedEndPoint.y}`;
-  console.log(result);
-  return result;
+  return `M ${startPoint.x} ${startPoint.y} C ${cp1X} ${cp1Y}, ${cp2X} ${cp2Y}, ${segment1EndX} ${routingY} L ${segment2EndX} ${routingY} C ${cp3X} ${cp3Y}, ${cp4X} ${cp4Y}, ${adjustedEndPoint.x} ${adjustedEndPoint.y}`;
 }
 
 /**
