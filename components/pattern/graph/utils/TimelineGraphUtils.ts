@@ -64,24 +64,36 @@ export function calculateTimelineLayout(
     positions,
   );
 
-  // Adjust swimlane heights and total height based on shifts
+  // Adjust swimlane heights based on shifts
   maxShiftPerType.forEach((shift, type) => {
     const patternType = type as WCSPatternType;
     const currentHeight = swimlaneHeights.get(patternType) || 0;
     swimlaneHeights.set(patternType, currentHeight + shift);
   });
 
-  // Recalculate total height with adjusted swimlane heights
+  // Recalculate swimlane Y positions to account for expanded heights
+  // Each swimlane's Y is the cumulative height of all swimlanes above it
   const typeOrder = Object.values(WCSPatternType) as WCSPatternType[];
-  const adjustedTotalHeight = typeOrder.reduce((sum, type) => {
-    return sum + (swimlaneHeights.get(type) || 0);
-  }, 0);
+  let cumulativeY = 0;
+  const adjustedSwimlaneStarts = new Map<WCSPatternType, number>();
+
+  typeOrder.forEach((type) => {
+    adjustedSwimlaneStarts.set(type, cumulativeY);
+    const height = swimlaneHeights.get(type) || 0;
+    cumulativeY += height;
+  });
+
+  // Total height is the cumulative Y after all swimlanes
+  const adjustedTotalHeight = cumulativeY;
 
   return {
     positions,
     minHeight: Math.max(baseHeight, adjustedTotalHeight),
     actualWidth: calculateActualWidth(depthMap, width),
-    swimlanes: buildSwimlaneInformation(swimlaneHeights),
+    swimlanes: buildSwimlaneInformation(
+      swimlaneHeights,
+      adjustedSwimlaneStarts,
+    ),
     skipLevelEdges,
   };
 }
@@ -108,30 +120,32 @@ function groupPatternsByType(
 
 function buildSwimlaneInformation(
   swimlaneHeights: Map<WCSPatternType, number>,
+  swimlaneStarts?: Map<WCSPatternType, number>,
 ) {
-  const swimlaneInfo: Record<WCSPatternType, SwimlaneInfo> = {
-    [WCSPatternType.PUSH]: {
-      y: 0,
-      height: swimlaneHeights.get(WCSPatternType.PUSH) || 0,
-    },
-    [WCSPatternType.PASS]: {
-      y: swimlaneHeights.get(WCSPatternType.PUSH) || 0,
-      height: swimlaneHeights.get(WCSPatternType.PASS) || 0,
-    },
-    [WCSPatternType.WHIP]: {
-      y:
-        (swimlaneHeights.get(WCSPatternType.PUSH) || 0) +
-        (swimlaneHeights.get(WCSPatternType.PASS) || 0),
-      height: swimlaneHeights.get(WCSPatternType.WHIP) || 0,
-    },
-    [WCSPatternType.TUCK]: {
-      y:
-        (swimlaneHeights.get(WCSPatternType.PUSH) || 0) +
-        (swimlaneHeights.get(WCSPatternType.PASS) || 0) +
-        (swimlaneHeights.get(WCSPatternType.WHIP) || 0),
-      height: swimlaneHeights.get(WCSPatternType.TUCK) || 0,
-    },
-  };
+  // If swimlane starts are provided (after shift adjustment), use them
+  // Otherwise calculate cumulative positions from heights
+  let cumulativeY = 0;
+  const typeOrder = Object.values(WCSPatternType) as WCSPatternType[];
+
+  const swimlaneInfo: Record<WCSPatternType, SwimlaneInfo> = {} as Record<
+    WCSPatternType,
+    SwimlaneInfo
+  >;
+
+  typeOrder.forEach((type) => {
+    const startY = swimlaneStarts
+      ? swimlaneStarts.get(type) || cumulativeY
+      : cumulativeY;
+    const height = swimlaneHeights.get(type) || 0;
+
+    swimlaneInfo[type] = {
+      y: startY,
+      height: height,
+    };
+
+    cumulativeY = startY + height;
+  });
+
   return swimlaneInfo;
 }
 
