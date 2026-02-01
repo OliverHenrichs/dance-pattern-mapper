@@ -48,7 +48,7 @@ export function calculateTimelineLayout(
   const depthMap = calculatePrerequisiteDepthMap(patterns);
   const grouped = groupPatternsByType(patterns);
   const maxStackPerType = calculateMaxStackPerType(grouped, depthMap);
-  let { swimlaneHeights, swimlaneStarts, totalHeight } =
+  let { swimlaneHeights, swimlaneStarts } =
     calculateSwimlaneSizes(maxStackPerType);
 
   const positions = positionPatternsByPrerequisites(
@@ -58,11 +58,28 @@ export function calculateTimelineLayout(
     swimlaneStarts,
   );
 
-  const skipLevelEdges = applyCollisionAvoidance(patterns, depthMap, positions);
+  const { skipLevelEdges, maxShiftPerType } = applyCollisionAvoidance(
+    patterns,
+    depthMap,
+    positions,
+  );
+
+  // Adjust swimlane heights and total height based on shifts
+  maxShiftPerType.forEach((shift, type) => {
+    const patternType = type as WCSPatternType;
+    const currentHeight = swimlaneHeights.get(patternType) || 0;
+    swimlaneHeights.set(patternType, currentHeight + shift);
+  });
+
+  // Recalculate total height with adjusted swimlane heights
+  const typeOrder = Object.values(WCSPatternType) as WCSPatternType[];
+  const adjustedTotalHeight = typeOrder.reduce((sum, type) => {
+    return sum + (swimlaneHeights.get(type) || 0);
+  }, 0);
 
   return {
     positions,
-    minHeight: Math.max(baseHeight, totalHeight),
+    minHeight: Math.max(baseHeight, adjustedTotalHeight),
     actualWidth: calculateActualWidth(depthMap, width),
     swimlanes: buildSwimlaneInformation(swimlaneHeights),
     skipLevelEdges,
@@ -223,13 +240,16 @@ function positionPatternsByPrerequisites(
 /**
  * Apply collision avoidance by detecting skip-level edges and shifting intermediate nodes.
  * This is a second pass after initial positioning.
- * Returns information about skip-level edges and which nodes were shifted.
+ * Returns information about skip-level edges, which nodes were shifted, and max shifts per type.
  */
 function applyCollisionAvoidance(
   patterns: WCSPattern[],
   depthMap: Map<number, number>,
   positions: Map<number, LayoutPosition>,
-): SkipLevelEdgeInfo[] {
+): {
+  skipLevelEdges: SkipLevelEdgeInfo[];
+  maxShiftPerType: Map<string, number>;
+} {
   const patternMap = new Map<number, WCSPattern>();
   patterns.forEach((p) => patternMap.set(p.id, p));
 
@@ -361,8 +381,8 @@ function applyCollisionAvoidance(
     }
   });
 
-  // Apply the shifts and propagate to nodes below in the same stack
-  // First, organize nodes by depth and type for stack-aware shifting
+  // Apply the shifts with proper cascading
+  // Calculate cumulative shifts for each position in each stack
   const nodesByDepthType = new Map<string, number[]>(); // "depth-type" -> [patternIds sorted by Y]
 
   patterns.forEach((pattern) => {
@@ -384,41 +404,51 @@ function applyCollisionAvoidance(
     });
   });
 
-  // Apply shifts with propagation
-  nodesToShift.forEach((offset, patternId) => {
-    const pattern = patternMap.get(patternId);
-    if (!pattern) return;
+  // Calculate cumulative shifts for each stack position
+  // Key insight: to maintain equal spacing, each node must shift by the MAXIMUM
+  // of (its own shift requirement) OR (the shift of the node directly above it)
+  const cumulativeShifts = new Map<number, number>(); // patternId -> total shift to apply
+  let maxShiftPerType = new Map<string, number>(); // "type" -> max shift in that swimlane
 
-    const depth = depthMap.get(patternId) || 0;
-    const key = `${depth}-${pattern.type}`;
-    const stack = nodesByDepthType.get(key);
-    if (!stack) return;
+  nodesByDepthType.forEach((stack, key) => {
+    const type = key.split("-")[1]; // Extract type from "depth-type"
+    let maxShiftInStack = 0;
 
-    const pos = positions.get(patternId);
-    if (!pos) return;
+    // Process from top to bottom to propagate shifts down
+    let previousShift = 0;
+    for (let i = 0; i < stack.length; i++) {
+      const nodeId = stack[i];
+      const ownShift = nodesToShift.get(nodeId) || 0;
 
-    // Find this node's position in the stack
-    const indexInStack = stack.indexOf(patternId);
-    if (indexInStack === -1) return;
+      // This node shifts by the maximum of:
+      // - Its own shift requirement
+      // - The shift of the node above (to maintain spacing)
+      const cumulativeShift = Math.max(ownShift, previousShift);
 
-    // Shift this node
-    positions.set(patternId, { x: pos.x, y: pos.y + offset });
+      cumulativeShifts.set(nodeId, cumulativeShift);
+      maxShiftInStack = Math.max(maxShiftInStack, cumulativeShift);
 
-    // Propagate shift to all nodes below in the same stack
-    for (let i = indexInStack + 1; i < stack.length; i++) {
-      const nodeIdBelow = stack[i];
-      const posBelow = positions.get(nodeIdBelow);
-      if (posBelow) {
-        positions.set(nodeIdBelow, {
-          x: posBelow.x,
-          y: posBelow.y + offset,
-        });
+      // Next node inherits this shift as minimum
+      previousShift = cumulativeShift;
+    }
+
+    // Track max shift per swimlane type for height adjustment
+    const currentMax = maxShiftPerType.get(type) || 0;
+    maxShiftPerType.set(type, Math.max(currentMax, maxShiftInStack));
+  });
+
+  // Apply the cumulative shifts
+  cumulativeShifts.forEach((shift, nodeId) => {
+    if (shift > 0) {
+      const pos = positions.get(nodeId);
+      if (pos) {
+        positions.set(nodeId, { x: pos.x, y: pos.y + shift });
       }
     }
   });
 
   // Build return array with edge information
-  return skipLevelEdges.map((edge) => {
+  const edgeInfoArray = skipLevelEdges.map((edge) => {
     const edgeKey = `${edge.fromId}-${edge.toId}`;
     const info = edgeToIntermediateNodes.get(edgeKey);
     return {
@@ -430,4 +460,6 @@ function applyCollisionAvoidance(
       originalIntermediateY: info?.routingY || 0,
     };
   });
+
+  return { skipLevelEdges: edgeInfoArray, maxShiftPerType };
 }
