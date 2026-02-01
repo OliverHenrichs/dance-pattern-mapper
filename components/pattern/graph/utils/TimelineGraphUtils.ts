@@ -54,7 +54,6 @@ export function calculateTimelineLayout(
     calculateSwimlaneSizes(maxStackPerType);
 
   const positions = positionPatternsByPrerequisites(
-    patterns,
     grouped,
     depthMap,
     swimlaneStarts,
@@ -235,7 +234,6 @@ function calculateSwimlaneSizes(maxStackPerType: Map<string, number>) {
 }
 
 function positionPatternsByPrerequisites(
-  patterns: WCSPattern[],
   grouped: Record<WCSPatternType, WCSPattern[]>,
   depthMap: Map<number, number>,
   swimlaneStarts: Map<WCSPatternType, number>,
@@ -432,8 +430,8 @@ function applyCollisionAvoidance(
 
       // Calculate X positions of first and last intermediate columns
       // These define where the curve should reach/leave the routing level
-      const firstIntermediateDepth = edge.fromDepth + 1 - 0.5;
-      const lastIntermediateDepth = edge.toDepth - 1 + 0.5;
+      const firstIntermediateDepth = edge.fromDepth + 1 - 0.25;
+      const lastIntermediateDepth = edge.toDepth - 1 + 0.25;
       const firstIntermediateX =
         LEFT_MARGIN + firstIntermediateDepth * HORIZONTAL_SPACING;
       const lastIntermediateX =
