@@ -1,6 +1,6 @@
 import { WCSPattern } from "@/components/pattern/types/WCSPattern";
 import {
-  calculatePrerequisiteDepth,
+  calculatePrerequisiteDepthMap,
   LayoutPosition,
 } from "@/components/pattern/graph/utils/GraphUtils";
 
@@ -14,7 +14,7 @@ export function calculateGraphLayout(
   width: number,
   height: number,
 ): Map<number, LayoutPosition> {
-  const depthMap = calculatePrerequisiteDepth(patterns);
+  const depthMap = calculatePrerequisiteDepthMap(patterns);
   const foundationalPatterns = getFoundationalPatterns(patterns, depthMap);
   const positions = calculateFoundationalPatternPositions(
     width,

@@ -77,14 +77,14 @@ enum NodeSide {
  * Depth is the longest chain from foundational patterns (prerequisites: []).
  * Returns a map of pattern id -> depth.
  */
-export function calculatePrerequisiteDepth(
+export function calculatePrerequisiteDepthMap(
   patterns: WCSPattern[],
 ): Map<number, number> {
   const depthMap = new Map<number, number>();
   const patternMap = new Map<number, WCSPattern>();
 
   // Create pattern lookup map
-  patterns.forEach((p) => patternMap.set(p.id, p));
+  patterns.forEach((pattern) => patternMap.set(pattern.id, pattern));
 
   function getDepth(
     patternId: number,

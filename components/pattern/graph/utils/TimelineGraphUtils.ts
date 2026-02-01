@@ -1,7 +1,7 @@
 import { WCSPattern } from "@/components/pattern/types/WCSPattern";
 import { WCSPatternType } from "@/components/pattern/types/WCSPatternEnums";
 import {
-  calculatePrerequisiteDepth,
+  calculatePrerequisiteDepthMap,
   LayoutPosition,
 } from "@/components/pattern/graph/utils/GraphUtils";
 import {
@@ -34,7 +34,7 @@ export function calculateTimelineLayout(
   actualWidth: number;
   swimlanes: Record<WCSPatternType, SwimlaneInfo>;
 } {
-  const depthMap = calculatePrerequisiteDepth(patterns);
+  const depthMap = calculatePrerequisiteDepthMap(patterns);
   const grouped = groupPatternsByType(patterns);
   const maxStackPerType = calculateMaxStackPerType(grouped, depthMap);
   let { swimlaneHeights, swimlaneStarts, totalHeight } =

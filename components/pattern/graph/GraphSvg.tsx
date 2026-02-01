@@ -2,16 +2,16 @@ import React from "react";
 import Svg, { Defs, Marker, Path, Polygon } from "react-native-svg";
 import { WCSPattern } from "@/components/pattern/types/WCSPattern";
 import { PaletteColor } from "@/components/common/ColorPalette";
-import {
-  generateEdges,
-  generateOrthogonalPath,
-  LayoutPosition,
-} from "./utils/GraphUtils";
 import PatternNode from "./PatternNode";
 import {
   IGraphPosition,
   IGraphSvgProps,
 } from "@/components/pattern/graph/types/IGraphSvgProps";
+import {
+  generateEdges,
+  generateOrthogonalPath,
+  LayoutPosition,
+} from "@/components/pattern/graph/utils/GraphUtils";
 
 export const ArrowheadMarker: React.FC<{
   palette: Record<PaletteColor, string>;

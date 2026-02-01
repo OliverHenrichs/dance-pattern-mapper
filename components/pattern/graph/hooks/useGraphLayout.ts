@@ -10,11 +10,13 @@ import { calculateGraphLayout } from "@/components/pattern/graph/utils/NetworkGr
 const INITIAL_WIDTH_MULTIPLIER = 3;
 const INITIAL_HEIGHT_MULTIPLIER = 2;
 const CONTENT_PADDING = 300;
+
 interface GraphLayoutResult {
   positions: Map<number, LayoutPosition>;
   svgWidth: number;
   svgHeight: number;
 }
+
 interface ContentBounds {
   minX: number;
   maxX: number;
