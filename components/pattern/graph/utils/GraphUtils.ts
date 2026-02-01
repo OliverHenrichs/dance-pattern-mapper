@@ -127,6 +127,30 @@ export function calculatePrerequisiteDepthMap(
 }
 
 /**
+ * Generate SVG path string for an orthogonal edge between two nodes.
+ * The path starts perpendicular to the source side and ends perpendicular to the target side.
+ */
+export function generateOrthogonalPath(
+  fromPos: LayoutPosition,
+  toPos: LayoutPosition,
+): string {
+  // Determine which sides to connect
+  const fromSide = getClosestSide(fromPos, toPos);
+  const toSide = getClosestSide(toPos, fromPos);
+
+  const startPoint = getConnectionPoint(fromPos, fromSide);
+  const endPoint = getConnectionPoint(toPos, toSide);
+  const adjustedEndPoint = adjustEndpointForArrow(toSide, endPoint);
+  const orthogonalOffset = getOrthogonalOffset(adjustedEndPoint, startPoint);
+  let cp1 = getControlPoint(fromSide, startPoint, orthogonalOffset);
+  let cp2 = getControlPoint(toSide, adjustedEndPoint, orthogonalOffset);
+
+  // Use cubic Bézier curve (C command) for smooth, continuous curve
+  // This creates a smooth curve from start to end with orthogonal tangents at both ends
+  return `M ${startPoint.x} ${startPoint.y} C ${cp1.x} ${cp1.y}, ${cp2.x} ${cp2.y}, ${adjustedEndPoint.x} ${adjustedEndPoint.y}`;
+}
+
+/**
  * Calculate which side of a node is closest to a target point
  */
 function getClosestSide(
@@ -237,28 +261,4 @@ function getControlPoint(
         y: position.y,
       };
   }
-}
-
-/**
- * Generate SVG path string for an orthogonal edge between two nodes.
- * The path starts perpendicular to the source side and ends perpendicular to the target side.
- */
-export function generateOrthogonalPath(
-  fromPos: LayoutPosition,
-  toPos: LayoutPosition,
-): string {
-  // Determine which sides to connect
-  const fromSide = getClosestSide(fromPos, toPos);
-  const toSide = getClosestSide(toPos, fromPos);
-
-  const startPoint = getConnectionPoint(fromPos, fromSide);
-  const endPoint = getConnectionPoint(toPos, toSide);
-  const adjustedEndPoint = adjustEndpointForArrow(toSide, endPoint);
-  const orthogonalOffset = getOrthogonalOffset(adjustedEndPoint, startPoint);
-  let cp1 = getControlPoint(fromSide, startPoint, orthogonalOffset);
-  let cp2 = getControlPoint(toSide, adjustedEndPoint, orthogonalOffset);
-
-  // Use cubic Bézier curve (C command) for smooth, continuous curve
-  // This creates a smooth curve from start to end with orthogonal tangents at both ends
-  return `M ${startPoint.x} ${startPoint.y} C ${cp1.x} ${cp1.y}, ${cp2.x} ${cp2.y}, ${adjustedEndPoint.x} ${adjustedEndPoint.y}`;
 }
