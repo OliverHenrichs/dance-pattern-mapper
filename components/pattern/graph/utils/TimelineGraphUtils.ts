@@ -5,6 +5,7 @@ import {
   LayoutPosition,
 } from "@/components/pattern/graph/utils/GraphUtils";
 import {
+  EDGE_VERTICAL_SPACING,
   HORIZONTAL_SPACING,
   LEFT_MARGIN,
   NODE_HEIGHT,
@@ -41,6 +42,7 @@ export function calculateTimelineLayout(
     calculateSwimlaneSizes(maxStackPerType);
   return {
     positions: positionPatternsByPrerequisites(
+      patterns,
       grouped,
       depthMap,
       swimlaneStarts,
@@ -150,12 +152,19 @@ function calculateSwimlaneSizes(maxStackPerType: Map<string, number>) {
 }
 
 function positionPatternsByPrerequisites(
+  patterns: WCSPattern[],
   grouped: Record<WCSPatternType, WCSPattern[]>,
   depthMap: Map<number, number>,
   swimlaneStarts: Map<WCSPatternType, number>,
 ) {
   const positions = new Map<number, LayoutPosition>();
   const depthTypeCounter = new Map<string, number>();
+  const patternMap = new Map<number, WCSPattern>();
+
+  // Build pattern lookup map
+  patterns.forEach((p) => patternMap.set(p.id, p));
+
+  // PASS 1: Position all nodes initially without collision avoidance
   Object.entries(grouped).forEach(([type, typePatterns]) => {
     // Sort patterns: first by depth, then by prerequisite IDs to ensure consistent ordering
     const sortedPatterns = [...typePatterns].sort((a, b) => {
@@ -189,11 +198,112 @@ function positionPatternsByPrerequisites(
       const stackIndex = depthTypeCounter.get(key) || 0;
       depthTypeCounter.set(key, stackIndex + 1);
 
-      // Stack patterns vertically with proper spacing to avoid overlap
+      // Calculate initial vertical position
       const y = baseY + stackIndex * VERTICAL_STACK_SPACING;
 
       positions.set(pattern.id, { x, y });
     });
   });
+
+  // PASS 2: Detect and resolve collisions
+  applyCollisionAvoidance(patterns, depthMap, patternMap, positions);
+
   return positions;
+}
+
+/**
+ * Apply collision avoidance by detecting skip-level edges and shifting intermediate nodes.
+ * This is a second pass after initial positioning.
+ */
+function applyCollisionAvoidance(
+  patterns: WCSPattern[],
+  depthMap: Map<number, number>,
+  patternMap: Map<number, WCSPattern>,
+  positions: Map<number, LayoutPosition>,
+): void {
+  // Find all skip-level edges (edges that span more than 1 depth level)
+  const skipLevelEdges: {
+    fromId: number;
+    toId: number;
+    fromDepth: number;
+    toDepth: number;
+    fromY: number;
+    toY: number;
+  }[] = [];
+
+  patterns.forEach((pattern) => {
+    const toDepth = depthMap.get(pattern.id) || 0;
+    const toPos = positions.get(pattern.id);
+    if (!toPos) return;
+
+    pattern.prerequisites.forEach((prereqId) => {
+      const fromDepth = depthMap.get(prereqId) || 0;
+      const depthSpan = toDepth - fromDepth;
+
+      // Only consider skip-level edges (spanning more than 1 depth level)
+      if (depthSpan <= 1) return;
+
+      const fromPos = positions.get(prereqId);
+      if (!fromPos) return;
+
+      // Check if they're in the same swimlane (same type)
+      const prereqPattern = patternMap.get(prereqId);
+      if (!prereqPattern || prereqPattern.type !== pattern.type) return;
+
+      skipLevelEdges.push({
+        fromId: prereqId,
+        toId: pattern.id,
+        fromDepth,
+        toDepth,
+        fromY: fromPos.y,
+        toY: toPos.y,
+      });
+    });
+  });
+
+  // For each skip-level edge, find intermediate nodes that would be crossed
+  const nodesToShift = new Map<number, number>(); // patternId -> vertical offset needed
+
+  skipLevelEdges.forEach((edge) => {
+    const edgeType = patternMap.get(edge.fromId)?.type;
+    if (!edgeType) return;
+
+    // Find all nodes at intermediate depths in the same swimlane
+    patterns.forEach((intermediatePattern) => {
+      if (intermediatePattern.type !== edgeType) return;
+
+      const intermediateDepth = depthMap.get(intermediatePattern.id) || 0;
+
+      // Check if this pattern is at an intermediate depth
+      if (
+        intermediateDepth > edge.fromDepth &&
+        intermediateDepth < edge.toDepth
+      ) {
+        const intermediatePos = positions.get(intermediatePattern.id);
+        if (!intermediatePos) return;
+
+        // Check if the edge would pass through this node's vertical region
+        const minEdgeY = Math.min(edge.fromY, edge.toY);
+        const maxEdgeY = Math.max(edge.fromY, edge.toY);
+        const nodeTop = intermediatePos.y - NODE_HEIGHT / 2;
+        const nodeBottom = intermediatePos.y + NODE_HEIGHT / 2;
+
+        // If there's vertical overlap, this edge crosses our node
+        if (maxEdgeY >= nodeTop && minEdgeY <= nodeBottom) {
+          // Calculate how much to shift this node
+          const currentOffset = nodesToShift.get(intermediatePattern.id) || 0;
+          const newOffset = currentOffset + EDGE_VERTICAL_SPACING;
+          nodesToShift.set(intermediatePattern.id, newOffset);
+        }
+      }
+    });
+  });
+
+  // Apply the shifts
+  nodesToShift.forEach((offset, patternId) => {
+    const pos = positions.get(patternId);
+    if (pos) {
+      positions.set(patternId, { x: pos.x, y: pos.y + offset });
+    }
+  });
 }
