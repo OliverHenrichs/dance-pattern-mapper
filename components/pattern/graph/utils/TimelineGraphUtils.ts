@@ -84,7 +84,7 @@ export function calculateTimelineLayout(
     adjustedSwimlaneStarts.set(type, newSwimlaneY);
 
     // Calculate the shift needed for this swimlane
-    const swimlaneShift = newSwimlaneY - originalSwimlaneY;
+    const swimlaneShift = newSwimlaneY - originalSwimlaneY + NODE_HEIGHT;
 
     if (swimlaneShift !== 0) {
       // Shift all node positions in this swimlane
