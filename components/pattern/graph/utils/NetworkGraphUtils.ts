@@ -39,6 +39,7 @@ export function calculateGraphLayout(
     );
   });
 
+  addSizeSafeguards(positions);
   return positions;
 }
 
@@ -104,12 +105,16 @@ function calculateDescendantPatternPositions(
   positions: Map<number, LayoutPosition>,
 ) {
   // Spacing between depth levels
-  const depthSpacing = 280;
+  const depthSpacing = 200;
+  // Cap maximum distance to prevent extreme positions
+  const MAX_DISTANCE = 2000;
+
   // Position descendants at each depth level
   descendants.forEach((patternsAtDepth, depth) => {
     patternsAtDepth.forEach((pattern, idx) => {
-      // Distance from foundational pattern
-      const distance = depth * depthSpacing;
+      // Distance from foundational pattern (capped to prevent extreme values)
+      const distance = Math.min(depth * depthSpacing, MAX_DISTANCE);
+
       // Spread patterns at this depth perpendicular to the radial direction
       // Calculate perpendicular offset for multiple patterns at same depth
       const numAtDepth = patternsAtDepth.length;
@@ -129,5 +134,15 @@ function calculateDescendantPatternPositions(
 
       positions.set(pattern.id, { x, y });
     });
+  });
+}
+
+function addSizeSafeguards(positions: Map<number, LayoutPosition>) {
+  // Clamp all positions to reasonable bounds to prevent excessive canvas size
+  // This prevents "Canvas: trying to draw too large bitmap" errors
+  const MAX_COORDINATE = 3000;
+  positions.forEach((pos) => {
+    pos.x = Math.max(-MAX_COORDINATE, Math.min(MAX_COORDINATE, pos.x));
+    pos.y = Math.max(-MAX_COORDINATE, Math.min(MAX_COORDINATE, pos.y));
   });
 }
