@@ -6,7 +6,7 @@ import {
   generateEdges,
   generateOrthogonalPath,
   LayoutPosition,
-} from "./GraphUtils";
+} from "./utils/GraphUtils";
 import PatternNode from "./PatternNode";
 import {
   IGraphPosition,

@@ -2,11 +2,11 @@ import { useMemo } from "react";
 import { useWindowDimensions } from "react-native";
 import { WCSPattern } from "@/components/pattern/types/WCSPattern";
 import {
-  calculateGraphLayout,
   detectCircularDependencies,
   LayoutPosition,
-} from "../GraphUtils";
-// Layout constants
+} from "../utils/GraphUtils";
+import { calculateGraphLayout } from "@/components/pattern/graph/utils/NetworkGraphUtils";
+
 const INITIAL_WIDTH_MULTIPLIER = 3;
 const INITIAL_HEIGHT_MULTIPLIER = 2;
 const CONTENT_PADDING = 300;
@@ -21,10 +21,49 @@ interface ContentBounds {
   minY: number;
   maxY: number;
 }
+
+/**
+ * Custom hook for calculating graph layout positions and dimensions.
+ * Handles circular dependency detection, position calculations,
+ * and SVG canvas sizing based on window dimensions.
+ */
+export function useGraphLayout(patterns: WCSPattern[]): GraphLayoutResult {
+  const { width, height } = useWindowDimensions();
+  detectCircularDependencies(patterns);
+  return useMemo(() => {
+    const initialWidth = width * INITIAL_WIDTH_MULTIPLIER;
+    const initialHeight = height * INITIAL_HEIGHT_MULTIPLIER;
+    // Calculate pattern positions
+    const positions = calculateGraphLayout(
+      patterns,
+      initialWidth,
+      initialHeight,
+    );
+    if (positions.size === 0) {
+      // Empty graph case
+      return {
+        positions,
+        svgWidth: initialWidth,
+        svgHeight: initialHeight,
+      };
+    }
+    const bounds = calculateContentBounds(positions);
+    const dimensions = calculateSvgDimensions(
+      bounds,
+      initialWidth,
+      initialHeight,
+    );
+    return {
+      positions: normalizePositions(bounds, positions),
+      ...dimensions,
+    };
+  }, [patterns, width, height]);
+}
+
 /**
  * Calculate the bounding box containing all pattern positions
  */
-export function calculateContentBounds(
+function calculateContentBounds(
   positions: Map<number, LayoutPosition>,
 ): ContentBounds {
   let minX = Infinity;
@@ -39,10 +78,11 @@ export function calculateContentBounds(
   });
   return { minX, maxX, minY, maxY };
 }
+
 /**
  * Calculate SVG dimensions based on content bounds and initial dimensions
  */
-export function calculateSvgDimensions(
+function calculateSvgDimensions(
   bounds: ContentBounds,
   initialWidth: number,
   initialHeight: number,
@@ -54,53 +94,21 @@ export function calculateSvgDimensions(
   const svgHeight = Math.max(initialHeight, contentHeight);
   return { svgWidth, svgHeight };
 }
-/**
- * Custom hook for calculating graph layout positions and dimensions.
- * Handles circular dependency detection, position calculations,
- * and SVG canvas sizing based on window dimensions.
- */
-export function useGraphLayout(patterns: WCSPattern[]): GraphLayoutResult {
-  const { width, height } = useWindowDimensions();
-  return useMemo(() => {
-    const initialWidth = width * INITIAL_WIDTH_MULTIPLIER;
-    const initialHeight = height * INITIAL_HEIGHT_MULTIPLIER;
-    // Detect and log circular dependencies
-    detectCircularDependencies(patterns);
-    // Calculate pattern positions
-    const positions = calculateGraphLayout(
-      patterns,
-      initialWidth,
-      initialHeight,
-    );
-    // Handle empty graph case
-    if (positions.size === 0) {
-      return {
-        positions,
-        svgWidth: initialWidth,
-        svgHeight: initialHeight,
-      };
-    }
-    // Calculate content bounds and SVG dimensions
-    const bounds = calculateContentBounds(positions);
-    const dimensions = calculateSvgDimensions(
-      bounds,
-      initialWidth,
-      initialHeight,
-    );
-    // Normalize positions to ensure they fit within the SVG with proper padding
-    // This prevents clipping on the left and top edges
-    const normalizedPositions = new Map<number, LayoutPosition>();
-    const offsetX = -bounds.minX + CONTENT_PADDING / 2;
-    const offsetY = -bounds.minY + CONTENT_PADDING / 2;
-    positions.forEach((pos, id) => {
-      normalizedPositions.set(id, {
-        x: pos.x + offsetX,
-        y: pos.y + offsetY,
-      });
+
+function normalizePositions(
+  bounds: ContentBounds,
+  positions: Map<number, LayoutPosition>,
+) {
+  // Ensure positions fit within the SVG with proper padding
+  // This prevents clipping on the left and top edges
+  const normalizedPositions = new Map<number, LayoutPosition>();
+  const offsetX = -bounds.minX + CONTENT_PADDING / 2;
+  const offsetY = -bounds.minY + CONTENT_PADDING / 2;
+  positions.forEach((pos, id) => {
+    normalizedPositions.set(id, {
+      x: pos.x + offsetX,
+      y: pos.y + offsetY,
     });
-    return {
-      positions: normalizedPositions,
-      ...dimensions,
-    };
-  }, [patterns, width, height]);
+  });
+  return normalizedPositions;
 }

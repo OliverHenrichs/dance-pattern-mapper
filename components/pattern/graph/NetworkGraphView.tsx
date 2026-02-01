@@ -6,7 +6,7 @@ import { useTranslation } from "react-i18next";
 import { useGraphLayout } from "./hooks/useGraphLayout";
 import NetworkGraphSvg from "./GraphSvg";
 import { ReactNativeZoomableView } from "@openspacelabs/react-native-zoomable-view";
-import { LayoutPosition } from "@/components/pattern/graph/GraphUtils";
+import { LayoutPosition } from "@/components/pattern/graph/utils/GraphUtils";
 
 interface NetworkGraphViewProps {
   patterns: WCSPattern[];
@@ -60,7 +60,7 @@ function createNetworkGraph(
         maxZoom={4.5}
         minZoom={0.15}
         zoomStep={0.5}
-        initialZoom={1}
+        initialZoom={0.5}
         bindToBorders={false}
       >
         <NetworkGraphSvg

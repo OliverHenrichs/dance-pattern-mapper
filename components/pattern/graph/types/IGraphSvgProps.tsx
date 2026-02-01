@@ -1,6 +1,6 @@
 import { WCSPattern } from "@/components/pattern/types/WCSPattern";
 import { PaletteColor } from "@/components/common/ColorPalette";
-import { LayoutPosition } from "@/components/pattern/graph/GraphUtils";
+import { LayoutPosition } from "@/components/pattern/graph/utils/GraphUtils";
 
 export interface IGraphSvgProps {
   svgWidth: number;

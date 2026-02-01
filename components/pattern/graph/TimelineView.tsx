@@ -10,18 +10,17 @@ import Svg, { Rect, Text as SvgText } from "react-native-svg";
 import { WCSPattern } from "@/components/pattern/types/WCSPattern";
 import { WCSPatternType } from "@/components/pattern/types/WCSPatternEnums";
 import { PaletteColor } from "@/components/common/ColorPalette";
-import {
-  calculateTimelineLayout,
-  detectCircularDependencies,
-  generateEdges,
-  SwimlaneInfo,
-} from "./GraphUtils";
+import { detectCircularDependencies, generateEdges } from "./utils/GraphUtils";
 import { ArrowheadMarker, drawEdges, drawNodes } from "./GraphSvg";
 import { useTranslation } from "react-i18next";
 import {
   MIN_PATTERN_HEIGHT,
   MIN_PATTERNS_VISIBLE,
 } from "@/components/pattern/graph/types/Constants";
+import {
+  calculateTimelineLayout,
+  SwimlaneInfo,
+} from "@/components/pattern/graph/utils/TimelineGraphUtils";
 
 interface TimelineViewProps {
   patterns: WCSPattern[];

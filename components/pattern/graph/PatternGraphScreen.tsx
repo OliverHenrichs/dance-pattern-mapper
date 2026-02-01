@@ -1,33 +1,21 @@
 import React, { useCallback, useState } from "react";
-import {
-  Modal,
-  ScrollView,
-  StyleSheet,
-  Text,
-  TouchableOpacity,
-  View,
-} from "react-native";
+import { StyleSheet, View } from "react-native";
 import { useFocusEffect } from "@react-navigation/native";
 import { WCSPattern } from "@/components/pattern/types/WCSPattern";
 import { loadPatterns } from "@/components/pattern/data/PatternStorage";
 import { foundationalWCSPatterns } from "@/components/pattern/data/DefaultWCSPatterns";
 import AppHeader from "@/components/common/AppHeader";
 import PageContainer from "@/components/common/PageContainer";
-import SectionHeader from "@/components/common/SectionHeader";
 import { useThemeContext } from "@/components/common/ThemeContext";
 import { getPalette, PaletteColor } from "@/components/common/ColorPalette";
 import { getCommonListContainer } from "@/components/common/CommonStyles";
-import { useTranslation } from "react-i18next";
-import Icon from "react-native-vector-icons/MaterialCommunityIcons";
-import TimelineView from "./TimelineView";
-import NetworkGraphView from "./NetworkGraphView";
-import Legend from "./Legend";
-import PatternDetails from "../common/PatternDetails";
+import PatternGraphHeader from "./PatternGraphHeader";
+import GraphViewContainer from "./GraphViewContainer";
+import PatternDetailsModal from "./PatternDetailsModal";
 
 type ViewMode = "timeline" | "graph";
 
 const PatternGraphScreen: React.FC = () => {
-  const { t } = useTranslation();
   const { colorScheme } = useThemeContext();
   const palette = getPalette(colorScheme);
   const styles = getStyles(palette);
@@ -78,84 +66,26 @@ const PatternGraphScreen: React.FC = () => {
         <AppHeader />
 
         <View style={styles.contentContainer}>
-          {/* Control Bar */}
-          <SectionHeader
-            title={viewMode === "timeline" ? t("timelineView") : t("graphView")}
-            rightActions={
-              <TouchableOpacity
-                style={styles.controlButton}
-                onPress={handleToggleView}
-                accessibilityLabel={t("toggleView")}
-              >
-                <Icon
-                  name={viewMode === "timeline" ? "graph" : "timeline"}
-                  size={15}
-                  color={palette[PaletteColor.Surface]}
-                />
-                <Text style={styles.buttonText}>{t("toggleView")}</Text>
-              </TouchableOpacity>
-            }
+          <PatternGraphHeader
+            viewMode={viewMode}
+            onToggleView={handleToggleView}
           />
 
-          {/* View Container */}
-          <View style={styles.viewContainer}>
-            {viewMode === "timeline" ? (
-              <TimelineView
-                key={`timeline-${resetKey}`}
-                patterns={patterns}
-                palette={palette}
-                onNodeTap={handleNodeTap}
-              />
-            ) : (
-              <NetworkGraphView
-                key={`graph-${resetKey}`}
-                patterns={patterns}
-                palette={palette}
-                onNodeTap={handleNodeTap}
-              />
-            )}
-          </View>
-
-          {/* Legend */}
-          <Legend palette={palette} />
+          <GraphViewContainer
+            viewMode={viewMode}
+            patterns={patterns}
+            palette={palette}
+            resetKey={resetKey}
+            onNodeTap={handleNodeTap}
+          />
         </View>
 
-        {/* Pattern Details Modal */}
-        <Modal
+        <PatternDetailsModal
           visible={selectedPattern !== undefined}
-          animationType="fade"
-          transparent={true}
-          onRequestClose={handleCloseModal}
-        >
-          <View style={styles.modalOverlay}>
-            <View style={styles.modalContent}>
-              <View style={styles.modalHeader}>
-                <Text style={styles.modalTitle}>
-                  {selectedPattern?.name || ""}
-                </Text>
-                <TouchableOpacity
-                  onPress={handleCloseModal}
-                  style={styles.closeButton}
-                >
-                  <Icon
-                    name="close"
-                    size={24}
-                    color={palette[PaletteColor.PrimaryText]}
-                  />
-                </TouchableOpacity>
-              </View>
-              <ScrollView style={styles.modalScroll}>
-                {selectedPattern && (
-                  <PatternDetails
-                    selectedPattern={selectedPattern}
-                    patterns={patterns}
-                    palette={palette}
-                  />
-                )}
-              </ScrollView>
-            </View>
-          </View>
-        </Modal>
+          pattern={selectedPattern}
+          allPatterns={patterns}
+          onClose={handleCloseModal}
+        />
       </PageContainer>
     </View>
   );
@@ -166,63 +96,6 @@ const getStyles = (palette: Record<PaletteColor, string>) =>
     contentContainer: {
       ...getCommonListContainer(palette),
       flex: 1,
-    },
-    controlButton: {
-      flexDirection: "row",
-      alignItems: "center",
-      backgroundColor: palette[PaletteColor.Primary],
-      paddingHorizontal: 12,
-      paddingVertical: 8,
-      borderRadius: 8,
-      gap: 6,
-    },
-    buttonText: {
-      color: palette[PaletteColor.Surface],
-      fontSize: 12,
-      fontWeight: "600",
-    },
-    viewContainer: {
-      flex: 1,
-      backgroundColor: palette[PaletteColor.Background],
-    },
-    modalOverlay: {
-      flex: 1,
-      backgroundColor: "rgba(0,0,0,0.5)",
-      justifyContent: "center",
-      alignItems: "center",
-    },
-    modalContent: {
-      backgroundColor: palette[PaletteColor.Surface],
-      borderRadius: 12,
-      padding: 0,
-      minWidth: "85%",
-      maxHeight: "80%",
-      elevation: 5,
-      shadowColor: "#000",
-      shadowOffset: { width: 0, height: 2 },
-      shadowOpacity: 0.25,
-      shadowRadius: 4,
-    },
-    modalHeader: {
-      flexDirection: "row",
-      justifyContent: "space-between",
-      alignItems: "center",
-      paddingHorizontal: 20,
-      paddingVertical: 16,
-      borderBottomWidth: 2,
-      borderBottomColor: palette[PaletteColor.Primary],
-    },
-    modalTitle: {
-      fontSize: 20,
-      fontWeight: "bold",
-      color: palette[PaletteColor.PrimaryText],
-      flex: 1,
-    },
-    closeButton: {
-      padding: 4,
-    },
-    modalScroll: {
-      padding: 20,
     },
   });
 
