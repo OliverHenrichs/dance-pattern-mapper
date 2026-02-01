@@ -291,7 +291,6 @@ function applyCollisionAvoidance(
     if (!edgeType) return;
 
     const intermediateNodeIds: number[] = [];
-    let minOriginalY = Infinity;
 
     // Find all nodes at intermediate depths in the same swimlane
     patterns.forEach((intermediatePattern) => {
@@ -315,12 +314,6 @@ function applyCollisionAvoidance(
 
         // If there's vertical overlap, this edge crosses our node
         if (maxEdgeY >= nodeTop && minEdgeY <= nodeBottom) {
-          // Track the topmost (minimum Y) original position
-          const origY = originalPositions.get(intermediatePattern.id);
-          if (origY !== undefined) {
-            minOriginalY = Math.min(minOriginalY, origY);
-          }
-
           // Calculate how much to shift this node
           const currentOffset = nodesToShift.get(intermediatePattern.id) || 0;
           const newOffset = currentOffset + EDGE_VERTICAL_SPACING;
@@ -330,25 +323,36 @@ function applyCollisionAvoidance(
       }
     });
 
-    // Store which nodes are shifted for this edge
-    // Calculate routing Y to create a visible curve
+    // Calculate routing Y based on the cleared space created by shifting nodes
     if (intermediateNodeIds.length > 0) {
       const edgeKey = `${edge.fromId}-${edge.toId}`;
 
-      // Determine routing Y based on edge geometry
-      let routingY: number;
+      // Find the topmost intermediate node (before shifting)
+      const topmostNodeId = intermediateNodeIds.reduce((topId, nodeId) => {
+        const topOrigY = originalPositions.get(topId) || Infinity;
+        const nodeOrigY = originalPositions.get(nodeId) || Infinity;
+        return nodeOrigY < topOrigY ? nodeId : topId;
+      }, intermediateNodeIds[0]);
 
-      if (Math.abs(edge.fromY - edge.toY) < 5) {
-        // Horizontal or nearly horizontal edge - route ABOVE to create visible arc
-        // Route above the topmost original node position
-        routingY =
-          minOriginalY !== Infinity
-            ? minOriginalY - NODE_HEIGHT - 10
-            : edge.fromY - 30;
-      } else {
-        // Diagonal edge - can route at intermediate Y level
-        routingY = (edge.fromY + edge.toY) / 2;
-      }
+      const topmostOriginalY = originalPositions.get(topmostNodeId);
+      const shiftAmount =
+        nodesToShift.get(topmostNodeId) || EDGE_VERTICAL_SPACING;
+
+      // The cleared space is created ABOVE the shifted node
+      // Original node occupies: [originalY - NODE_HEIGHT/2, originalY + NODE_HEIGHT/2]
+      // After shift by shiftAmount, node occupies: [originalY + shiftAmount - NODE_HEIGHT/2, ...]
+      // Cleared space is: [originalY - NODE_HEIGHT/2, originalY + shiftAmount - NODE_HEIGHT/2]
+      // Route in the middle of this gap
+      const halfNodeHeight = NODE_HEIGHT / 2;
+      const clearedSpaceTop =
+        topmostOriginalY !== undefined
+          ? topmostOriginalY - halfNodeHeight
+          : edge.fromY;
+      const clearedSpaceBottom =
+        topmostOriginalY !== undefined
+          ? topmostOriginalY + shiftAmount - halfNodeHeight
+          : edge.fromY;
+      const routingY = (clearedSpaceTop + clearedSpaceBottom) / 2;
 
       edgeToIntermediateNodes.set(edgeKey, {
         nodeIds: intermediateNodeIds,
