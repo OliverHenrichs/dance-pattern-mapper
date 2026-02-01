@@ -131,6 +131,8 @@ function drawTimelineEdges(
             fromPos,
             toPos,
             skipLevelInfo.originalIntermediateY,
+            skipLevelInfo.firstIntermediateX,
+            skipLevelInfo.lastIntermediateX,
           );
         } else {
           // Regular edge - use standard orthogonal routing
