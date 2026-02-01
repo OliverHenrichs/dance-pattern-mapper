@@ -349,6 +349,7 @@ function applyCollisionAvoidance(
 
   // For each skip-level edge, find intermediate nodes that would be crossed
   const nodesToShift = new Map<number, number>(); // patternId -> vertical offset needed
+  const nodeToMaxSlot = new Map<number, number>(); // patternId -> max slot index of edges crossing it
   const edgeToIntermediateNodes = new Map<
     string,
     {
@@ -364,6 +365,10 @@ function applyCollisionAvoidance(
     if (!edgeType) return;
 
     const intermediateNodeIds: number[] = [];
+
+    // Calculate slot for this edge based on its depth span
+    const depthSpan = edge.toDepth - edge.fromDepth;
+    const slotIndex = Math.max(0, 3 - depthSpan);
 
     // Find all nodes at intermediate depths in the same swimlane
     patterns.forEach((intermediatePattern) => {
@@ -387,10 +392,13 @@ function applyCollisionAvoidance(
 
         // If there's vertical overlap, this edge crosses our node
         if (maxEdgeY >= nodeTop && minEdgeY <= nodeBottom) {
-          // Calculate how much to shift this node
-          const currentOffset = nodesToShift.get(intermediatePattern.id) || 0;
-          const newOffset = currentOffset + EDGE_VERTICAL_SPACING;
-          nodesToShift.set(intermediatePattern.id, newOffset);
+          // Track the maximum slot index for this node
+          const currentMaxSlot =
+            nodeToMaxSlot.get(intermediatePattern.id) || -1;
+          nodeToMaxSlot.set(
+            intermediatePattern.id,
+            Math.max(currentMaxSlot, slotIndex),
+          );
           intermediateNodeIds.push(intermediatePattern.id);
         }
       }
@@ -444,6 +452,14 @@ function applyCollisionAvoidance(
         lastIntermediateX: lastIntermediateX,
       });
     }
+  });
+
+  // Convert max slot indices to actual shift amounts
+  // Node needs to shift by (maxSlot + 1) * EDGE_VERTICAL_SPACING
+  // because slot 0 still needs EDGE_VERTICAL_SPACING of space
+  nodeToMaxSlot.forEach((maxSlot, nodeId) => {
+    const shiftAmount = (maxSlot + 1) * EDGE_VERTICAL_SPACING;
+    nodesToShift.set(nodeId, shiftAmount);
   });
 
   // Apply the shifts with proper cascading
