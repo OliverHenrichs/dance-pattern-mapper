@@ -151,6 +151,53 @@ export function generateOrthogonalPath(
 }
 
 /**
+ * Generate optimized SVG path for skip-level edges that routes through cleared space.
+ * The path takes advantage of vertically shifted intermediate nodes by routing below them.
+ */
+export function generateSkipLevelPath(
+  fromPos: LayoutPosition,
+  toPos: LayoutPosition,
+  originalIntermediateY: number, // Original Y position before shifting
+): string {
+  const fromSide = getClosestSide(fromPos, toPos);
+  const toSide = getClosestSide(toPos, fromPos);
+
+  const startPoint = getConnectionPoint(fromPos, fromSide);
+  const endPoint = getConnectionPoint(toPos, toSide);
+  const adjustedEndPoint = adjustEndpointForArrow(toSide, endPoint);
+
+  // Route the path to go through the cleared space (original Y position of shifted nodes)
+  const midX = (startPoint.x + adjustedEndPoint.x) / 2;
+  const routingY = originalIntermediateY; // Use the original Y where space was cleared
+
+  // Create a smooth path with three segments:
+  // 1. Start → curve down to routing level
+  // 2. Travel horizontally at routing level
+  // 3. Curve up → end
+
+  // First segment: start to routing level
+  const segment1EndX = startPoint.x + (midX - startPoint.x) * 0.5;
+  const cp1X = startPoint.x + (segment1EndX - startPoint.x) * 0.6;
+  const cp1Y = startPoint.y;
+  const cp2X = segment1EndX - (segment1EndX - startPoint.x) * 0.4;
+  const cp2Y = routingY;
+
+  // Second segment: horizontal at routing level
+  const segment2EndX = adjustedEndPoint.x - (adjustedEndPoint.x - midX) * 0.5;
+
+  // Third segment: routing level to end
+  const cp3X = segment2EndX + (adjustedEndPoint.x - segment2EndX) * 0.4;
+  const cp3Y = routingY;
+  const cp4X = adjustedEndPoint.x - (adjustedEndPoint.x - segment2EndX) * 0.6;
+  const cp4Y = adjustedEndPoint.y;
+
+  // Build path with explicit cubic Bézier curves
+  const result = `M ${startPoint.x} ${startPoint.y} C ${cp1X} ${cp1Y}, ${cp2X} ${cp2Y}, ${segment1EndX} ${routingY} L ${segment2EndX} ${routingY} C ${cp3X} ${cp3Y}, ${cp4X} ${cp4Y}, ${adjustedEndPoint.x} ${adjustedEndPoint.y}`;
+  console.log(result);
+  return result;
+}
+
+/**
  * Calculate which side of a node is closest to a target point
  */
 function getClosestSide(

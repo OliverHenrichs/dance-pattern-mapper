@@ -18,6 +18,15 @@ export interface SwimlaneInfo {
   height: number;
 }
 
+export interface SkipLevelEdgeInfo {
+  fromId: number;
+  toId: number;
+  fromDepth: number;
+  toDepth: number;
+  intermediateNodeIds: number[]; // Nodes that were shifted to make room
+  originalIntermediateY: number; // Y coordinate where edge should route (above shifted nodes for horizontal edges)
+}
+
 /**
  * Calculate layout positions for utils view.
  * Patterns are arranged in horizontal swimlanes by type (push/pass/whip/tuck),
@@ -34,22 +43,29 @@ export function calculateTimelineLayout(
   minHeight: number;
   actualWidth: number;
   swimlanes: Record<WCSPatternType, SwimlaneInfo>;
+  skipLevelEdges: SkipLevelEdgeInfo[];
 } {
   const depthMap = calculatePrerequisiteDepthMap(patterns);
   const grouped = groupPatternsByType(patterns);
   const maxStackPerType = calculateMaxStackPerType(grouped, depthMap);
   let { swimlaneHeights, swimlaneStarts, totalHeight } =
     calculateSwimlaneSizes(maxStackPerType);
+
+  const positions = positionPatternsByPrerequisites(
+    patterns,
+    grouped,
+    depthMap,
+    swimlaneStarts,
+  );
+
+  const skipLevelEdges = applyCollisionAvoidance(patterns, depthMap, positions);
+
   return {
-    positions: positionPatternsByPrerequisites(
-      patterns,
-      grouped,
-      depthMap,
-      swimlaneStarts,
-    ),
+    positions,
     minHeight: Math.max(baseHeight, totalHeight),
     actualWidth: calculateActualWidth(depthMap, width),
     swimlanes: buildSwimlaneInformation(swimlaneHeights),
+    skipLevelEdges,
   };
 }
 
@@ -159,10 +175,6 @@ function positionPatternsByPrerequisites(
 ) {
   const positions = new Map<number, LayoutPosition>();
   const depthTypeCounter = new Map<string, number>();
-  const patternMap = new Map<number, WCSPattern>();
-
-  // Build pattern lookup map
-  patterns.forEach((p) => patternMap.set(p.id, p));
 
   // PASS 1: Position all nodes initially without collision avoidance
   Object.entries(grouped).forEach(([type, typePatterns]) => {
@@ -205,22 +217,28 @@ function positionPatternsByPrerequisites(
     });
   });
 
-  // PASS 2: Detect and resolve collisions
-  applyCollisionAvoidance(patterns, depthMap, patternMap, positions);
-
   return positions;
 }
 
 /**
  * Apply collision avoidance by detecting skip-level edges and shifting intermediate nodes.
  * This is a second pass after initial positioning.
+ * Returns information about skip-level edges and which nodes were shifted.
  */
 function applyCollisionAvoidance(
   patterns: WCSPattern[],
   depthMap: Map<number, number>,
-  patternMap: Map<number, WCSPattern>,
   positions: Map<number, LayoutPosition>,
-): void {
+): SkipLevelEdgeInfo[] {
+  const patternMap = new Map<number, WCSPattern>();
+  patterns.forEach((p) => patternMap.set(p.id, p));
+
+  // Store original positions before any shifting
+  const originalPositions = new Map<number, number>();
+  positions.forEach((pos, id) => {
+    originalPositions.set(id, pos.y);
+  });
+
   // Find all skip-level edges (edges that span more than 1 depth level)
   const skipLevelEdges: {
     fromId: number;
@@ -263,10 +281,17 @@ function applyCollisionAvoidance(
 
   // For each skip-level edge, find intermediate nodes that would be crossed
   const nodesToShift = new Map<number, number>(); // patternId -> vertical offset needed
+  const edgeToIntermediateNodes = new Map<
+    string,
+    { nodeIds: number[]; routingY: number }
+  >(); // "fromId-toId" -> {intermediateNodeIds, routingY}
 
   skipLevelEdges.forEach((edge) => {
     const edgeType = patternMap.get(edge.fromId)?.type;
     if (!edgeType) return;
+
+    const intermediateNodeIds: number[] = [];
+    let minOriginalY = Infinity;
 
     // Find all nodes at intermediate depths in the same swimlane
     patterns.forEach((intermediatePattern) => {
@@ -290,20 +315,115 @@ function applyCollisionAvoidance(
 
         // If there's vertical overlap, this edge crosses our node
         if (maxEdgeY >= nodeTop && minEdgeY <= nodeBottom) {
+          // Track the topmost (minimum Y) original position
+          const origY = originalPositions.get(intermediatePattern.id);
+          if (origY !== undefined) {
+            minOriginalY = Math.min(minOriginalY, origY);
+          }
+
           // Calculate how much to shift this node
           const currentOffset = nodesToShift.get(intermediatePattern.id) || 0;
           const newOffset = currentOffset + EDGE_VERTICAL_SPACING;
           nodesToShift.set(intermediatePattern.id, newOffset);
+          intermediateNodeIds.push(intermediatePattern.id);
         }
       }
     });
+
+    // Store which nodes are shifted for this edge
+    // Calculate routing Y to create a visible curve
+    if (intermediateNodeIds.length > 0) {
+      const edgeKey = `${edge.fromId}-${edge.toId}`;
+
+      // Determine routing Y based on edge geometry
+      let routingY: number;
+
+      if (Math.abs(edge.fromY - edge.toY) < 5) {
+        // Horizontal or nearly horizontal edge - route ABOVE to create visible arc
+        // Route above the topmost original node position
+        routingY =
+          minOriginalY !== Infinity
+            ? minOriginalY - NODE_HEIGHT - 10
+            : edge.fromY - 30;
+      } else {
+        // Diagonal edge - can route at intermediate Y level
+        routingY = (edge.fromY + edge.toY) / 2;
+      }
+
+      edgeToIntermediateNodes.set(edgeKey, {
+        nodeIds: intermediateNodeIds,
+        routingY: routingY,
+      });
+    }
   });
 
-  // Apply the shifts
-  nodesToShift.forEach((offset, patternId) => {
-    const pos = positions.get(patternId);
-    if (pos) {
-      positions.set(patternId, { x: pos.x, y: pos.y + offset });
+  // Apply the shifts and propagate to nodes below in the same stack
+  // First, organize nodes by depth and type for stack-aware shifting
+  const nodesByDepthType = new Map<string, number[]>(); // "depth-type" -> [patternIds sorted by Y]
+
+  patterns.forEach((pattern) => {
+    const depth = depthMap.get(pattern.id) || 0;
+    const key = `${depth}-${pattern.type}`;
+    if (!nodesByDepthType.has(key)) {
+      nodesByDepthType.set(key, []);
     }
+    nodesByDepthType.get(key)!.push(pattern.id);
+  });
+
+  // Sort each stack by Y position
+  nodesByDepthType.forEach((nodeIds) => {
+    nodeIds.sort((a, b) => {
+      const posA = positions.get(a);
+      const posB = positions.get(b);
+      if (!posA || !posB) return 0;
+      return posA.y - posB.y;
+    });
+  });
+
+  // Apply shifts with propagation
+  nodesToShift.forEach((offset, patternId) => {
+    const pattern = patternMap.get(patternId);
+    if (!pattern) return;
+
+    const depth = depthMap.get(patternId) || 0;
+    const key = `${depth}-${pattern.type}`;
+    const stack = nodesByDepthType.get(key);
+    if (!stack) return;
+
+    const pos = positions.get(patternId);
+    if (!pos) return;
+
+    // Find this node's position in the stack
+    const indexInStack = stack.indexOf(patternId);
+    if (indexInStack === -1) return;
+
+    // Shift this node
+    positions.set(patternId, { x: pos.x, y: pos.y + offset });
+
+    // Propagate shift to all nodes below in the same stack
+    for (let i = indexInStack + 1; i < stack.length; i++) {
+      const nodeIdBelow = stack[i];
+      const posBelow = positions.get(nodeIdBelow);
+      if (posBelow) {
+        positions.set(nodeIdBelow, {
+          x: posBelow.x,
+          y: posBelow.y + offset,
+        });
+      }
+    }
+  });
+
+  // Build return array with edge information
+  return skipLevelEdges.map((edge) => {
+    const edgeKey = `${edge.fromId}-${edge.toId}`;
+    const info = edgeToIntermediateNodes.get(edgeKey);
+    return {
+      fromId: edge.fromId,
+      toId: edge.toId,
+      fromDepth: edge.fromDepth,
+      toDepth: edge.toDepth,
+      intermediateNodeIds: info?.nodeIds || [],
+      originalIntermediateY: info?.routingY || 0,
+    };
   });
 }
