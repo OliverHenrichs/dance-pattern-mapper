@@ -73,12 +73,46 @@ export function calculateTimelineLayout(
 
   // Recalculate swimlane Y positions to account for expanded heights
   // Each swimlane's Y is the cumulative height of all swimlanes above it
+  // AND shift all positional data (nodes, edges) to match new swimlane positions
   const typeOrder = Object.values(WCSPatternType) as WCSPatternType[];
   let cumulativeY = 0;
   const adjustedSwimlaneStarts = new Map<WCSPatternType, number>();
 
   typeOrder.forEach((type) => {
-    adjustedSwimlaneStarts.set(type, cumulativeY);
+    const originalSwimlaneY = swimlaneStarts.get(type) || 0;
+    const newSwimlaneY = cumulativeY;
+    adjustedSwimlaneStarts.set(type, newSwimlaneY);
+
+    // Calculate the shift needed for this swimlane
+    const swimlaneShift = newSwimlaneY - originalSwimlaneY;
+
+    if (swimlaneShift !== 0) {
+      // Shift all node positions in this swimlane
+      patterns.forEach((pattern) => {
+        if (pattern.type === type) {
+          const pos = positions.get(pattern.id);
+          if (pos) {
+            positions.set(pattern.id, {
+              x: pos.x,
+              y: pos.y + swimlaneShift,
+            });
+          }
+        }
+      });
+
+      // Shift routing Y in skipLevelEdges for edges in this swimlane
+      skipLevelEdges.forEach((edge) => {
+        const fromPattern = patterns.find((p) => p.id === edge.fromId);
+        if (
+          fromPattern &&
+          fromPattern.type === type &&
+          edge.originalIntermediateY !== 0
+        ) {
+          edge.originalIntermediateY += swimlaneShift;
+        }
+      });
+    }
+
     const height = swimlaneHeights.get(type) || 0;
     cumulativeY += height;
   });
