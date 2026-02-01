@@ -8,3 +8,5 @@ export const NODE_HEIGHT = 60;
 // Space for swimlane labels
 export const MIN_PATTERN_HEIGHT = VERTICAL_STACK_SPACING * 2;
 export const MIN_PATTERNS_VISIBLE = 2;
+// Edge spacing - multiple edges can fit in the vertical space of one node
+export const EDGE_VERTICAL_SPACING = 15; // Vertical space required per edge
