@@ -5,13 +5,13 @@ import {
   LayoutPosition,
 } from "@/components/pattern/graph/utils/GraphUtils";
 import {
-  EDGE_VERTICAL_SPACING,
   HORIZONTAL_SPACING,
   LEFT_MARGIN,
   NODE_HEIGHT,
   START_OFFSET,
   VERTICAL_STACK_SPACING,
 } from "@/components/pattern/graph/types/Constants";
+import { applyCollisionAvoidance } from "@/components/pattern/graph/utils/CollisionAvoidanceUtils";
 
 export interface SwimlaneInfo {
   y: number;
@@ -45,7 +45,7 @@ export function calculateTimelineLayout(
   minHeight: number;
   actualWidth: number;
   swimlanes: Record<WCSPatternType, SwimlaneInfo>;
-  skipLevelEdges: SkipLevelEdgeInfo[];
+  skipLevelEdgeInfos: SkipLevelEdgeInfo[];
 } {
   const depthMap = calculatePrerequisiteDepthMap(patterns);
   const grouped = groupPatternsByType(patterns);
@@ -59,77 +59,31 @@ export function calculateTimelineLayout(
     swimlaneStarts,
   );
 
-  const { skipLevelEdges, maxShiftPerType } = applyCollisionAvoidance(
+  const { skipLevelEdgeInfos, maxShiftPerType } = applyCollisionAvoidance(
     patterns,
     depthMap,
     positions,
   );
 
-  // Adjust swimlane heights based on shifts
-  maxShiftPerType.forEach((shift, type) => {
-    const patternType = type as WCSPatternType;
-    const currentHeight = swimlaneHeights.get(patternType) || 0;
-    swimlaneHeights.set(patternType, currentHeight + shift);
-  });
+  shiftSwimlaneHeights(maxShiftPerType, swimlaneHeights);
 
-  // Recalculate swimlane Y positions to account for expanded heights
-  // Each swimlane's Y is the cumulative height of all swimlanes above it
-  // AND shift all positional data (nodes, edges) to match new swimlane positions
-  const typeOrder = Object.values(WCSPatternType) as WCSPatternType[];
-  let cumulativeY = 0;
-  const adjustedSwimlaneStarts = new Map<WCSPatternType, number>();
-
-  typeOrder.forEach((type) => {
-    const originalSwimlaneY = swimlaneStarts.get(type) || 0;
-    const newSwimlaneY = cumulativeY;
-    adjustedSwimlaneStarts.set(type, newSwimlaneY);
-
-    // Calculate the shift needed for this swimlane
-    const swimlaneShift = newSwimlaneY - originalSwimlaneY + NODE_HEIGHT - 10;
-
-    if (swimlaneShift !== 0) {
-      // Shift all node positions in this swimlane
-      patterns.forEach((pattern) => {
-        if (pattern.type === type) {
-          const pos = positions.get(pattern.id);
-          if (pos) {
-            positions.set(pattern.id, {
-              x: pos.x,
-              y: pos.y + swimlaneShift,
-            });
-          }
-        }
-      });
-
-      // Shift routing Y in skipLevelEdges for edges in this swimlane
-      skipLevelEdges.forEach((edge) => {
-        const fromPattern = patterns.find((p) => p.id === edge.fromId);
-        if (
-          fromPattern &&
-          fromPattern.type === type &&
-          edge.originalIntermediateY !== 0
-        ) {
-          edge.originalIntermediateY += swimlaneShift;
-        }
-      });
-    }
-
-    const height = swimlaneHeights.get(type) || 0;
-    cumulativeY += height;
-  });
-
-  // Total height is the cumulative Y after all swimlanes
-  const adjustedTotalHeight = cumulativeY;
+  const { cumulativeY, adjustedSwimlaneStarts } = recalculateSwimlaneYPositions(
+    swimlaneStarts,
+    patterns,
+    positions,
+    skipLevelEdgeInfos,
+    swimlaneHeights,
+  );
 
   return {
     positions,
-    minHeight: Math.max(baseHeight, adjustedTotalHeight),
+    minHeight: Math.max(baseHeight, cumulativeY),
     actualWidth: calculateActualWidth(depthMap, width),
     swimlanes: buildSwimlaneInformation(
       swimlaneHeights,
       adjustedSwimlaneStarts,
     ),
-    skipLevelEdges,
+    skipLevelEdgeInfos,
   };
 }
 
@@ -285,264 +239,68 @@ function positionPatternsByPrerequisites(
   return positions;
 }
 
-/**
- * Apply collision avoidance by detecting skip-level edges and shifting intermediate nodes.
- * This is a second pass after initial positioning.
- * Returns information about skip-level edges, which nodes were shifted, and max shifts per type.
- */
-function applyCollisionAvoidance(
+function shiftSwimlaneHeights(
+  maxShiftPerType: Map<string, number>,
+  swimlaneHeights: Map<WCSPatternType, number>,
+) {
+  maxShiftPerType.forEach((shift, type) => {
+    const patternType = type as WCSPatternType;
+    const currentHeight = swimlaneHeights.get(patternType) || 0;
+    swimlaneHeights.set(patternType, currentHeight + shift);
+  });
+}
+
+function recalculateSwimlaneYPositions(
+  swimlaneStarts: Map<WCSPatternType, number>,
   patterns: WCSPattern[],
-  depthMap: Map<number, number>,
   positions: Map<number, LayoutPosition>,
-): {
-  skipLevelEdges: SkipLevelEdgeInfo[];
-  maxShiftPerType: Map<string, number>;
-} {
-  const patternMap = new Map<number, WCSPattern>();
-  patterns.forEach((p) => patternMap.set(p.id, p));
+  skipLevelEdgeInfos: SkipLevelEdgeInfo[],
+  swimlaneHeights: Map<WCSPatternType, number>,
+) {
+  // Recalculate swimlane Y positions to account for expanded heights
+  // Each swimlane's Y is the cumulative height of all swimlanes above it
+  // AND shift all positional data (nodes, edges) to match new swimlane positions
+  const typeOrder = Object.values(WCSPatternType) as WCSPatternType[];
+  let cumulativeY = 0;
+  const adjustedSwimlaneStarts = new Map<WCSPatternType, number>();
 
-  // Store original positions before any shifting
-  const originalPositions = new Map<number, number>();
-  positions.forEach((pos, id) => {
-    originalPositions.set(id, pos.y);
-  });
+  typeOrder.forEach((type) => {
+    const originalSwimlaneY = swimlaneStarts.get(type) || 0;
+    const newSwimlaneY = cumulativeY;
+    adjustedSwimlaneStarts.set(type, newSwimlaneY);
 
-  // Find all skip-level edges (edges that span more than 1 depth level)
-  const skipLevelEdges: {
-    fromId: number;
-    toId: number;
-    fromDepth: number;
-    toDepth: number;
-    fromY: number;
-    toY: number;
-  }[] = [];
+    // Calculate the shift needed for this swimlane
+    const swimlaneShift = newSwimlaneY - originalSwimlaneY + NODE_HEIGHT - 10;
 
-  patterns.forEach((pattern) => {
-    const toDepth = depthMap.get(pattern.id) || 0;
-    const toPos = positions.get(pattern.id);
-    if (!toPos) return;
-
-    pattern.prerequisites.forEach((prereqId) => {
-      const fromDepth = depthMap.get(prereqId) || 0;
-      const depthSpan = toDepth - fromDepth;
-
-      // Only consider skip-level edges (spanning more than 1 depth level)
-      if (depthSpan <= 1) return;
-
-      const fromPos = positions.get(prereqId);
-      if (!fromPos) return;
-
-      // Check if they're in the same swimlane (same type)
-      const prereqPattern = patternMap.get(prereqId);
-      if (!prereqPattern || prereqPattern.type !== pattern.type) return;
-
-      skipLevelEdges.push({
-        fromId: prereqId,
-        toId: pattern.id,
-        fromDepth,
-        toDepth,
-        fromY: fromPos.y,
-        toY: toPos.y,
-      });
-    });
-  });
-
-  // For each skip-level edge, find intermediate nodes that would be crossed
-  const nodesToShift = new Map<number, number>(); // patternId -> vertical offset needed
-  const nodeToMaxSlot = new Map<number, number>(); // patternId -> max slot index of edges crossing it
-  const edgeToIntermediateNodes = new Map<
-    string,
-    {
-      nodeIds: number[];
-      routingY: number;
-      firstIntermediateX: number;
-      lastIntermediateX: number;
-    }
-  >(); // "fromId-toId" -> {intermediateNodeIds, routingY, column positions}
-
-  skipLevelEdges.forEach((edge) => {
-    const edgeType = patternMap.get(edge.fromId)?.type;
-    if (!edgeType) return;
-
-    const intermediateNodeIds: number[] = [];
-
-    // Calculate slot for this edge based on its depth span
-    const depthSpan = edge.toDepth - edge.fromDepth;
-    const slotIndex = Math.max(0, 3 - depthSpan);
-
-    // Find all nodes at intermediate depths in the same swimlane
-    patterns.forEach((intermediatePattern) => {
-      if (intermediatePattern.type !== edgeType) return;
-
-      const intermediateDepth = depthMap.get(intermediatePattern.id) || 0;
-
-      // Check if this pattern is at an intermediate depth
-      if (
-        intermediateDepth > edge.fromDepth &&
-        intermediateDepth < edge.toDepth
-      ) {
-        const intermediatePos = positions.get(intermediatePattern.id);
-        if (!intermediatePos) return;
-
-        // Check if the edge would pass through this node's vertical region
-        const minEdgeY = Math.min(edge.fromY, edge.toY);
-        const maxEdgeY = Math.max(edge.fromY, edge.toY);
-        const nodeTop = intermediatePos.y - NODE_HEIGHT / 2;
-        const nodeBottom = intermediatePos.y + NODE_HEIGHT / 2;
-
-        // If there's vertical overlap, this edge crosses our node
-        if (maxEdgeY >= nodeTop && minEdgeY <= nodeBottom) {
-          // Track the maximum slot index for this node
-          const currentMaxSlot =
-            nodeToMaxSlot.get(intermediatePattern.id) || -1;
-          nodeToMaxSlot.set(
-            intermediatePattern.id,
-            Math.max(currentMaxSlot, slotIndex),
-          );
-          intermediateNodeIds.push(intermediatePattern.id);
+    if (swimlaneShift !== 0) {
+      // Shift all node positions in this swimlane
+      patterns.forEach((pattern) => {
+        if (pattern.type === type) {
+          const pos = positions.get(pattern.id);
+          if (pos) {
+            positions.set(pattern.id, {
+              x: pos.x,
+              y: pos.y + swimlaneShift,
+            });
+          }
         }
-      }
-    });
+      });
 
-    // Calculate routing Y based on the cleared space created by shifting nodes
-    if (intermediateNodeIds.length > 0) {
-      const edgeKey = `${edge.fromId}-${edge.toId}`;
-
-      // Find the topmost intermediate node (before shifting)
-      const topmostNodeId = intermediateNodeIds.reduce((topId, nodeId) => {
-        const topOrigY = originalPositions.get(topId) || Infinity;
-        const nodeOrigY = originalPositions.get(nodeId) || Infinity;
-        return nodeOrigY < topOrigY ? nodeId : topId;
-      }, intermediateNodeIds[0]);
-
-      const topmostOriginalY = originalPositions.get(topmostNodeId);
-
-      // The cleared space is created ABOVE the shifted node
-      // Original node occupies: [originalY - NODE_HEIGHT/2, originalY + NODE_HEIGHT/2]
-      // After shift by shiftAmount, node occupies: [originalY + shiftAmount - NODE_HEIGHT/2, ...]
-      // Cleared space is: [originalY - NODE_HEIGHT/2, originalY + shiftAmount - NODE_HEIGHT/2]
-
-      const halfNodeHeight = NODE_HEIGHT / 2;
-      const clearedSpaceTop =
-        topmostOriginalY !== undefined
-          ? topmostOriginalY - halfNodeHeight
-          : edge.fromY;
-
-      // Longer edges (spanning more columns) route higher to avoid later intersections
-      // Divide cleared space into slots based on depth span
-      // Edge spanning 3 columns gets slot 0 (highest), spanning 2 gets slot 1, etc.
-      const depthSpan = edge.toDepth - edge.fromDepth;
-      const slotHeight = EDGE_VERTICAL_SPACING;
-      const slotIndex = Math.max(0, 3 - depthSpan); // Invert: longer span = lower index = higher position
-      const routingY = clearedSpaceTop + slotIndex * slotHeight;
-
-      // Calculate X positions of first and last intermediate columns
-      // These define where the curve should reach/leave the routing level
-      const firstIntermediateDepth = edge.fromDepth + 1 - 0.25;
-      const lastIntermediateDepth = edge.toDepth - 1 + 0.25;
-      const firstIntermediateX =
-        LEFT_MARGIN + firstIntermediateDepth * HORIZONTAL_SPACING;
-      const lastIntermediateX =
-        LEFT_MARGIN + lastIntermediateDepth * HORIZONTAL_SPACING;
-
-      edgeToIntermediateNodes.set(edgeKey, {
-        nodeIds: intermediateNodeIds,
-        routingY: routingY,
-        firstIntermediateX: firstIntermediateX,
-        lastIntermediateX: lastIntermediateX,
+      // Shift routing Y in skipLevelEdges for edges in this swimlane
+      skipLevelEdgeInfos.forEach((edge) => {
+        const fromPattern = patterns.find((p) => p.id === edge.fromId);
+        if (
+          fromPattern &&
+          fromPattern.type === type &&
+          edge.originalIntermediateY !== 0
+        ) {
+          edge.originalIntermediateY += swimlaneShift;
+        }
       });
     }
+
+    const height = swimlaneHeights.get(type) || 0;
+    cumulativeY += height;
   });
-
-  // Convert max slot indices to actual shift amounts
-  // Node needs to shift by (maxSlot + 1) * EDGE_VERTICAL_SPACING
-  // because slot 0 still needs EDGE_VERTICAL_SPACING of space
-  nodeToMaxSlot.forEach((maxSlot, nodeId) => {
-    const shiftAmount = (maxSlot + 1) * EDGE_VERTICAL_SPACING;
-    nodesToShift.set(nodeId, shiftAmount);
-  });
-
-  // Apply the shifts with proper cascading
-  // Calculate cumulative shifts for each position in each stack
-  const nodesByDepthType = new Map<string, number[]>(); // "depth-type" -> [patternIds sorted by Y]
-
-  patterns.forEach((pattern) => {
-    const depth = depthMap.get(pattern.id) || 0;
-    const key = `${depth}-${pattern.type}`;
-    if (!nodesByDepthType.has(key)) {
-      nodesByDepthType.set(key, []);
-    }
-    nodesByDepthType.get(key)!.push(pattern.id);
-  });
-
-  // Sort each stack by Y position
-  nodesByDepthType.forEach((nodeIds) => {
-    nodeIds.sort((a, b) => {
-      const posA = positions.get(a);
-      const posB = positions.get(b);
-      if (!posA || !posB) return 0;
-      return posA.y - posB.y;
-    });
-  });
-
-  // Calculate cumulative shifts for each stack position
-  // Key insight: to maintain equal spacing, each node must shift by the MAXIMUM
-  // of (its own shift requirement) OR (the shift of the node directly above it)
-  const cumulativeShifts = new Map<number, number>(); // patternId -> total shift to apply
-  let maxShiftPerType = new Map<string, number>(); // "type" -> max shift in that swimlane
-
-  nodesByDepthType.forEach((stack, key) => {
-    const type = key.split("-")[1]; // Extract type from "depth-type"
-    let maxShiftInStack = 0;
-
-    // Process from top to bottom to propagate shifts down
-    let previousShift = 0;
-    for (let i = 0; i < stack.length; i++) {
-      const nodeId = stack[i];
-      const ownShift = nodesToShift.get(nodeId) || 0;
-
-      // This node shifts by the maximum of:
-      // - Its own shift requirement
-      // - The shift of the node above (to maintain spacing)
-      const cumulativeShift = Math.max(ownShift, previousShift);
-
-      cumulativeShifts.set(nodeId, cumulativeShift);
-      maxShiftInStack = Math.max(maxShiftInStack, cumulativeShift);
-
-      // Next node inherits this shift as minimum
-      previousShift = cumulativeShift;
-    }
-
-    // Track max shift per swimlane type for height adjustment
-    const currentMax = maxShiftPerType.get(type) || 0;
-    maxShiftPerType.set(type, Math.max(currentMax, maxShiftInStack));
-  });
-
-  // Apply the cumulative shifts
-  cumulativeShifts.forEach((shift, nodeId) => {
-    if (shift > 0) {
-      const pos = positions.get(nodeId);
-      if (pos) {
-        positions.set(nodeId, { x: pos.x, y: pos.y + shift });
-      }
-    }
-  });
-
-  // Build return array with edge information
-  const edgeInfoArray = skipLevelEdges.map((edge) => {
-    const edgeKey = `${edge.fromId}-${edge.toId}`;
-    const info = edgeToIntermediateNodes.get(edgeKey);
-    return {
-      fromId: edge.fromId,
-      toId: edge.toId,
-      fromDepth: edge.fromDepth,
-      toDepth: edge.toDepth,
-      intermediateNodeIds: info?.nodeIds || [],
-      originalIntermediateY: info?.routingY || 0,
-      firstIntermediateX: info?.firstIntermediateX || 0,
-      lastIntermediateX: info?.lastIntermediateX || 0,
-    };
-  });
-
-  return { skipLevelEdges: edgeInfoArray, maxShiftPerType };
+  return { cumulativeY, adjustedSwimlaneStarts };
 }

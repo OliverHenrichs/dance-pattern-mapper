@@ -51,15 +51,20 @@ const TimelineView: React.FC<TimelineViewProps> = ({
       const minBaseHeight = MIN_PATTERN_HEIGHT * MIN_PATTERNS_VISIBLE;
       const baseHeight = Math.max(screenHeight, minBaseHeight);
 
-      const { positions, minHeight, actualWidth, swimlanes, skipLevelEdges } =
-        calculateTimelineLayout(patterns, screenWidth, baseHeight);
+      const {
+        positions,
+        minHeight,
+        actualWidth,
+        swimlanes,
+        skipLevelEdgeInfos,
+      } = calculateTimelineLayout(patterns, screenWidth, baseHeight);
 
       return {
         positions,
         svgWidth: actualWidth,
         svgHeight: minHeight,
         swimlanes,
-        skipLevelEdges,
+        skipLevelEdges: skipLevelEdgeInfos,
       };
     }, [patterns, screenHeight, screenWidth]);
 
