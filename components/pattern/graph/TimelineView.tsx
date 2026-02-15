@@ -6,12 +6,18 @@ import {
   useWindowDimensions,
   View,
 } from "react-native";
-import Svg, { Rect, Text as SvgText } from "react-native-svg";
+import Svg, { Path, Rect, Text as SvgText } from "react-native-svg";
 import { WCSPattern } from "@/components/pattern/types/WCSPattern";
 import { WCSPatternType } from "@/components/pattern/types/WCSPatternEnums";
 import { PaletteColor } from "@/components/common/ColorPalette";
-import { detectCircularDependencies, generateEdges } from "./utils/GraphUtils";
-import { ArrowheadMarker, drawEdges, drawNodes } from "./GraphSvg";
+import {
+  detectCircularDependencies,
+  generateEdges,
+  generateOrthogonalPath,
+  generateSkipLevelPath,
+  LayoutPosition,
+} from "./utils/GraphUtils";
+import { ArrowheadMarker, drawNodes } from "./GraphSvg";
 import { useTranslation } from "react-i18next";
 import {
   MIN_PATTERN_HEIGHT,
@@ -19,6 +25,7 @@ import {
 } from "@/components/pattern/graph/types/Constants";
 import {
   calculateTimelineLayout,
+  SkipLevelEdgeInfo,
   SwimlaneInfo,
 } from "@/components/pattern/graph/utils/TimelineGraphUtils";
 
@@ -37,22 +44,29 @@ const TimelineView: React.FC<TimelineViewProps> = ({
   const { height: screenHeight, width: screenWidth } = useWindowDimensions();
   const styles = getStyles(palette);
 
-  const { positions, svgWidth, svgHeight, swimlanes } = useMemo(() => {
-    detectCircularDependencies(patterns);
+  const { positions, svgWidth, svgHeight, swimlanes, skipLevelEdges } =
+    useMemo(() => {
+      detectCircularDependencies(patterns);
 
-    const minBaseHeight = MIN_PATTERN_HEIGHT * MIN_PATTERNS_VISIBLE;
-    const baseHeight = Math.max(screenHeight, minBaseHeight);
+      const minBaseHeight = MIN_PATTERN_HEIGHT * MIN_PATTERNS_VISIBLE;
+      const baseHeight = Math.max(screenHeight, minBaseHeight);
 
-    const { positions, minHeight, actualWidth, swimlanes } =
-      calculateTimelineLayout(patterns, screenWidth, baseHeight);
+      const {
+        positions,
+        minHeight,
+        actualWidth,
+        swimlanes,
+        skipLevelEdgeInfos,
+      } = calculateTimelineLayout(patterns, screenWidth, baseHeight);
 
-    return {
-      positions,
-      svgWidth: actualWidth,
-      svgHeight: minHeight,
-      swimlanes,
-    };
-  }, [patterns, screenHeight, screenWidth]);
+      return {
+        positions,
+        svgWidth: actualWidth,
+        svgHeight: minHeight,
+        swimlanes,
+        skipLevelEdges: skipLevelEdgeInfos,
+      };
+    }, [patterns, screenHeight, screenWidth]);
 
   if (patterns.length === 0) {
     return (
@@ -61,7 +75,9 @@ const TimelineView: React.FC<TimelineViewProps> = ({
       </View>
     );
   }
+
   const edges = generateEdges(patterns);
+
   return (
     <ScrollView
       horizontal
@@ -75,12 +91,75 @@ const TimelineView: React.FC<TimelineViewProps> = ({
       >
         <ArrowheadMarker palette={palette} />
         {drawSwimlanes(swimlanes, svgWidth, palette)}
-        {drawEdges(edges, positions, palette)}
+        {drawTimelineEdges(edges, positions, skipLevelEdges, palette)}
         {drawNodes(patterns, positions, palette, onNodeTap)}
       </Svg>
     </ScrollView>
   );
 };
+
+/**
+ * Draw edges with optimized routing for skip-level edges.
+ * Skip-level edges route through the cleared space below shifted nodes.
+ */
+function drawTimelineEdges(
+  edges: { from: number; to: number }[],
+  positions: Map<number, LayoutPosition>,
+  skipLevelEdges: SkipLevelEdgeInfo[],
+  palette: Record<PaletteColor, string>,
+) {
+  // Create a map of skip-level edges for quick lookup
+  const skipLevelEdgeMap = new Map<string, SkipLevelEdgeInfo>();
+  skipLevelEdges.forEach((edge) => {
+    if (edge.intermediateNodeIds.length > 0) {
+      const key = `${edge.fromId}-${edge.toId}`;
+      skipLevelEdgeMap.set(key, edge);
+    }
+  });
+
+  return (
+    <>
+      {edges.map((edge, index) => {
+        const fromPos = positions.get(edge.from);
+        const toPos = positions.get(edge.to);
+        if (!fromPos || !toPos) return null;
+
+        const edgeKey = `${edge.from}-${edge.to}`;
+        const skipLevelInfo = skipLevelEdgeMap.get(edgeKey);
+
+        let pathData: string;
+        if (skipLevelInfo && skipLevelInfo.intermediateNodeIds.length > 0) {
+          // This is a skip-level edge with shifted nodes - use optimized routing
+          // Use the pre-calculated original Y position from the edge info
+          console.log("hihi", skipLevelInfo);
+          pathData = generateSkipLevelPath(
+            fromPos,
+            toPos,
+            skipLevelInfo.originalIntermediateY,
+            skipLevelInfo.firstIntermediateX,
+            skipLevelInfo.lastIntermediateX,
+          );
+        } else {
+          // Regular edge - use standard orthogonal routing
+          pathData = generateOrthogonalPath(fromPos, toPos);
+          console.log("hihi2");
+        }
+
+        return (
+          <Path
+            key={`edge-${index}`}
+            d={pathData}
+            stroke={palette[PaletteColor.Primary]}
+            strokeWidth={2}
+            fill="none"
+            markerEnd="url(#arrowhead-graph)"
+            opacity={0.6}
+          />
+        );
+      })}
+    </>
+  );
+}
 
 function drawSwimlanes(
   swimlanes: Record<WCSPatternType, SwimlaneInfo>,

@@ -151,6 +151,56 @@ export function generateOrthogonalPath(
 }
 
 /**
+ * Generate optimized SVG path for skip-level edges that routes through cleared space.
+ * The path takes advantage of vertically shifted intermediate nodes by routing below them.
+ * Curves complete at the first intermediate column and start at the last intermediate column.
+ */
+export function generateSkipLevelPath(
+  fromPos: LayoutPosition,
+  toPos: LayoutPosition,
+  originalIntermediateY: number, // Y coordinate where edge should route
+  firstIntermediateX: number, // X position of first intermediate column
+  lastIntermediateX: number, // X position of last intermediate column
+): string {
+  const fromSide = getClosestSide(fromPos, toPos);
+  const toSide = getClosestSide(toPos, fromPos);
+
+  const startPoint = getConnectionPoint(fromPos, fromSide);
+  const endPoint = getConnectionPoint(toPos, toSide);
+  const adjustedEndPoint = adjustEndpointForArrow(toSide, endPoint);
+
+  const routingY = originalIntermediateY;
+
+  // Curve should reach routing level AT the first intermediate column X position
+  // and leave routing level AT the last intermediate column X position
+  const segment1EndX = firstIntermediateX;
+  const segment2EndX = lastIntermediateX;
+
+  const distanceFactor = 0.7; // Control point distance factor for smoothness
+  // First segment: start to routing level (curve down)
+  // Control points create smooth curve from start to first intermediate column
+  const distance1 = segment1EndX - startPoint.x;
+  const cp1X = startPoint.x + distance1 * distanceFactor;
+  const cp1Y = startPoint.y;
+  const cp2X = segment1EndX - distance1 * distanceFactor;
+  const cp2Y = routingY;
+
+  // Second segment: horizontal at routing level (straight line through cleared space)
+  // This travels from first intermediate column to last intermediate column
+
+  // Third segment: routing level to end (curve up)
+  // Control points create smooth curve from last intermediate column to end
+  const distance2 = adjustedEndPoint.x - segment2EndX;
+  const cp3X = segment2EndX + distance2 * distanceFactor;
+  const cp3Y = routingY;
+  const cp4X = adjustedEndPoint.x - distance2 * distanceFactor;
+  const cp4Y = adjustedEndPoint.y;
+
+  // Build path with explicit cubic Bézier curves
+  return `M ${startPoint.x} ${startPoint.y} C ${cp1X} ${cp1Y}, ${cp2X} ${cp2Y}, ${segment1EndX} ${routingY} L ${segment2EndX} ${routingY} C ${cp3X} ${cp3Y}, ${cp4X} ${cp4Y}, ${adjustedEndPoint.x} ${adjustedEndPoint.y}`;
+}
+
+/**
  * Calculate which side of a node is closest to a target point
  */
 function getClosestSide(
