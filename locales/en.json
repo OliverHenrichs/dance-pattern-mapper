@@ -69,5 +69,14 @@
   "whip": "Whip",
   "tuck": "Tuck",
   "sortPatterns": "Sort Patterns",
-  "dateCreated": "Date Created"
+  "dateCreated": "Date Created",
+  "patternLists": "Pattern Lists",
+  "noPatternLists": "No pattern lists yet",
+  "noPatternListsHint": "Tap + to create your first pattern list",
+  "deletePatternList": "Delete Pattern List",
+  "deletePatternListConfirm": "Are you sure you want to delete '{{name}}'? All patterns in this list will be lost.",
+  "error": "Error",
+  "errorDeletingList": "Failed to delete pattern list",
+  "errorCreatingList": "Failed to create pattern list",
+  "delete": "Delete"
 }

@@ -69,5 +69,14 @@
   "whip": "Whip",
   "tuck": "Tuck",
   "sortPatterns": "Figuren sortieren",
-  "dateCreated": "Erstellungsdatum"
+  "dateCreated": "Erstellungsdatum",
+  "patternLists": "Figurenlisten",
+  "noPatternLists": "Noch keine Figurenlisten",
+  "noPatternListsHint": "Tippe auf +, um deine erste Figurenliste zu erstellen",
+  "deletePatternList": "Figurenliste löschen",
+  "deletePatternListConfirm": "Bist du sicher, dass du '{{name}}' löschen möchtest? Alle Figuren in dieser Liste gehen verloren.",
+  "error": "Fehler",
+  "errorDeletingList": "Löschen der Figurenliste fehlgeschlagen",
+  "errorCreatingList": "Erstellen der Figurenliste fehlgeschlagen",
+  "delete": "Löschen"
 }

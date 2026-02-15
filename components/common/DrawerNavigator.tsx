@@ -1,7 +1,9 @@
 import React from "react";
 import PatternListManager from "@/components/pattern/list/PatternListManager";
 import PatternGraphScreen from "@/components/pattern/graph/PatternGraphScreen";
+import PatternListSelector from "@/components/pattern/list/PatternListSelector";
 import SettingsScreen from "@/components/settings/SettingsScreen";
+import { ActivePatternListProvider } from "@/components/pattern/context/ActivePatternListContext";
 import {
   createDrawerNavigator,
   DrawerContentComponentProps,
@@ -21,42 +23,53 @@ export default function DrawerNavigator() {
   const { colorScheme } = useThemeContext();
   const palette = getPalette(colorScheme);
   const styles = getStyles(palette);
+
   return (
-    <SafeAreaView style={styles.flexView}>
-      <Drawer.Navigator
-        initialRouteName="Patterns"
-        screenOptions={{
-          drawerPosition: "right",
-          headerShown: false,
-          swipeEdgeWidth: 40,
-          drawerStyle: styles.drawerStyle,
-          drawerActiveTintColor: palette[PaletteColor.Primary],
-          drawerInactiveTintColor: palette[PaletteColor.SecondaryText],
-          drawerLabelStyle: {
-            fontSize: 16,
-            fontWeight: "500",
-            color: palette[PaletteColor.PrimaryText],
-          },
-        }}
-        drawerContent={(props) => <CustomDrawerContent {...props} />}
-      >
-        <Drawer.Screen
-          name="Patterns"
-          component={PatternListManager}
-          options={{ title: t("patternTab") }}
-        />
-        <Drawer.Screen
-          name="PatternGraph"
-          component={PatternGraphScreen}
-          options={{ title: t("patternGraph") }}
-        />
-        <Drawer.Screen
-          name="Settings"
-          component={SettingsScreen}
-          options={{ title: t("settingsTab") }}
-        />
-      </Drawer.Navigator>
-    </SafeAreaView>
+    <ActivePatternListProvider>
+      <SafeAreaView style={styles.flexView}>
+        <Drawer.Navigator
+          initialRouteName="PatternLists"
+          screenOptions={{
+            drawerPosition: "right",
+            headerShown: false,
+            swipeEdgeWidth: 40,
+            drawerStyle: styles.drawerStyle,
+            drawerActiveTintColor: palette[PaletteColor.Primary],
+            drawerInactiveTintColor: palette[PaletteColor.SecondaryText],
+            drawerLabelStyle: {
+              fontSize: 16,
+              fontWeight: "500",
+              color: palette[PaletteColor.PrimaryText],
+            },
+          }}
+          drawerContent={(props) => <CustomDrawerContent {...props} />}
+        >
+          {/* Tier 1: Pattern Lists and Settings */}
+          <Drawer.Screen
+            name="PatternLists"
+            component={PatternListSelector}
+            options={{ title: t("patternLists") }}
+          />
+          <Drawer.Screen
+            name="Settings"
+            component={SettingsScreen}
+            options={{ title: t("settingsTab") }}
+          />
+
+          {/* Tier 2: Pattern management for active list */}
+          <Drawer.Screen
+            name="Patterns"
+            component={PatternListManager}
+            options={{ title: t("patternTab") }}
+          />
+          <Drawer.Screen
+            name="PatternGraph"
+            component={PatternGraphScreen}
+            options={{ title: t("patternGraph") }}
+          />
+        </Drawer.Navigator>
+      </SafeAreaView>
+    </ActivePatternListProvider>
   );
 }
 

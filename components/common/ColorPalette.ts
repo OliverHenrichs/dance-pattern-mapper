@@ -1,6 +1,7 @@
 export enum PaletteColor {
   Background = "Background",
   Surface = "Surface",
+  CardBackground = "CardBackground",
   Primary = "Primary",
   PrimaryText = "PrimaryText",
   SecondaryText = "SecondaryText",
@@ -15,6 +16,7 @@ export enum PaletteColor {
 export const LightPalette: Record<PaletteColor, string> = {
   [PaletteColor.Background]: "#f5f3ff",
   [PaletteColor.Surface]: "#fff",
+  [PaletteColor.CardBackground]: "#ffffff",
   [PaletteColor.Primary]: "#6366f1",
   [PaletteColor.PrimaryText]: "#3730a3",
   [PaletteColor.SecondaryText]: "#23233e",
@@ -29,6 +31,7 @@ export const LightPalette: Record<PaletteColor, string> = {
 export const DarkPalette: Record<PaletteColor, string> = {
   [PaletteColor.Background]: "#18181b",
   [PaletteColor.Surface]: "#23232b",
+  [PaletteColor.CardBackground]: "#27272a",
   [PaletteColor.Primary]: "#6366f1",
   [PaletteColor.PrimaryText]: "#f1f5f9",
   [PaletteColor.SecondaryText]: "#a1a1aa",
