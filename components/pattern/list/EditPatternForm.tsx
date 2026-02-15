@@ -7,16 +7,14 @@ import {
   TouchableOpacity,
   View,
 } from "react-native";
+import { WCSPattern } from "@/components/pattern/types/WCSPattern";
 import {
-  NewWCSPattern,
+  NewPattern,
+  Pattern,
   VideoReference,
-  WCSPattern,
-} from "@/components/pattern/types/WCSPattern";
-import {
-  WCSPatternLevel,
-  WCSPatternType,
-} from "@/components/pattern/types/WCSPatternEnums";
-import { defaultNewPattern } from "@/components/pattern/data/DefaultWCSPatterns";
+} from "@/components/pattern/types/PatternList";
+import { PatternType } from "@/components/pattern/types/PatternType";
+import { WCSPatternLevel } from "@/components/pattern/types/WCSPatternEnums";
 import { useTranslation } from "react-i18next";
 import { getPalette, PaletteColor } from "@/components/common/ColorPalette";
 import * as ImagePicker from "expo-image-picker";
@@ -36,24 +34,38 @@ import {
 } from "@/components/common/CommonStyles";
 
 type EditPatternFormProps = {
-  patterns: WCSPattern[];
-  onAccepted: (pattern: NewWCSPattern | WCSPattern) => void;
+  patterns: (WCSPattern | Pattern)[];
+  patternTypes: PatternType[]; // Dynamic pattern types from active list
+  onAccepted: (pattern: NewPattern | Pattern) => void;
   onCancel: () => void;
-  existing?: WCSPattern | null;
+  existing?: Pattern | null;
 };
 
-const patternTypes = Object.values(WCSPatternType);
 const levels = Object.values(WCSPatternLevel);
 
 const EditPatternForm: React.FC<EditPatternFormProps> = ({
   patterns,
+  patternTypes,
   onAccepted,
   onCancel,
   existing,
 }) => {
   const { t } = useTranslation();
-  const [newPattern, setNewPattern] = useState<NewWCSPattern>(
-    existing ?? defaultNewPattern,
+
+  // Create default pattern with first type
+  const createDefaultPattern = (): NewPattern => ({
+    name: "",
+    typeId: patternTypes[0]?.id || "",
+    counts: 6,
+    level: WCSPatternLevel.BEGINNER,
+    prerequisites: [],
+    description: "",
+    tags: [],
+    videoRefs: [],
+  });
+
+  const [newPattern, setNewPattern] = useState<NewPattern>(
+    existing ?? createDefaultPattern(),
   );
   const [thumbnails, setThumbnails] = useState<string[]>([]);
 
@@ -82,7 +94,7 @@ const EditPatternForm: React.FC<EditPatternFormProps> = ({
 
   const handleFinish = () => {
     onAccepted(newPattern);
-    setNewPattern(defaultNewPattern);
+    setNewPattern(createDefaultPattern());
   };
 
   const handlePickVideos = async () => {
@@ -153,14 +165,23 @@ const EditPatternForm: React.FC<EditPatternFormProps> = ({
           <Text style={styles.label}>{t("type")}</Text>
           {patternTypes.map((type) => (
             <TouchableOpacity
-              key={type}
+              key={type.id}
               style={[
                 styles.prereqItem,
-                newPattern.type === type && styles.prereqItemSelected,
+                newPattern.typeId === type.id && styles.prereqItemSelected,
+                { borderLeftColor: type.color, borderLeftWidth: 4 },
               ]}
-              onPress={() => setNewPattern({ ...newPattern, type })}
+              onPress={() => setNewPattern({ ...newPattern, typeId: type.id })}
             >
-              <Text style={styles.otherLabel}>{type}</Text>
+              <Text
+                style={[
+                  styles.prereqItemText,
+                  newPattern.typeId === type.id &&
+                    styles.prereqItemTextSelected,
+                ]}
+              >
+                {type.slug.toUpperCase()}
+              </Text>
             </TouchableOpacity>
           ))}
         </View>
@@ -299,6 +320,14 @@ const getStyles = (palette: Record<PaletteColor, string>) => {
     prereqContainer: getCommonPrereqContainer(palette),
     prereqItem: getCommonPrereqItem(palette),
     prereqItemSelected: { backgroundColor: palette[PaletteColor.Primary] },
+    prereqItemText: {
+      color: palette[PaletteColor.PrimaryText],
+      fontSize: 14,
+    },
+    prereqItemTextSelected: {
+      color: palette[PaletteColor.Surface],
+      fontWeight: "bold",
+    },
     // Buttons
     buttonRow: { ...getCommonRow(), gap: 8 },
     buttonRowWithBorder: { ...getCommonRow(), gap: 8 },

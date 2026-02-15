@@ -4,6 +4,7 @@ import { getPalette, PaletteColor } from "@/components/common/ColorPalette";
 import { useTranslation } from "react-i18next";
 import { useThemeContext } from "@/components/common/ThemeContext";
 import { WCSPattern } from "@/components/pattern/types/WCSPattern";
+import { Pattern } from "@/components/pattern/types/PatternList";
 import {
   getCommonAddButtonContainer,
   getCommonBorder,
@@ -16,7 +17,7 @@ import PlusButton from "@/components/common/PlusButton";
 interface PatternTagsProps {
   tags: string[];
   setTags: (tags: string[]) => void;
-  allPatterns?: WCSPattern[];
+  allPatterns?: (WCSPattern | Pattern)[];
   styles?: any;
 }
 

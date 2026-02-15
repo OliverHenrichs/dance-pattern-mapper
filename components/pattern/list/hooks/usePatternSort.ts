@@ -1,12 +1,23 @@
 import { useMemo } from "react";
 import { WCSPattern } from "@/components/pattern/types/WCSPattern";
+import { Pattern } from "@/components/pattern/types/PatternList";
 import { SortConfig } from "@/components/pattern/sort/SortBottomSheet";
 
-export function usePatternSort(patterns: WCSPattern[], sortConfig: SortConfig) {
+type PatternLike = WCSPattern | Pattern;
+
+export function usePatternSort(
+  patterns: PatternLike[],
+  sortConfig: SortConfig,
+) {
   const sortedPatterns = useMemo(() => {
     return [...patterns].sort((pattern, otherPattern) => {
-      let aValue: string | number | undefined = pattern[sortConfig.field];
-      let bValue: string | number | undefined = otherPattern[sortConfig.field];
+      let aValue: string | number | undefined = (pattern as any)[
+        sortConfig.field
+      ];
+
+      let bValue: string | number | undefined = (otherPattern as any)[
+        sortConfig.field
+      ];
 
       // Handle undefined/null values
       if (aValue === undefined || aValue === null) return 1;

@@ -2,18 +2,21 @@ import React from "react";
 import { StyleSheet, Text, TouchableOpacity, View } from "react-native";
 import Icon from "react-native-vector-icons/MaterialCommunityIcons";
 import { WCSPattern } from "@/components/pattern/types/WCSPattern";
+import { Pattern } from "@/components/pattern/types/PatternList";
 import PatternDetails from "@/components/pattern/common/PatternDetails";
 import handleDelete from "@/components/common/DeleteConfirmationDialog";
 import { getPalette, PaletteColor } from "@/components/common/ColorPalette";
 import { useTranslation } from "react-i18next";
 import { useThemeContext } from "@/components/common/ThemeContext";
 
+type PatternLike = WCSPattern | Pattern;
+
 interface PatternListItemProps {
-  pattern: WCSPattern;
-  allPatterns: WCSPattern[];
+  pattern: PatternLike;
+  allPatterns: PatternLike[];
   isSelected: boolean;
-  onSelect: (pattern: WCSPattern | undefined) => void;
-  onEdit: (pattern: WCSPattern) => void;
+  onSelect: (pattern: PatternLike | undefined) => void;
+  onEdit: (pattern: PatternLike) => void;
   onDelete: (id?: number) => void;
 }
 

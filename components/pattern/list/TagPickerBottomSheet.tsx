@@ -11,6 +11,7 @@ import { getPalette, PaletteColor } from "@/components/common/ColorPalette";
 import { useTranslation } from "react-i18next";
 import { useThemeContext } from "@/components/common/ThemeContext";
 import { WCSPattern } from "@/components/pattern/types/WCSPattern";
+import { Pattern } from "@/components/pattern/types/PatternList";
 import {
   getCommonBorder,
   getCommonInput,
@@ -22,7 +23,7 @@ interface TagPickerBottomSheetProps {
   onClose: () => void;
   onAddTag: (tag: string) => void;
   selectedTags: string[];
-  allPatterns?: WCSPattern[];
+  allPatterns?: (WCSPattern | Pattern)[];
 }
 
 const TagPickerBottomSheet: React.FC<TagPickerBottomSheetProps> = ({

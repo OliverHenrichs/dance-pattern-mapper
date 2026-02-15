@@ -1,6 +1,7 @@
 import React from "react";
 import { ScrollView, StyleSheet, Text, View } from "react-native";
 import { WCSPattern } from "@/components/pattern/types/WCSPattern";
+import { Pattern } from "@/components/pattern/types/PatternList";
 import { useTranslation } from "react-i18next";
 import { PaletteColor } from "@/components/common/ColorPalette";
 import {
@@ -14,9 +15,11 @@ import {
 } from "@/components/common/CommonStyles";
 import VideoCarousel from "@/components/common/VideoCarousel";
 
+type PatternLike = WCSPattern | Pattern;
+
 type PatternDetailsProps = {
-  selectedPattern: WCSPattern;
-  patterns: WCSPattern[];
+  selectedPattern: PatternLike;
+  patterns: PatternLike[];
   palette: Record<PaletteColor, string>;
 };
 
@@ -47,7 +50,11 @@ const PatternDetails: React.FC<PatternDetailsProps> = ({
         </View>
         <View style={styles.patternDetailsCol}>
           <Text style={styles.label}>{t("type")}:</Text>
-          <Text style={styles.patternDetailsValue}>{selectedPattern.type}</Text>
+          <Text style={styles.patternDetailsValue}>
+            {"type" in selectedPattern
+              ? selectedPattern.type
+              : selectedPattern.typeId}
+          </Text>
         </View>
         <View style={styles.patternDetailsCol}>
           <Text style={styles.label}>{t("level")}:</Text>
@@ -64,8 +71,8 @@ const PatternDetails: React.FC<PatternDetailsProps> = ({
 };
 
 function getPrerequisiteView(
-  selectedPattern: WCSPattern,
-  patterns: WCSPattern[],
+  selectedPattern: PatternLike,
+  patterns: PatternLike[],
   t: any,
   styles: ReturnType<typeof getStyles>,
 ) {
@@ -86,8 +93,8 @@ function getPrerequisiteView(
 }
 
 function getPrerequisites(
-  selectedPattern: WCSPattern,
-  patterns: WCSPattern[],
+  selectedPattern: PatternLike,
+  patterns: PatternLike[],
   styles: ReturnType<typeof getStyles>,
 ) {
   return (
@@ -105,7 +112,7 @@ function getPrerequisites(
 }
 
 function getTagView(
-  selectedPattern: WCSPattern,
+  selectedPattern: PatternLike,
   t: any,
   styles: ReturnType<typeof getStyles>,
 ) {
@@ -126,8 +133,8 @@ function getTagView(
 }
 
 function getBuildsIntoView(
-  selectedPattern: WCSPattern,
-  patterns: WCSPattern[],
+  selectedPattern: PatternLike,
+  patterns: PatternLike[],
   t: any,
   styles: ReturnType<typeof getStyles>,
 ) {

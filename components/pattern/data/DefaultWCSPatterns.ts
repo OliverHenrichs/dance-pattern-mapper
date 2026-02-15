@@ -61,14 +61,3 @@ export const foundationalWCSPatterns: WCSPattern[] = [
     videoRefs: [],
   },
 ];
-
-export const defaultNewPattern: Omit<WCSPattern, "id"> = {
-  name: "",
-  counts: 6,
-  type: WCSPatternType.PASS,
-  level: WCSPatternLevel.BEGINNER,
-  prerequisites: [],
-  description: "",
-  tags: [],
-  videoRefs: [],
-};
