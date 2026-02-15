@@ -75,9 +75,15 @@
   "noPatternListsHint": "Tippe auf +, um deine erste Figurenliste zu erstellen",
   "createPatternList": "Figurenliste erstellen",
   "deletePatternList": "Figurenliste löschen",
-  "deletePatternListConfirm": "Bist du sicher, dass du '{{name}}' löschen möchtest? Alle Figuren in dieser Liste gehen verloren.",
+  "deletePatternListConfirm": "Figurenliste '{{name}}' löschen?",
+  "errorCreatingList": "Fehler beim Erstellen der Figurenliste",
+  "errorDeletingList": "Fehler beim Löschen der Figurenliste",
+  "chooseTemplate": "Vorlage auswählen",
+  "chooseTemplateHint": "Wähle einen Tanzstil aus, um mit voreingestellten Figurentypen zu beginnen",
+  "nameYourList": "Liste benennen",
+  "customizeListName": "Passe den Namen für deine {{template}}-Liste an",
+  "listName": "Listenname",
+  "back": "Zurück",
   "error": "Fehler",
-  "errorDeletingList": "Löschen der Figurenliste fehlgeschlagen",
-  "errorCreatingList": "Erstellen der Figurenliste fehlgeschlagen",
   "delete": "Löschen"
 }

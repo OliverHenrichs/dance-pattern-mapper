@@ -22,7 +22,7 @@ import PageContainer from "@/components/common/PageContainer";
 import AppHeader from "@/components/common/AppHeader";
 import PlusButton from "@/components/common/PlusButton";
 import SectionHeader from "@/components/common/SectionHeader";
-import { createWestCoastSwingList } from "@/components/pattern/data/DefaultPatternLists";
+import PatternListTemplateModal from "./PatternListTemplateModal";
 
 const PatternListSelector: React.FC<{ navigation: any }> = ({ navigation }) => {
   const { t } = useTranslation();
@@ -34,6 +34,7 @@ const PatternListSelector: React.FC<{ navigation: any }> = ({ navigation }) => {
 
   const [patternLists, setPatternLists] = useState<PatternList[]>([]);
   const [isLoading, setIsLoading] = useState(false);
+  const [showTemplateModal, setShowTemplateModal] = useState(false);
 
   const loadLists = useCallback(async () => {
     setIsLoading(true);
@@ -82,11 +83,8 @@ const PatternListSelector: React.FC<{ navigation: any }> = ({ navigation }) => {
     );
   };
 
-  const handleCreateList = async () => {
-    // For now, create a default WCS list
-    // TODO: Show modal to choose from templates or create custom
+  const handleCreateList = async (newList: PatternList) => {
     try {
-      const newList = createWestCoastSwingList();
       console.log("Creating new pattern list:", newList.id, newList.name);
       await savePatternList(newList);
       await loadLists();
@@ -149,7 +147,7 @@ const PatternListSelector: React.FC<{ navigation: any }> = ({ navigation }) => {
             title={t("patternLists")}
             rightActions={
               <PlusButton
-                onPress={handleCreateList}
+                onPress={() => setShowTemplateModal(true)}
                 palette={palette}
                 accessibilityLabel={t("createPatternList")}
               />
@@ -166,6 +164,12 @@ const PatternListSelector: React.FC<{ navigation: any }> = ({ navigation }) => {
             onRefresh={loadLists}
           />
         </View>
+
+        <PatternListTemplateModal
+          visible={showTemplateModal}
+          onClose={() => setShowTemplateModal(false)}
+          onCreateList={handleCreateList}
+        />
       </PageContainer>
     </View>
   );

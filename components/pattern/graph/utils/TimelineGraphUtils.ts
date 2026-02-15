@@ -392,10 +392,10 @@ function recalculateSwimlaneYPositions(
  * Group patterns by their typeId (for dynamic pattern types).
  */
 function groupPatternsByTypeId(
-  patterns: Pattern[],
+  patterns: (Pattern | WCSPattern)[],
   patternTypes: PatternType[],
-): Map<string, Pattern[]> {
-  const grouped = new Map<string, Pattern[]>();
+): Map<string, (Pattern | WCSPattern)[]> {
+  const grouped = new Map<string, (Pattern | WCSPattern)[]>();
 
   // Initialize groups for all pattern types
   patternTypes.forEach((type) => {
@@ -404,7 +404,7 @@ function groupPatternsByTypeId(
 
   // Group patterns by typeId
   patterns.forEach((p) => {
-    const group = grouped.get(p.typeId);
+    const group = grouped.get((p as Pattern).typeId ?? (p as WCSPattern).type);
     if (group) {
       group.push(p);
     }
@@ -414,7 +414,7 @@ function groupPatternsByTypeId(
 }
 
 function calculateMaxStackPerTypeDynamic(
-  grouped: Map<string, Pattern[]>,
+  grouped: Map<string, (Pattern | WCSPattern)[]>,
   depthMap: Map<number, number>,
 ): Map<string, number> {
   const maxStackPerType = new Map<string, number>();
@@ -456,7 +456,7 @@ function calculateSwimlaneSizesDynamic(
 }
 
 function positionPatternsByPrerequisitesDynamic(
-  grouped: Map<string, Pattern[]>,
+  grouped: Map<string, (Pattern | WCSPattern)[]>,
   depthMap: Map<number, number>,
   swimlaneStarts: Map<string, number>,
   patternTypes: PatternType[],

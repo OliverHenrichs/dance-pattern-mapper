@@ -71,7 +71,6 @@ const PatternGraphScreen: React.FC = () => {
         legacyWCSPatterns,
         tempWCSList,
       );
-      console.log("Converted patterns:", convertedPatterns.length);
       return {
         patterns: convertedPatterns,
         patternTypes: tempWCSList.patternTypes,

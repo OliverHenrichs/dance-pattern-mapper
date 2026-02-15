@@ -3,7 +3,6 @@ import {
   WCSPatternType,
 } from "@/components/pattern/types/WCSPatternEnums";
 
-export type NewWCSPattern = BasePattern & WCSSpecificPattern;
 export type WCSPattern = IdBasePattern & WCSSpecificPattern;
 
 export interface VideoReference {
