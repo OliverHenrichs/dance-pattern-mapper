@@ -118,6 +118,7 @@ const PatternGraphScreen: React.FC = () => {
           visible={selectedPattern !== undefined}
           pattern={selectedPattern as any}
           allPatterns={patterns as any}
+          patternTypes={patternTypes}
           onClose={handleCloseModal}
         />
       </PageContainer>

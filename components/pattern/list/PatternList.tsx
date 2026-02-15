@@ -2,6 +2,7 @@ import React, { useState } from "react";
 import { ScrollView, StyleSheet, Text, View } from "react-native";
 import { WCSPattern } from "@/components/pattern/types/WCSPattern";
 import { Pattern } from "@/components/pattern/types/PatternList";
+import { PatternType } from "@/components/pattern/types/PatternType";
 import { useTranslation } from "react-i18next";
 import { useThemeContext } from "@/components/common/ThemeContext";
 import { getPalette, PaletteColor } from "@/components/common/ColorPalette";
@@ -18,6 +19,7 @@ type PatternLike = WCSPattern | Pattern;
 
 type PatternListProps = {
   patterns: PatternLike[];
+  patternTypes?: PatternType[];
   selectedPattern?: PatternLike;
   onSelect: (pattern: PatternLike | undefined) => void;
   onDelete: (id?: number) => void;
@@ -67,6 +69,7 @@ const PatternList: React.FC<PatternListProps> = (props) => {
             key={pattern.id}
             pattern={pattern}
             allPatterns={props.patterns}
+            patternTypes={props.patternTypes}
             isSelected={props.selectedPattern?.id === pattern.id}
             onSelect={props.onSelect}
             onEdit={props.onEdit}

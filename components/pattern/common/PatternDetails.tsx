@@ -2,6 +2,7 @@ import React from "react";
 import { ScrollView, StyleSheet, Text, View } from "react-native";
 import { WCSPattern } from "@/components/pattern/types/WCSPattern";
 import { Pattern } from "@/components/pattern/types/PatternList";
+import { PatternType } from "@/components/pattern/types/PatternType";
 import { useTranslation } from "react-i18next";
 import { PaletteColor } from "@/components/common/ColorPalette";
 import {
@@ -20,16 +21,31 @@ type PatternLike = WCSPattern | Pattern;
 type PatternDetailsProps = {
   selectedPattern: PatternLike;
   patterns: PatternLike[];
+  patternTypes?: PatternType[]; // Optional for dynamic type name lookup
   palette: Record<PaletteColor, string>;
 };
 
 const PatternDetails: React.FC<PatternDetailsProps> = ({
   selectedPattern,
   patterns,
+  patternTypes,
   palette,
 }) => {
   const { t } = useTranslation();
   const styles = getStyles(palette);
+
+  // Get type display name
+  const getTypeName = () => {
+    if ("type" in selectedPattern) {
+      // WCS pattern - use enum value directly
+      return selectedPattern.type;
+    } else {
+      // New pattern - look up type name from patternTypes
+      const type = patternTypes?.find((pt) => pt.id === selectedPattern.typeId);
+      return type ? type.slug : selectedPattern.typeId;
+    }
+  };
+
   return (
     <View style={styles.detailsContainer}>
       <Text style={styles.patternDetailsDesc}>
@@ -50,11 +66,7 @@ const PatternDetails: React.FC<PatternDetailsProps> = ({
         </View>
         <View style={styles.patternDetailsCol}>
           <Text style={styles.label}>{t("type")}:</Text>
-          <Text style={styles.patternDetailsValue}>
-            {"type" in selectedPattern
-              ? selectedPattern.type
-              : selectedPattern.typeId}
-          </Text>
+          <Text style={styles.patternDetailsValue}>{getTypeName()}</Text>
         </View>
         <View style={styles.patternDetailsCol}>
           <Text style={styles.label}>{t("level")}:</Text>

@@ -206,6 +206,7 @@ const PatternListManager = () => {
         <View style={styles.contentContainer}>
           <PatternList
             patterns={patterns}
+            patternTypes={patternTypes}
             onSelect={(p) => setSelectedPattern(p as Pattern | undefined)}
             onDelete={deletePattern}
             onAdd={() => setIsAddingNew(!isAddingNew)}
