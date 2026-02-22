@@ -182,7 +182,7 @@ const getStyles = (palette: Record<PaletteColor, string>) =>
     },
     checkmark: {
       color: palette[PaletteColor.Primary],
-      fontSize: 18,
+      fontSize: 14,
       fontWeight: "bold",
     },
     listInfo: {
