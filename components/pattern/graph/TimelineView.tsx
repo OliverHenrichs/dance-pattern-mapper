@@ -145,6 +145,7 @@ function drawTimelineEdges(
         if (skipLevelInfo && skipLevelInfo.intermediateNodeIds.length > 0) {
           // This is a skip-level edge with shifted nodes - use optimized routing
           // Use the pre-calculated original Y position from the edge info
+          // Pass forceDirection=true for timeline left-to-right flow
           pathData = generateSkipLevelPath(
             fromPos,
             toPos,
@@ -154,7 +155,8 @@ function drawTimelineEdges(
           );
         } else {
           // Regular edge - use standard orthogonal routing
-          pathData = generateOrthogonalPath(fromPos, toPos);
+          // Pass forceDirection=true for timeline left-to-right flow
+          pathData = generateOrthogonalPath(fromPos, toPos, true);
         }
 
         return (

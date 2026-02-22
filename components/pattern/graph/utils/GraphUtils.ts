@@ -129,14 +129,22 @@ export function calculatePrerequisiteDepthMap(
 /**
  * Generate SVG path string for an orthogonal edge between two nodes.
  * The path starts perpendicular to the source side and ends perpendicular to the target side.
+ * @param fromPos Layout position of the source node.
+ * @param toPos Layout position of the target node.
+ * @param forceDirection - If true, always use RIGHT->LEFT for timeline view. If false, use closest sides.
  */
 export function generateOrthogonalPath(
   fromPos: LayoutPosition,
   toPos: LayoutPosition,
+  forceDirection: boolean = false,
 ): string {
   // Determine which sides to connect
-  const fromSide = getClosestSide(fromPos, toPos);
-  const toSide = getClosestSide(toPos, fromPos);
+  const fromSide = forceDirection
+    ? NodeSide.RIGHT
+    : getClosestSide(fromPos, toPos);
+  const toSide = forceDirection
+    ? NodeSide.LEFT
+    : getClosestSide(toPos, fromPos);
 
   const startPoint = getConnectionPoint(fromPos, fromSide);
   const endPoint = getConnectionPoint(toPos, toSide);
@@ -154,6 +162,11 @@ export function generateOrthogonalPath(
  * Generate optimized SVG path for skip-level edges that routes through cleared space.
  * The path takes advantage of vertically shifted intermediate nodes by routing below them.
  * Curves complete at the first intermediate column and start at the last intermediate column.
+ * @param fromPos Layout position of the source node.
+ * @param toPos Layout position of the target node.
+ * @param originalIntermediateY Y coordinate where the edge should route (below shifted nodes).
+ * @param firstIntermediateX X position of the first intermediate column (where to finish curving down).
+ * @param lastIntermediateX X position of the last intermediate column (where to start curving up).
  */
 export function generateSkipLevelPath(
   fromPos: LayoutPosition,
@@ -162,8 +175,8 @@ export function generateSkipLevelPath(
   firstIntermediateX: number, // X position of first intermediate column
   lastIntermediateX: number, // X position of last intermediate column
 ): string {
-  const fromSide = getClosestSide(fromPos, toPos);
-  const toSide = getClosestSide(toPos, fromPos);
+  const fromSide = NodeSide.RIGHT;
+  const toSide = NodeSide.LEFT;
 
   const startPoint = getConnectionPoint(fromPos, fromSide);
   const endPoint = getConnectionPoint(toPos, toSide);
