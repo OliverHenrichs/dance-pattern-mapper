@@ -62,7 +62,7 @@ export const ActivePatternListProvider: React.FC<{
       } else {
         setPatternsState([]);
       }
-    } catch (error) {
+    } catch (_error) {
       setActiveListState(null);
       setPatternsState([]);
     } finally {

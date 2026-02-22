@@ -18,7 +18,7 @@ import {
 } from "@/components/pattern/data/hooks/useImportDecisions";
 import { ImportSummary } from "@/components/pattern/data/components/ImportSummary";
 import { ImportListItem } from "@/components/pattern/data/components/ImportListItem";
-// Re-export types for backward compatibility
+
 export type {
   ImportAction,
   ImportDecision,
