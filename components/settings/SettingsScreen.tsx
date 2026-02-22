@@ -1,4 +1,4 @@
-import React, { useCallback, useEffect, useState } from "react";
+import React, { useCallback, useState } from "react";
 import {
   ActivityIndicator,
   Alert,
@@ -9,6 +9,7 @@ import {
   View,
 } from "react-native";
 import { useTranslation } from "react-i18next";
+import { useFocusEffect } from "@react-navigation/native";
 import AppHeader from "@/components/common/AppHeader";
 import PageContainer from "@/components/common/PageContainer";
 import {
@@ -57,7 +58,7 @@ const SettingsScreen: React.FC = () => {
 
   const styles = getStyles(palette);
 
-  // Load pattern lists on mount
+  // Load pattern lists whenever the screen is focused
   const loadPatternLists = useCallback(async () => {
     try {
       const lists = await loadAllPatternLists();
@@ -76,9 +77,11 @@ const SettingsScreen: React.FC = () => {
     }
   }, [t]);
 
-  useEffect(() => {
-    loadPatternLists();
-  }, [loadPatternLists]);
+  useFocusEffect(
+    useCallback(() => {
+      loadPatternLists();
+    }, [loadPatternLists]),
+  );
 
   const handleExportButtonPress = () => {
     if (patternLists.length === 0) {

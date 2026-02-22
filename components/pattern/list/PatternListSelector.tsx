@@ -40,7 +40,6 @@ const PatternListSelector: React.FC<{ navigation: any }> = ({ navigation }) => {
     setIsLoading(true);
     try {
       const lists = await loadAllPatternLists();
-      console.log("Loaded pattern lists:", lists.length);
       setPatternLists(lists);
     } catch (error) {
       console.error("Error loading pattern lists:", error);
