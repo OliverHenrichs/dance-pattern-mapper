@@ -69,16 +69,6 @@ export function calculateDynamicTimelineLayout(
     positions,
   );
 
-  // Log collision avoidance shifts applied
-  if (maxShiftPerType.size > 0) {
-    console.log(
-      "[Timeline] Collision avoidance shifts applied:",
-      Array.from(maxShiftPerType.entries())
-        .map(([typeId, shift]) => `${typeId}: +${shift}px`)
-        .join(", "),
-    );
-  }
-
   shiftSwimlaneHeightsDynamic(maxShiftPerType, swimlaneHeights);
 
   const { cumulativeY, adjustedSwimlaneStarts } =
@@ -246,9 +236,6 @@ function shiftSwimlaneHeightsDynamic(
     const currentHeight = swimlaneHeights.get(typeId) || 0;
     const newHeight = currentHeight + shift;
     swimlaneHeights.set(typeId, newHeight);
-    console.log(
-      `[Timeline] Swimlane height adjusted for ${typeId}: ${currentHeight}px -> ${newHeight}px (+${shift}px)`,
-    );
   });
 }
 
