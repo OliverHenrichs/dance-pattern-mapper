@@ -101,5 +101,16 @@
   "error": "Fehler",
   "success": "Erfolg",
   "delete": "Löschen",
-  "noPatternListsToExport": "Keine Figurenlisten zum Exportieren"
+  "noPatternListsToExport": "Keine Figurenlisten zum Exportieren",
+  "patternTypes": "Figurentypen",
+  "templateWcsName": "West Coast Swing",
+  "templateWcsDescription": "4 Figurentypen: Push, Pass, Whip, Tuck",
+  "templateSalsaName": "Salsa",
+  "templateSalsaDescription": "5 Figurentypen: Basic, Cross-body, Right turn, Left turn, Shine",
+  "templateBachataName": "Bachata",
+  "templateBachataDescription": "4 Figurentypen: Basic, Turn, Dip, Wave",
+  "templateTangoName": "Tango Argentino",
+  "templateTangoDescription": "5 Figurentypen: Walk, Ochos, Giros, Sacadas, Boleos",
+  "templateLindyName": "Lindy Hop",
+  "templateLindyDescription": "4 Figurentypen: Swing-Out, Circle, Tuck-Turn, Aerial"
 }

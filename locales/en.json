@@ -101,5 +101,16 @@
   "success": "Success",
   "delete": "Delete",
   "noPatternListsToExport": "No pattern lists to export",
-  "patterns": "patterns"
+  "patterns": "patterns",
+  "patternTypes": "Pattern Types",
+  "templateWcsName": "West Coast Swing",
+  "templateWcsDescription": "4 pattern types: Push, Pass, Whip, Tuck",
+  "templateSalsaName": "Salsa",
+  "templateSalsaDescription": "5 pattern types: Basic, Cross-body, Right turn, Left turn, Shine",
+  "templateBachataName": "Bachata",
+  "templateBachataDescription": "4 pattern types: Basic, Turn, Dip, Wave",
+  "templateTangoName": "Argentine Tango",
+  "templateTangoDescription": "5 pattern types: Walk, Ochos, Giros, Sacadas, Boleos",
+  "templateLindyName": "Lindy Hop",
+  "templateLindyDescription": "4 pattern types: Swing-Out, Circle, Tuck-Turn, Aerial"
 }

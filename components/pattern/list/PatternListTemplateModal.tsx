@@ -28,41 +28,40 @@ interface PatternListTemplateModalProps {
 
 interface Template {
   id: string;
-  name: string;
-  description: string;
+  nameKey: string;
+  descriptionKey: string;
   create: () => PatternList;
 }
 
 const TEMPLATES: Template[] = [
   {
     id: "wcs",
-    name: "West Coast Swing",
-    description: "4 pattern types: Push, Pass, Whip, Tuck",
+    nameKey: "templateWcsName",
+    descriptionKey: "templateWcsDescription",
     create: createWestCoastSwingList,
   },
   {
     id: "salsa",
-    name: "Salsa",
-    description:
-      "5 pattern types: Basic, Cross-body, Right turn, Left turn, Shine",
+    nameKey: "templateSalsaName",
+    descriptionKey: "templateSalsaDescription",
     create: createSalsaList,
   },
   {
     id: "bachata",
-    name: "Bachata",
-    description: "4 pattern types: Basic, Turn, Dip, Wave",
+    nameKey: "templateBachataName",
+    descriptionKey: "templateBachataDescription",
     create: createBachataList,
   },
   {
     id: "tango",
-    name: "Argentine Tango",
-    description: "5 pattern types: Walk, Ochos, Giros, Sacadas, Boleos",
+    nameKey: "templateTangoName",
+    descriptionKey: "templateTangoDescription",
     create: createTangoList,
   },
   {
     id: "lindy",
-    name: "Lindy Hop",
-    description: "5 pattern types: Swing-Out, Circle, Tuck-Turn, Aerial",
+    nameKey: "templateLindyName",
+    descriptionKey: "templateLindyDescription",
     create: createLindyHopList,
   },
 ];
@@ -85,7 +84,7 @@ const PatternListTemplateModal: React.FC<PatternListTemplateModalProps> = ({
 
   const handleSelectTemplate = (template: Template) => {
     setSelectedTemplate(template);
-    setCustomName(template.name);
+    setCustomName(t(template.nameKey));
     setShowNameInput(true);
   };
 
@@ -95,7 +94,7 @@ const PatternListTemplateModal: React.FC<PatternListTemplateModalProps> = ({
     const newList = selectedTemplate.create();
 
     // Update name if customized
-    if (customName.trim() && customName !== selectedTemplate.name) {
+    if (customName.trim() && customName !== t(selectedTemplate.nameKey)) {
       newList.name = customName.trim();
     }
 
@@ -122,9 +121,9 @@ const PatternListTemplateModal: React.FC<PatternListTemplateModalProps> = ({
             style={styles.templateCard}
             onPress={() => handleSelectTemplate(template)}
           >
-            <Text style={styles.templateName}>{template.name}</Text>
+            <Text style={styles.templateName}>{t(template.nameKey)}</Text>
             <Text style={styles.templateDescription}>
-              {template.description}
+              {t(template.descriptionKey)}
             </Text>
           </TouchableOpacity>
         ))}
@@ -140,7 +139,9 @@ const PatternListTemplateModal: React.FC<PatternListTemplateModalProps> = ({
     <View>
       <Text style={styles.title}>{t("nameYourList")}</Text>
       <Text style={styles.subtitle}>
-        {t("customizeListName", { template: selectedTemplate?.name })}
+        {t("customizeListName", {
+          template: t(selectedTemplate?.nameKey || ""),
+        })}
       </Text>
 
       <View style={styles.inputContainer}>
@@ -149,7 +150,7 @@ const PatternListTemplateModal: React.FC<PatternListTemplateModalProps> = ({
           style={styles.input}
           value={customName}
           onChangeText={setCustomName}
-          placeholder={selectedTemplate?.name}
+          placeholder={t(selectedTemplate?.nameKey || "")}
           placeholderTextColor={palette[PaletteColor.SecondaryText]}
           autoFocus
         />
