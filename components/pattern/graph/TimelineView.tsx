@@ -95,21 +95,19 @@ const TimelineView: React.FC<TimelineViewProps> = ({
   const edges = generateEdges(patterns);
 
   return (
-    <ScrollView
-      horizontal
-      style={styles.container}
-      contentContainerStyle={{ width: svgWidth, height: svgHeight }}
-    >
-      <Svg
-        width={svgWidth}
-        height={svgHeight}
-        shouldRasterizeIOS={patterns.length > 100}
-      >
-        <ArrowheadMarker palette={palette} />
-        {drawSwimlanes(swimlanes, svgWidth)}
-        {drawTimelineEdges(edges, positions, skipLevelEdges, palette)}
-        {drawNodes(patterns, positions, palette, onNodeTap, typeColorMap)}
-      </Svg>
+    <ScrollView style={styles.container}>
+      <ScrollView horizontal contentContainerStyle={{ width: svgWidth }}>
+        <Svg
+          width={svgWidth}
+          height={svgHeight}
+          shouldRasterizeIOS={patterns.length > 100}
+        >
+          <ArrowheadMarker palette={palette} />
+          {drawSwimlanes(swimlanes, svgWidth)}
+          {drawTimelineEdges(edges, positions, skipLevelEdges, palette)}
+          {drawNodes(patterns, positions, palette, onNodeTap, typeColorMap)}
+        </Svg>
+      </ScrollView>
     </ScrollView>
   );
 };
