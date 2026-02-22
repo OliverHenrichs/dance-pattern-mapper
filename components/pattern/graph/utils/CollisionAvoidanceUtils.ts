@@ -452,7 +452,11 @@ function calculateCumulativeShifts(
   let maxShiftPerType = new Map<string, number>(); // "type" -> max shift in that swimlane
 
   nodesByDepthType.forEach((stack, key) => {
-    const type = key.split("-")[1]; // Extract type from "depth-type"
+    // Extract type from "depth-type" key
+    // Key format: "0-99c224c3-be49-4188-96a8-fd5cb20bd29d"
+    // We need everything after the first dash
+    const firstDashIndex = key.indexOf("-");
+    const type = firstDashIndex >= 0 ? key.substring(firstDashIndex + 1) : key;
     let maxShiftInStack = 0;
 
     // Process from top to bottom to propagate shifts down
