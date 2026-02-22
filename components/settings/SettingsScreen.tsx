@@ -1,7 +1,6 @@
-import React, { useCallback, useState } from "react";
+import React from "react";
 import {
   ActivityIndicator,
-  Alert,
   Button,
   ScrollView,
   StyleSheet,
@@ -9,7 +8,6 @@ import {
   View,
 } from "react-native";
 import { useTranslation } from "react-i18next";
-import { useFocusEffect } from "@react-navigation/native";
 import AppHeader from "@/components/common/AppHeader";
 import PageContainer from "@/components/common/PageContainer";
 import {
@@ -19,20 +17,9 @@ import {
 import { ThemeType, useThemeContext } from "@/components/common/ThemeContext";
 import { getPalette, PaletteColor } from "@/components/common/ColorPalette";
 import { LANGUAGES } from "@/components/settings/types/Languages";
-import { exportPatternLists } from "@/components/pattern/data/exportPatterns";
-import { importPatternLists } from "@/components/pattern/data/ImportPatterns";
 import PatternListExportModal from "@/components/pattern/data/PatternListExportModal";
-import PatternListImportModal, {
-  ImportDecision,
-} from "@/components/pattern/data/PatternListImportModal";
-import {
-  loadAllPatternLists,
-  loadPatterns,
-  savePatternList,
-  savePatterns,
-} from "@/components/pattern/data/PatternListStorage";
-import { PatternList } from "@/components/pattern/types/PatternList";
-import { PatternListWithPatterns } from "@/components/pattern/data/types/IExportData";
+import PatternListImportModal from "@/components/pattern/data/PatternListImportModal";
+import { useDataTransfer } from "@/components/settings/hooks/useDataTransfer";
 
 const SettingsScreen: React.FC = () => {
   const { t, i18n } = useTranslation();
@@ -40,15 +27,6 @@ const SettingsScreen: React.FC = () => {
   const { theme, setTheme, colorScheme } = useThemeContext();
   const commonStyles = getCommonStyles(colorScheme);
   const palette = getPalette(colorScheme);
-  const [isLoading, setIsLoading] = useState(false);
-  const [showExportModal, setShowExportModal] = useState(false);
-  const [showImportModal, setShowImportModal] = useState(false);
-  const [patternLists, setPatternLists] = useState<PatternListWithPatterns[]>(
-    [],
-  );
-  const [importedLists, setImportedLists] = useState<PatternListWithPatterns[]>(
-    [],
-  );
 
   const themeOptions = [
     { value: "system", label: t("themeSystem") },
@@ -58,121 +36,20 @@ const SettingsScreen: React.FC = () => {
 
   const styles = getStyles(palette);
 
-  // Load pattern lists whenever the screen is focused
-  const loadPatternLists = useCallback(async () => {
-    try {
-      const lists = await loadAllPatternLists();
-      const listsWithPatterns: PatternListWithPatterns[] = await Promise.all(
-        lists.map(async (list: PatternList) => {
-          const patterns = await loadPatterns(list.id);
-          return { ...list, patterns };
-        }),
-      );
-      setPatternLists(listsWithPatterns);
-    } catch (error) {
-      Alert.alert(
-        t("error"),
-        `Failed to load pattern lists: ${error instanceof Error ? error.message : String(error)}`,
-      );
-    }
-  }, [t]);
-
-  useFocusEffect(
-    useCallback(() => {
-      loadPatternLists();
-    }, [loadPatternLists]),
-  );
-
-  const handleExportButtonPress = () => {
-    if (patternLists.length === 0) {
-      Alert.alert(t("error"), t("noPatternListsToExport"));
-      return;
-    }
-    setShowExportModal(true);
-  };
-
-  const handleExport = async (selectedLists: PatternList[]) => {
-    setShowExportModal(false);
-    setIsLoading(true);
-    try {
-      const result = await exportPatternLists(
-        selectedLists as PatternListWithPatterns[],
-      );
-      // Only show alert for errors, not success (since native share API doesn't report cancellation)
-      if (!result.success) {
-        Alert.alert(t("error"), result.message);
-      }
-    } catch (error) {
-      Alert.alert(
-        t("error"),
-        `Export failed: ${error instanceof Error ? error.message : String(error)}`,
-      );
-    } finally {
-      setIsLoading(false);
-    }
-  };
-
-  const handleImportButtonPress = async () => {
-    setIsLoading(true);
-    try {
-      const result = await importPatternLists();
-      if (result.cancelled) {
-        // User cancelled file selection, silently return
-        return;
-      }
-      if (result.success && result.patternLists) {
-        setImportedLists(result.patternLists);
-        setShowImportModal(true);
-      } else {
-        Alert.alert(t("error"), result.message);
-      }
-    } catch (error) {
-      Alert.alert(
-        t("error"),
-        `Import failed: ${error instanceof Error ? error.message : String(error)}`,
-      );
-    } finally {
-      setIsLoading(false);
-    }
-  };
-
-  const handleImport = async (decisions: ImportDecision[]) => {
-    setShowImportModal(false);
-    setIsLoading(true);
-    try {
-      let importedCount = 0;
-      let skippedCount = 0;
-
-      for (const decision of decisions) {
-        if (decision.action === "skip") {
-          skippedCount++;
-          continue;
-        }
-
-        // Save the pattern list
-        const listToSave = decision.list as PatternListWithPatterns;
-        await savePatternList(listToSave);
-
-        // Save all patterns in the list
-        await savePatterns(listToSave.id, listToSave.patterns);
-        importedCount++;
-      }
-
-      await loadPatternLists();
-
-      Alert.alert(
-        t("success"),
-        `Imported ${importedCount} list(s), skipped ${skippedCount}`,
-      );
-    } catch (error) {
-      Alert.alert(
-        t("error"),
-        `Import failed: ${error instanceof Error ? error.message : String(error)}`,
-      );
-    } finally {
-      setIsLoading(false);
-    }
-  };
+  // Data transfer logic extracted to custom hook
+  const {
+    isLoading,
+    showExportModal,
+    setShowExportModal,
+    showImportModal,
+    setShowImportModal,
+    patternLists,
+    importedLists,
+    handleExportButtonPress,
+    handleExport,
+    handleImportButtonPress,
+    handleImport,
+  } = useDataTransfer();
 
   return (
     <PageContainer
@@ -185,6 +62,7 @@ const SettingsScreen: React.FC = () => {
           ...getCommonListContainer(palette),
         }}
       >
+        {/* Language Section */}
         <View style={commonStyles.sectionHeaderRow}>
           <Text style={commonStyles.sectionTitle}>{t("language")}</Text>
         </View>
@@ -209,6 +87,8 @@ const SettingsScreen: React.FC = () => {
             </View>
           ))}
         </View>
+
+        {/* Theme Section */}
         <View style={commonStyles.sectionHeaderRow}>
           <Text style={commonStyles.sectionTitle}>{t("theme")}</Text>
         </View>
@@ -233,6 +113,8 @@ const SettingsScreen: React.FC = () => {
             </View>
           ))}
         </View>
+
+        {/* Data Transfer Section */}
         <View style={commonStyles.sectionHeaderRow}>
           <Text style={commonStyles.sectionTitle}>{t("serialization")}</Text>
         </View>
