@@ -13,6 +13,7 @@ import { useTranslation } from "react-i18next";
 import { useThemeContext } from "@/components/common/ThemeContext";
 import {
   createBachataList,
+  createLindyHopList,
   createSalsaList,
   createTangoList,
   createWestCoastSwingList,
@@ -61,8 +62,8 @@ const TEMPLATES: Template[] = [
   {
     id: "lindy",
     name: "Lindy Hop",
-    description: "5 pattern types: Walk, Ochos, Giros, Sacadas, Boleos",
-    create: createTangoList,
+    description: "5 pattern types: Swing-Out, Circle, Tuck-Turn, Aerial",
+    create: createLindyHopList,
   },
 ];
 
