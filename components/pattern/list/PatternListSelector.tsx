@@ -17,6 +17,7 @@ import {
 import { useActivePatternList } from "@/components/pattern/context/ActivePatternListContext";
 import { useThemeContext } from "@/components/common/ThemeContext";
 import { getPalette, PaletteColor } from "@/components/common/ColorPalette";
+import { getCommonListContainer } from "@/components/common/CommonStyles";
 import { useTranslation } from "react-i18next";
 import PageContainer from "@/components/common/PageContainer";
 import AppHeader from "@/components/common/AppHeader";
@@ -177,10 +178,12 @@ const PatternListSelector: React.FC<{ navigation: any }> = ({ navigation }) => {
 const getStyles = (palette: Record<PaletteColor, string>) =>
   StyleSheet.create({
     container: {
+      ...getCommonListContainer(palette),
       flex: 1,
     },
     listContainer: {
-      padding: 16,
+      paddingHorizontal: 8,
+      paddingVertical: 8,
       gap: 12,
     },
     listCard: {
