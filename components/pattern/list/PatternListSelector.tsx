@@ -109,14 +109,6 @@ const PatternListSelector: React.FC<{ navigation: any }> = ({ navigation }) => {
           <Text style={[styles.listName, isActive && styles.listNameActive]}>
             {item.name}
           </Text>
-          <View style={styles.typeColorRow}>
-            {item.patternTypes.slice(0, 4).map((type) => (
-              <View
-                key={type.id}
-                style={[styles.typeColorDot, { backgroundColor: type.color }]}
-              />
-            ))}
-          </View>
         </View>
         {isActive && <Text style={styles.activeIndicator}>✓</Text>}
       </TouchableOpacity>
