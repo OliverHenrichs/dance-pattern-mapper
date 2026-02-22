@@ -29,7 +29,7 @@ export const ExportListItem: React.FC<ExportListItemProps> = ({
       <View style={styles.listInfo}>
         <Text style={styles.listName}>{list.name}</Text>
         <Text style={styles.listMeta}>
-          {list.patterns.length} {t("patterns")} • {list.danceStyle}
+          {list.patterns.length} {t("patterns")}
         </Text>
       </View>
     </TouchableOpacity>
