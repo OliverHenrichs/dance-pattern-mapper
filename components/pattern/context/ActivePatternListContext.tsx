@@ -51,23 +51,18 @@ export const ActivePatternListProvider: React.FC<{
     setIsLoading(true);
     try {
       const hasAnyLists = await hasPatternLists();
-      console.log("Has any pattern lists:", hasAnyLists);
       setHasLists(hasAnyLists);
 
       const list = await getActiveList();
-      console.log("Active list:", list?.name, list?.id);
       setActiveListState(list);
 
       if (list) {
         const loadedPatterns = await loadPatterns(list.id);
-        console.log("Loaded patterns for list:", loadedPatterns.length);
         setPatternsState(loadedPatterns);
       } else {
-        console.log("No active list, clearing patterns");
         setPatternsState([]);
       }
     } catch (error) {
-      console.error("Error loading active list:", error);
       setActiveListState(null);
       setPatternsState([]);
     } finally {
@@ -82,17 +77,11 @@ export const ActivePatternListProvider: React.FC<{
   const setActiveList = async (list: PatternList | null) => {
     try {
       if (list) {
-        console.log("Setting active list:", list.name, list.id);
         await setActiveListId(list.id);
         setActiveListState(list);
         const loadedPatterns = await loadPatterns(list.id);
-        console.log(
-          "Loaded patterns after setting active:",
-          loadedPatterns.length,
-        );
         setPatternsState(loadedPatterns);
       } else {
-        console.log("Clearing active list");
         setActiveListState(null);
         setPatternsState([]);
       }
