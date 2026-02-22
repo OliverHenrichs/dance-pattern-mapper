@@ -69,6 +69,16 @@ export function calculateDynamicTimelineLayout(
     positions,
   );
 
+  // Log collision avoidance shifts applied
+  if (maxShiftPerType.size > 0) {
+    console.log(
+      "[Timeline] Collision avoidance shifts applied:",
+      Array.from(maxShiftPerType.entries())
+        .map(([typeId, shift]) => `${typeId}: +${shift}px`)
+        .join(", "),
+    );
+  }
+
   shiftSwimlaneHeightsDynamic(maxShiftPerType, swimlaneHeights);
 
   const { cumulativeY, adjustedSwimlaneStarts } =
@@ -218,7 +228,8 @@ function positionPatternsByPrerequisitesDynamic(
       const stackIndex = depthTypeCounter.get(key) || 0;
       depthTypeCounter.set(key, stackIndex + 1);
 
-      const baseY = swimlaneStarts.get(type.id) || 0;
+      // swimlaneStart not the top of the s
+      const baseY = (swimlaneStarts.get(type.id) || 0) + START_OFFSET * 0.25;
       const y = baseY + stackIndex * VERTICAL_STACK_SPACING;
 
       positions.set(pattern.id, { x, y });
@@ -234,7 +245,11 @@ function shiftSwimlaneHeightsDynamic(
 ) {
   maxShiftPerType.forEach((shift, typeId) => {
     const currentHeight = swimlaneHeights.get(typeId) || 0;
-    swimlaneHeights.set(typeId, currentHeight + shift);
+    const newHeight = currentHeight + shift;
+    swimlaneHeights.set(typeId, newHeight);
+    console.log(
+      `[Timeline] Swimlane height adjusted for ${typeId}: ${currentHeight}px -> ${newHeight}px (+${shift}px)`,
+    );
   });
 }
 
@@ -251,11 +266,13 @@ function recalculateSwimlaneYPositionsDynamic(
 
   patternTypes.forEach((type) => {
     const originalSwimlaneY = swimlaneStarts.get(type.id) || 0;
-    const newSwimlaneY = cumulativeY;
+    const newSwimlaneY = cumulativeY + START_OFFSET;
     adjustedSwimlaneStarts.set(type.id, newSwimlaneY);
 
     // Calculate the shift needed for this swimlane
-    const swimlaneShift = newSwimlaneY - originalSwimlaneY + NODE_HEIGHT - 10;
+    // This only accounts for swimlane repositioning, NOT collision avoidance
+    // (collision avoidance shifts were already applied by applyCollisionAvoidance)
+    const swimlaneShift = newSwimlaneY - originalSwimlaneY;
 
     if (swimlaneShift !== 0) {
       // Shift all node positions in this swimlane
@@ -288,6 +305,33 @@ function recalculateSwimlaneYPositionsDynamic(
     cumulativeY += height;
   });
 
+  // Validate that all patterns are within their swimlane bounds
+  patternTypes.forEach((type) => {
+    const swimlaneStart = adjustedSwimlaneStarts.get(type.id) || 0;
+    const swimlaneHeight = swimlaneHeights.get(type.id) || 0;
+    // Nodes can occupy from swimlaneStart to swimlaneStart + (height - START_OFFSET)
+    // because height includes START_OFFSET padding at the top
+    const swimlaneEnd = swimlaneStart + swimlaneHeight - START_OFFSET;
+
+    patterns.forEach((pattern) => {
+      if (pattern.typeId === type.id) {
+        const pos = positions.get(pattern.id);
+        if (pos) {
+          const nodeTop = pos.y - NODE_HEIGHT / 2;
+          const nodeBottom = pos.y + NODE_HEIGHT / 2;
+
+          if (nodeTop < swimlaneStart || nodeBottom > swimlaneEnd) {
+            console.warn(
+              `[Timeline] Pattern ${pattern.id} (${pattern.name}) exceeds swimlane bounds! ` +
+                `Node: [${nodeTop.toFixed(1)}, ${nodeBottom.toFixed(1)}], ` +
+                `Swimlane ${type.id}: [${swimlaneStart.toFixed(1)}, ${swimlaneEnd.toFixed(1)}]`,
+            );
+          }
+        }
+      }
+    });
+  });
+
   return { cumulativeY, adjustedSwimlaneStarts };
 }
 
@@ -297,7 +341,9 @@ function buildSwimlaneInformationDynamic(
   patternTypes: PatternType[],
 ): SwimlaneInfo[] {
   return patternTypes.map((type) => ({
-    y: swimlaneStarts.get(type.id) || 0,
+    // swimlaneStarts contains where nodes start (after START_OFFSET padding)
+    // Rectangle should be drawn from the actual top (before padding)
+    y: (swimlaneStarts.get(type.id) || 0) - START_OFFSET,
     height: swimlaneHeights.get(type.id) || 0,
     typeId: type.id,
     color: type.color,
