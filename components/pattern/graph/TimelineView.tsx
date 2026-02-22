@@ -12,7 +12,6 @@ import { PatternType } from "@/components/pattern/types/PatternType";
 import { WCSPatternType } from "@/components/pattern/types/WCSPatternEnums";
 import { PaletteColor } from "@/components/common/ColorPalette";
 import {
-  detectCircularDependencies,
   generateEdges,
   generateOrthogonalPath,
   generateSkipLevelPath,
@@ -29,6 +28,7 @@ import {
   SkipLevelEdgeInfo,
   SwimlaneInfo,
 } from "./utils/TimelineGraphUtils";
+import { detectCircularDependencies } from "@/components/pattern/graph/utils/GenericGraphUtils";
 
 interface TimelineViewProps {
   patterns: Pattern[];
@@ -55,7 +55,7 @@ const TimelineView: React.FC<TimelineViewProps> = ({
     skipLevelEdges,
     typeColorMap,
   } = useMemo(() => {
-    detectCircularDependencies(patterns as any);
+    detectCircularDependencies(patterns);
 
     const minBaseHeight = MIN_PATTERN_HEIGHT * MIN_PATTERNS_VISIBLE;
     const baseHeight = Math.max(screenHeight, minBaseHeight);

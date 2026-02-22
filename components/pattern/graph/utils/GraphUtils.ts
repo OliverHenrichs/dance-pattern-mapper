@@ -19,50 +19,6 @@ export function generateEdges(patterns: Pattern[]) {
 }
 
 /**
- * Detect circular dependencies in the pattern graph.
- * Returns an array of cycles (each cycle is an array of pattern ids).
- * Logs warnings for each detected cycle.
- */
-export function detectCircularDependencies(patterns: Pattern[]): number[][] {
-  const cycles: number[][] = [];
-  const patternMap = new Map<number, Pattern>();
-  patterns.forEach((p) => patternMap.set(p.id, p));
-
-  function findCycles(
-    patternId: number,
-    visited: Set<number>,
-    path: number[],
-  ): void {
-    if (visited.has(patternId)) {
-      // Found a cycle
-      const cycleStart = path.indexOf(patternId);
-      if (cycleStart !== -1) {
-        const cycle = path.slice(cycleStart);
-        cycles.push(cycle);
-        console.warn(
-          `Warning: Circular dependency detected between patterns: ${cycle.join(" -> ")}`,
-        );
-      }
-      return;
-    }
-
-    const pattern = patternMap.get(patternId);
-    if (!pattern) return;
-
-    visited.add(patternId);
-    path.push(patternId);
-
-    pattern.prerequisites.forEach((prereqId) => {
-      findCycles(prereqId, new Set(visited), [...path]);
-    });
-  }
-
-  patterns.forEach((p) => findCycles(p.id, new Set(), []));
-
-  return cycles;
-}
-
-/**
  * Represents a side of a rectangular node
  */
 enum NodeSide {
@@ -70,60 +26,6 @@ enum NodeSide {
   RIGHT = "right",
   BOTTOM = "bottom",
   LEFT = "left",
-}
-
-/**
- * Calculate the prerequisite depth for each pattern using DFS.
- * Depth is the longest chain from foundational patterns (prerequisites: []).
- * Returns a map of pattern id -> depth.
- */
-export function calculatePrerequisiteDepthMap(
-  patterns: Pattern[],
-): Map<number, number> {
-  const depthMap = new Map<number, number>();
-  const patternMap = new Map<number, Pattern>();
-
-  // Create pattern lookup map
-  patterns.forEach((pattern) => patternMap.set(pattern.id, pattern));
-
-  function getDepth(
-    patternId: number,
-    visited: Set<number> = new Set(),
-  ): number {
-    // Check if already calculated
-    if (depthMap.has(patternId)) {
-      return depthMap.get(patternId)!;
-    }
-
-    // Detect circular dependency
-    if (visited.has(patternId)) {
-      return 0; // Break cycle
-    }
-
-    const pattern = patternMap.get(patternId);
-    if (!pattern) return 0;
-
-    // Foundational pattern (no prerequisites)
-    if (pattern.prerequisites.length === 0) {
-      depthMap.set(patternId, 0);
-      return 0;
-    }
-
-    // Calculate depth as max prerequisite depth + 1
-    visited.add(patternId);
-    const maxPrereqDepth = Math.max(
-      ...pattern.prerequisites.map((prereqId) => getDepth(prereqId, visited)),
-    );
-    const depth = maxPrereqDepth + 1;
-    depthMap.set(patternId, depth);
-
-    return depth;
-  }
-
-  // Calculate depth for all patterns
-  patterns.forEach((p) => getDepth(p.id));
-
-  return depthMap;
 }
 
 /**

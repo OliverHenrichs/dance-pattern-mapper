@@ -1,10 +1,3 @@
-import { NODE_WIDTH } from "@/components/pattern/graph/types/Constants";
-
-export interface LayoutPosition {
-  x: number;
-  y: number;
-}
-
 // Type that can be either Pattern or WCSPattern (for backward compatibility)
 interface PatternLike {
   id: number;
@@ -67,16 +60,6 @@ export function detectCircularDependencies<T extends PatternLike>(
 }
 
 /**
- * Represents a side of a rectangular node
- */
-enum NodeSide {
-  TOP = "top",
-  RIGHT = "right",
-  BOTTOM = "bottom",
-  LEFT = "left",
-}
-
-/**
  * Calculate the prerequisite depth for each pattern using DFS.
  * Depth is the longest chain from foundational patterns (prerequisites: []).
  * Returns a map of pattern id -> depth.
@@ -128,66 +111,4 @@ export function calculatePrerequisiteDepthMap<T extends PatternLike>(
   patterns.forEach((p) => getDepth(p.id));
 
   return depthMap;
-}
-
-/**
- * Calculate the entry and exit points on the perimeter of a rectangular node.
- * Entry is always on the left side, exit on the right side for horizontal flow.
- */
-function getNodeConnectorPoints(pos: LayoutPosition): {
-  entry: { x: number; y: number };
-  exit: { x: number; y: number };
-} {
-  return {
-    entry: { x: pos.x - NODE_WIDTH / 2, y: pos.y },
-    exit: { x: pos.x + NODE_WIDTH / 2, y: pos.y },
-  };
-}
-
-/**
- * Generate orthogonal path between two nodes (from -> to).
- * Path starts from exit point of fromPos and ends at entry point of toPos.
- */
-export function generateOrthogonalPath(
-  fromPos: LayoutPosition,
-  toPos: LayoutPosition,
-): string {
-  const { exit: start } = getNodeConnectorPoints(fromPos);
-  const { entry: end } = getNodeConnectorPoints(toPos);
-
-  // Horizontal gap and vertical gap
-  const hGap = end.x - start.x;
-  const vGap = end.y - start.y;
-
-  // If nodes are horizontally aligned (same y) or nearly so
-  if (Math.abs(vGap) < 10) {
-    return `M ${start.x} ${start.y} L ${end.x} ${end.y}`;
-  }
-
-  // Standard orthogonal routing: horizontal -> vertical -> horizontal
-  const midX = start.x + hGap / 2;
-
-  return `M ${start.x} ${start.y} L ${midX} ${start.y} L ${midX} ${end.y} L ${end.x} ${end.y}`;
-}
-
-/**
- * Generate path for skip-level edges that route through cleared space.
- */
-export function generateSkipLevelPath(
-  fromPos: LayoutPosition,
-  toPos: LayoutPosition,
-  routingY: number,
-  firstIntermediateX: number,
-  lastIntermediateX: number,
-): string {
-  const { exit: start } = getNodeConnectorPoints(fromPos);
-  const { entry: end } = getNodeConnectorPoints(toPos);
-
-  // Route down, across, then up
-  return `M ${start.x} ${start.y} 
-          L ${firstIntermediateX} ${start.y} 
-          L ${firstIntermediateX} ${routingY} 
-          L ${lastIntermediateX} ${routingY} 
-          L ${lastIntermediateX} ${end.y} 
-          L ${end.x} ${end.y}`;
 }

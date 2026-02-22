@@ -1,8 +1,6 @@
-import {
-  calculatePrerequisiteDepthMap,
-  LayoutPosition,
-} from "@/components/pattern/graph/utils/GraphUtils";
+import { LayoutPosition } from "@/components/pattern/graph/utils/GraphUtils";
 import { Pattern } from "@/components/pattern/types/PatternList";
+import { calculatePrerequisiteDepthMap } from "@/components/pattern/graph/utils/GenericGraphUtils";
 
 /**
  * Calculate layout positions for network graph view.
