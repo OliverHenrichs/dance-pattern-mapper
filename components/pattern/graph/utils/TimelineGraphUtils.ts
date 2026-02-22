@@ -228,7 +228,6 @@ function positionPatternsByPrerequisitesDynamic(
       const stackIndex = depthTypeCounter.get(key) || 0;
       depthTypeCounter.set(key, stackIndex + 1);
 
-      // swimlaneStart not the top of the s
       const baseY = (swimlaneStarts.get(type.id) || 0) + START_OFFSET * 0.25;
       const y = baseY + stackIndex * VERTICAL_STACK_SPACING;
 
@@ -303,33 +302,6 @@ function recalculateSwimlaneYPositionsDynamic(
 
     const height = swimlaneHeights.get(type.id) || 0;
     cumulativeY += height;
-  });
-
-  // Validate that all patterns are within their swimlane bounds
-  patternTypes.forEach((type) => {
-    const swimlaneStart = adjustedSwimlaneStarts.get(type.id) || 0;
-    const swimlaneHeight = swimlaneHeights.get(type.id) || 0;
-    // Nodes can occupy from swimlaneStart to swimlaneStart + (height - START_OFFSET)
-    // because height includes START_OFFSET padding at the top
-    const swimlaneEnd = swimlaneStart + swimlaneHeight - START_OFFSET;
-
-    patterns.forEach((pattern) => {
-      if (pattern.typeId === type.id) {
-        const pos = positions.get(pattern.id);
-        if (pos) {
-          const nodeTop = pos.y - NODE_HEIGHT / 2;
-          const nodeBottom = pos.y + NODE_HEIGHT / 2;
-
-          if (nodeTop < swimlaneStart || nodeBottom > swimlaneEnd) {
-            console.warn(
-              `[Timeline] Pattern ${pattern.id} (${pattern.name}) exceeds swimlane bounds! ` +
-                `Node: [${nodeTop.toFixed(1)}, ${nodeBottom.toFixed(1)}], ` +
-                `Swimlane ${type.id}: [${swimlaneStart.toFixed(1)}, ${swimlaneEnd.toFixed(1)}]`,
-            );
-          }
-        }
-      }
-    });
   });
 
   return { cumulativeY, adjustedSwimlaneStarts };
