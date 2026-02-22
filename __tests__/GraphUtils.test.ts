@@ -1,10 +1,10 @@
+import { generateEdges } from "@/components/pattern/graph/utils/GraphUtils";
+import { WCSPatternLevel } from "@/components/pattern/types/WCSPatternEnums";
+import { Pattern } from "@/components/pattern/types/PatternList";
 import {
   calculatePrerequisiteDepthMap,
   detectCircularDependencies,
-  generateEdges,
-} from "@/components/pattern/graph/utils/GraphUtils";
-import { WCSPatternLevel } from "@/components/pattern/types/WCSPatternEnums";
-import { Pattern } from "@/components/pattern/types/PatternList";
+} from "@/components/pattern/graph/utils/GenericGraphUtils";
 
 function createTestWCSPattern(overrides?: Partial<Pattern>): Pattern {
   return {
