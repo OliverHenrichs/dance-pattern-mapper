@@ -50,7 +50,7 @@ const GraphViewContainer: React.FC<GraphViewContainerProps> = ({
         )}
       </View>
 
-      <Legend palette={palette} />
+      <Legend palette={palette} patternTypes={patternTypes} />
     </>
   );
 };

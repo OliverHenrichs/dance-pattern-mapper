@@ -2,13 +2,14 @@ import React, { useState } from "react";
 import { StyleSheet, Text, TouchableOpacity, View } from "react-native";
 import { useTranslation } from "react-i18next";
 import { PaletteColor } from "@/components/common/ColorPalette";
-import { WCSPatternType } from "@/components/pattern/types/WCSPatternEnums";
+import { PatternType } from "@/components/pattern/types/PatternType";
 
 interface LegendProps {
   palette: Record<PaletteColor, string>;
+  patternTypes: PatternType[];
 }
 
-const Legend: React.FC<LegendProps> = ({ palette }) => {
+const Legend: React.FC<LegendProps> = ({ palette, patternTypes }) => {
   const { t } = useTranslation();
   const [isExpanded, setIsExpanded] = useState(false);
   const styles = getStyles(palette);
@@ -36,42 +37,12 @@ const Legend: React.FC<LegendProps> = ({ palette }) => {
       {/* Type Colors */}
       <View style={styles.section}>
         <Text style={styles.sectionTitle}>{t("typeColors")}:</Text>
-        <View style={styles.legendItem}>
-          <View
-            style={[
-              styles.colorBox,
-              { borderColor: palette[PaletteColor.Primary] },
-            ]}
-          />
-          <Text style={styles.legendText}>{WCSPatternType.PUSH} lane</Text>
-        </View>
-        <View style={styles.legendItem}>
-          <View
-            style={[
-              styles.colorBox,
-              { borderColor: palette[PaletteColor.Border] },
-            ]}
-          />
-          <Text style={styles.legendText}>{WCSPatternType.PASS} lane</Text>
-        </View>
-        <View style={styles.legendItem}>
-          <View
-            style={[
-              styles.colorBox,
-              { borderColor: palette[PaletteColor.Accent] },
-            ]}
-          />
-          <Text style={styles.legendText}>{WCSPatternType.WHIP} lane</Text>
-        </View>
-        <View style={styles.legendItem}>
-          <View
-            style={[
-              styles.colorBox,
-              { borderColor: palette[PaletteColor.Error] },
-            ]}
-          />
-          <Text style={styles.legendText}>{WCSPatternType.TUCK} lane</Text>
-        </View>
+        {patternTypes.map((type) => (
+          <View style={styles.legendItem} key={type.id}>
+            <View style={[styles.colorBox, { borderColor: type.color }]} />
+            <Text style={styles.legendText}>{type.slug} lane</Text>
+          </View>
+        ))}
       </View>
 
       {/* Level Shading */}
