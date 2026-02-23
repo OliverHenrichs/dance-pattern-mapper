@@ -8,7 +8,7 @@ import {
   createDrawerNavigator,
   DrawerContentComponentProps,
   DrawerContentScrollView,
-  DrawerItemList,
+  DrawerItem,
 } from "@react-navigation/drawer";
 import { SafeAreaView } from "react-native-safe-area-context";
 import { StyleSheet, Text, View } from "react-native";
@@ -75,6 +75,36 @@ function CustomDrawerContent(props: DrawerContentComponentProps) {
   const { colorScheme } = useThemeContext();
   const palette = getPalette(colorScheme);
   const styles = getStyles(palette);
+
+  const activeRouteName = props.state.routes[props.state.index]?.name ?? "";
+
+  const mainRoutes = props.state.routes.filter((r) => r.name !== "Settings");
+  const settingsRoutes = props.state.routes.filter(
+    (r) => r.name === "Settings",
+  );
+
+  const renderItem = (route: (typeof props.state.routes)[number]) => {
+    const isFocused = route.name === activeRouteName;
+    const label = props.descriptors[route.key]?.options?.title ?? route.name;
+    return (
+      <DrawerItem
+        key={route.key}
+        label={label}
+        focused={isFocused}
+        activeTintColor={palette[PaletteColor.Primary]}
+        inactiveTintColor={palette[PaletteColor.SecondaryText]}
+        labelStyle={{
+          fontSize: 16,
+          fontWeight: "500",
+          color: palette[PaletteColor.PrimaryText],
+        }}
+        onPress={() => {
+          props.navigation.navigate(route.name);
+        }}
+      />
+    );
+  };
+
   return (
     <DrawerContentScrollView
       {...props}
@@ -87,7 +117,9 @@ function CustomDrawerContent(props: DrawerContentComponentProps) {
       <View style={styles.drawerHeaderContainer}>
         <Text style={styles.drawerHeader}>{t("menu")}</Text>
       </View>
-      <DrawerItemList {...props} />
+      {mainRoutes.map(renderItem)}
+      <View style={styles.divider} />
+      {settingsRoutes.map(renderItem)}
     </DrawerContentScrollView>
   );
 }
@@ -113,6 +145,13 @@ function getStyles(palette: Record<PaletteColor, string>) {
     drawerStyle: {
       width: 180,
       backgroundColor: palette[PaletteColor.Background],
+    },
+    divider: {
+      height: 1,
+      marginHorizontal: 16,
+      marginVertical: 8,
+      backgroundColor: palette[PaletteColor.SecondaryText],
+      opacity: 0.3,
     },
   });
 }
