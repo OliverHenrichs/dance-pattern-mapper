@@ -78,8 +78,12 @@
   "deletePatternListConfirm": "Delete pattern list '{{name}}'?",
   "errorCreatingList": "Failed to create pattern list",
   "errorDeletingList": "Failed to delete pattern list",
-  "chooseTemplate": "Choose a Template",
-  "chooseTemplateHint": "Select a dance style to get started with preset pattern types",
+  "chooseTemplate": "Choose a Starting Point",
+  "chooseTemplateHint": "Pick a template to get started — you can customise everything on the next screen",
+  "configureYourList": "Configure Your List",
+  "configureListHint": "Edit the name, pattern types and starting patterns below",
+  "templateBlankName": "Blank",
+  "templateBlankDescription": "Start from scratch — add your own pattern types",
   "nameYourList": "Name Your List",
   "customizeListName": "Customize the name for your {{template}} list",
   "listName": "List Name",
@@ -112,5 +116,11 @@
   "templateTangoName": "Argentine Tango",
   "templateTangoDescription": "5 pattern types: Walk, Ochos, Giros, Sacadas, Boleos",
   "templateLindyName": "Lindy Hop",
-  "templateLindyDescription": "4 pattern types: Swing-Out, Circle, Tuck-Turn, Aerial"
+  "templateLindyDescription": "4 pattern types: Swing-Out, Circle, Tuck-Turn, Aerial",
+  "addPatternType": "Add type",
+  "typeName": "Type name",
+  "startingPatterns": "Starting Patterns",
+  "startingPatternsHint": "These foundational patterns will be added for you — uncheck any you don't want",
+  "duplicateTypeSlug": "Name already used",
+  "emptyTypeSlug": "Name cannot be empty"
 }

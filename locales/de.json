@@ -78,8 +78,12 @@
   "deletePatternListConfirm": "Figurenliste '{{name}}' löschen?",
   "errorCreatingList": "Fehler beim Erstellen der Figurenliste",
   "errorDeletingList": "Fehler beim Löschen der Figurenliste",
-  "chooseTemplate": "Vorlage auswählen",
-  "chooseTemplateHint": "Wähle einen Tanzstil aus, um mit voreingestellten Figurentypen zu beginnen",
+  "chooseTemplate": "Startpunkt wählen",
+  "chooseTemplateHint": "Wähle eine Vorlage – alles kann im nächsten Schritt angepasst werden",
+  "configureYourList": "Liste konfigurieren",
+  "configureListHint": "Name, Figurentypen und Startfiguren unten bearbeiten",
+  "templateBlankName": "Leer",
+  "templateBlankDescription": "Von Grund auf neu – eigene Figurentypen hinzufügen",
   "nameYourList": "Liste benennen",
   "customizeListName": "Passe den Namen für deine {{template}}-Liste an",
   "listName": "Listenname",
@@ -112,5 +116,11 @@
   "templateTangoName": "Tango Argentino",
   "templateTangoDescription": "5 Figurentypen: Walk, Ochos, Giros, Sacadas, Boleos",
   "templateLindyName": "Lindy Hop",
-  "templateLindyDescription": "4 Figurentypen: Swing-Out, Circle, Tuck-Turn, Aerial"
+  "templateLindyDescription": "4 Figurentypen: Swing-Out, Circle, Tuck-Turn, Aerial",
+  "addPatternType": "Typ hinzufügen",
+  "typeName": "Typname",
+  "startingPatterns": "Startfiguren",
+  "startingPatternsHint": "Diese Grundfiguren werden für dich hinzugefügt – deaktiviere, was du nicht möchtest",
+  "duplicateTypeSlug": "Name bereits verwendet",
+  "emptyTypeSlug": "Name darf nicht leer sein"
 }

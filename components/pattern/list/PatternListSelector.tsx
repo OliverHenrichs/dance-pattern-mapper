@@ -8,11 +8,15 @@ import {
   View,
 } from "react-native";
 import { useFocusEffect } from "@react-navigation/native";
-import { PatternList } from "@/components/pattern/types/PatternList";
+import {
+  NewPattern,
+  PatternList,
+} from "@/components/pattern/types/PatternList";
 import {
   deletePatternList,
   loadAllPatternLists,
   savePatternList,
+  savePatterns,
 } from "@/components/pattern/data/PatternListStorage";
 import { useActivePatternList } from "@/components/pattern/context/ActivePatternListContext";
 import { useThemeContext } from "@/components/common/ThemeContext";
@@ -83,10 +87,19 @@ const PatternListSelector: React.FC<{ navigation: any }> = ({ navigation }) => {
     );
   };
 
-  const handleCreateList = async (newList: PatternList) => {
+  const handleCreateList = async (
+    newList: PatternList,
+    initialPatterns: NewPattern[],
+  ) => {
     try {
       console.log("Creating new pattern list:", newList.id, newList.name);
       await savePatternList(newList);
+      if (initialPatterns.length > 0) {
+        await savePatterns(
+          newList.id,
+          initialPatterns.map((p, i) => ({ ...p, id: i + 1 })),
+        );
+      }
       await loadLists();
       await setActiveList(newList);
       navigation.navigate("Patterns");
