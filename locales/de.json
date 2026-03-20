@@ -122,5 +122,9 @@
   "startingPatterns": "Startfiguren",
   "startingPatternsHint": "Diese Grundfiguren werden für dich hinzugefügt – deaktiviere, was du nicht möchtest",
   "duplicateTypeSlug": "Name bereits verwendet",
-  "emptyTypeSlug": "Name darf nicht leer sein"
+  "emptyTypeSlug": "Name darf nicht leer sein",
+  "editPatternList": "Figurenliste bearbeiten",
+  "saveChanges": "Speichern",
+  "listActions": "Listenaktionen",
+  "cannotRemoveTypeHasPatterns": "Kann nicht entfernt werden – Typ hat Figuren"
 }

@@ -1,4 +1,4 @@
-import React, { useState } from "react";
+import React, { useEffect, useState } from "react";
 import {
   Modal,
   Pressable,
@@ -40,6 +40,12 @@ interface PatternListTemplateModalProps {
   visible: boolean;
   onClose: () => void;
   onCreateList: (list: PatternList, initialPatterns: NewPattern[]) => void;
+  /** When set the modal opens straight into the configure step in edit mode */
+  editList?: PatternList;
+  /** Type IDs that have at least one pattern — their ✕ button is disabled */
+  usedTypeIds?: Set<string>;
+  /** Called instead of onCreateList when editing an existing list */
+  onSaveList?: (updatedList: PatternList) => void;
 }
 
 interface Template {
@@ -102,11 +108,16 @@ const PatternListTemplateModal: React.FC<PatternListTemplateModalProps> = ({
   visible,
   onClose,
   onCreateList,
+  editList,
+  usedTypeIds,
+  onSaveList,
 }) => {
   const { t } = useTranslation();
   const { colorScheme } = useThemeContext();
   const palette = getPalette(colorScheme);
   const styles = getStyles(palette);
+
+  const isEditMode = !!editList; // this operator ensures editList is not undefined or null, treating both as "not in edit mode"
 
   type Step = "pick" | "configure";
   const [step, setStep] = useState<Step>("pick");
@@ -117,6 +128,26 @@ const PatternListTemplateModal: React.FC<PatternListTemplateModalProps> = ({
   const [draftTypes, setDraftTypes] = useState<PatternType[]>([]);
   const [draftPatterns, setDraftPatterns] = useState<DraftPatternEntry[]>([]);
   const [colorPopoverId, setColorPopoverId] = useState<string | null>(null);
+
+  // When the modal opens in edit mode, seed draft state from the existing list
+  useEffect(() => {
+    if (visible && isEditMode && editList) {
+      setDraftName(editList.name);
+      setDraftTypes(editList.patternTypes.map((pt) => ({ ...pt })));
+      setDraftPatterns([]);
+      setColorPopoverId(null);
+      setStep("configure");
+    }
+    if (!visible) {
+      // Reset everything when closed
+      setStep("pick");
+      setSelectedTemplate(null);
+      setDraftName("");
+      setDraftTypes([]);
+      setDraftPatterns([]);
+      setColorPopoverId(null);
+    }
+  }, [visible, isEditMode, editList]);
 
   // ── Slug validation ────────────────────────────────────────────────────────
   const slugErrors: Record<string, string> = {};
@@ -152,31 +183,38 @@ const PatternListTemplateModal: React.FC<PatternListTemplateModalProps> = ({
       ...dt,
       slug: normalizeSlug(dt.slug),
     }));
-    const newList: PatternList = {
-      id: generateUUID(),
-      name: draftName.trim(),
-      patternTypes: finalTypes,
-      createdAt: now,
-      updatedAt: now,
-    };
-    const includedPatterns = draftPatterns
-      .filter((e) => e.included)
-      .map((e) => e.templatePattern);
-    const initialPatterns = resolveTemplatePatterns(
-      includedPatterns,
-      finalTypes,
-    );
-    onCreateList(newList, initialPatterns);
+
+    if (isEditMode && editList && onSaveList) {
+      // ── Edit path ─────────────────────────────────────────────────────
+      const updatedList: PatternList = {
+        ...editList,
+        name: draftName.trim(),
+        patternTypes: finalTypes,
+        updatedAt: now,
+      };
+      onSaveList(updatedList);
+    } else {
+      // ── Create path ───────────────────────────────────────────────────
+      const newList: PatternList = {
+        id: generateUUID(),
+        name: draftName.trim(),
+        patternTypes: finalTypes,
+        createdAt: now,
+        updatedAt: now,
+      };
+      const includedPatterns = draftPatterns
+        .filter((e) => e.included)
+        .map((e) => e.templatePattern);
+      const initialPatterns = resolveTemplatePatterns(
+        includedPatterns,
+        finalTypes,
+      );
+      onCreateList(newList, initialPatterns);
+    }
     handleClose();
   };
 
   const handleClose = () => {
-    setStep("pick");
-    setSelectedTemplate(null);
-    setDraftName("");
-    setDraftTypes([]);
-    setDraftPatterns([]);
-    setColorPopoverId(null);
     onClose();
   };
 
@@ -304,37 +342,54 @@ const PatternListTemplateModal: React.FC<PatternListTemplateModalProps> = ({
         <Text style={[styles.label, { marginTop: 20 }]}>
           {t("patternTypes")}
         </Text>
-        {draftTypes.map((dt) => (
-          <View key={dt.id} style={styles.typeRow}>
-            {/* Color dot → popover */}
-            <TouchableOpacity
-              onPress={(e) => {
-                e.stopPropagation();
-                setColorPopoverId((prev) => (prev === dt.id ? null : dt.id));
-              }}
-              style={[styles.typeColorDot, { backgroundColor: dt.color }]}
-            />
-            {colorPopoverId === dt.id && renderColorPopover(dt.id, dt.color)}
+        {draftTypes.map((dt) => {
+          const isInUse = usedTypeIds?.has(dt.id) ?? false;
+          return (
+            <View key={dt.id} style={styles.typeRow}>
+              {/* Color dot → popover */}
+              <TouchableOpacity
+                onPress={(e) => {
+                  e.stopPropagation();
+                  setColorPopoverId((prev) => (prev === dt.id ? null : dt.id));
+                }}
+                style={[styles.typeColorDot, { backgroundColor: dt.color }]}
+              />
+              {colorPopoverId === dt.id && renderColorPopover(dt.id, dt.color)}
 
-            <TextInput
-              style={[
-                styles.typeSlugInput,
-                slugErrors[dt.id] ? styles.typeSlugInputError : undefined,
-              ]}
-              value={dt.slug}
-              onChangeText={(v) => handleTypeSlugChange(dt.id, v)}
-              placeholder={t("typeName")}
-              placeholderTextColor={palette[PaletteColor.SecondaryText]}
-              onFocus={() => setColorPopoverId(null)}
-            />
-            <TouchableOpacity
-              style={styles.removeTypeButton}
-              onPress={() => handleRemoveType(dt.id)}
-            >
-              <Text style={styles.removeTypeButtonText}>✕</Text>
-            </TouchableOpacity>
-          </View>
-        ))}
+              <TextInput
+                style={[
+                  styles.typeSlugInput,
+                  slugErrors[dt.id] ? styles.typeSlugInputError : undefined,
+                ]}
+                value={dt.slug}
+                onChangeText={(v) => handleTypeSlugChange(dt.id, v)}
+                placeholder={t("typeName")}
+                placeholderTextColor={palette[PaletteColor.SecondaryText]}
+                onFocus={() => setColorPopoverId(null)}
+              />
+              <TouchableOpacity
+                style={[
+                  styles.removeTypeButton,
+                  isInUse && styles.removeTypeButtonDisabled,
+                ]}
+                onPress={() => !isInUse && handleRemoveType(dt.id)}
+                disabled={isInUse}
+                accessibilityLabel={
+                  isInUse ? t("cannotRemoveTypeHasPatterns") : undefined
+                }
+              >
+                <Text
+                  style={[
+                    styles.removeTypeButtonText,
+                    isInUse && styles.removeTypeButtonTextDisabled,
+                  ]}
+                >
+                  ✕
+                </Text>
+              </TouchableOpacity>
+            </View>
+          );
+        })}
         {/* Slug error messages */}
         {draftTypes.map((dt) =>
           slugErrors[dt.id] ? (
@@ -414,9 +469,11 @@ const PatternListTemplateModal: React.FC<PatternListTemplateModalProps> = ({
         <View style={[styles.buttonRow, { marginTop: 24 }]}>
           <TouchableOpacity
             style={styles.backButton}
-            onPress={() => setStep("pick")}
+            onPress={isEditMode ? handleClose : () => setStep("pick")}
           >
-            <Text style={styles.backButtonText}>{t("back")}</Text>
+            <Text style={styles.backButtonText}>
+              {isEditMode ? t("cancel") : t("back")}
+            </Text>
           </TouchableOpacity>
           <TouchableOpacity
             style={[
@@ -426,20 +483,14 @@ const PatternListTemplateModal: React.FC<PatternListTemplateModalProps> = ({
             onPress={handleCreate}
             disabled={!canCreate}
           >
-            <Text style={styles.createButtonText}>{t("create")}</Text>
+            <Text style={styles.createButtonText}>
+              {isEditMode ? t("saveChanges") : t("create")}
+            </Text>
           </TouchableOpacity>
         </View>
       </ScrollView>
     </Pressable>
   );
-  console.log("Before modal ${step}", {
-    step,
-    draftName,
-    draftTypes,
-    draftPatterns,
-  });
-
-  console.log(TEMPLATES.map((t) => JSON.stringify(t)));
   return (
     <Modal
       visible={visible}
@@ -608,8 +659,14 @@ const getStyles = (palette: Record<PaletteColor, string>) =>
       borderWidth: 1,
       borderColor: palette[PaletteColor.Border],
     },
+    removeTypeButtonDisabled: {
+      opacity: 0.35,
+    },
     removeTypeButtonText: {
       fontSize: 12,
+      color: palette[PaletteColor.SecondaryText],
+    },
+    removeTypeButtonTextDisabled: {
       color: palette[PaletteColor.SecondaryText],
     },
     addTypeButton: {

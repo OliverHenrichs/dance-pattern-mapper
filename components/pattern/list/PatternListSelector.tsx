@@ -15,6 +15,7 @@ import {
 import {
   deletePatternList,
   loadAllPatternLists,
+  loadPatterns,
   savePatternList,
   savePatterns,
 } from "@/components/pattern/data/PatternListStorage";
@@ -28,6 +29,7 @@ import AppHeader from "@/components/common/AppHeader";
 import PlusButton from "@/components/common/PlusButton";
 import SectionHeader from "@/components/common/SectionHeader";
 import PatternListTemplateModal from "./PatternListTemplateModal";
+import BottomSheet from "@/components/common/BottomSheet";
 
 const PatternListSelector: React.FC<{ navigation: any }> = ({ navigation }) => {
   const { t } = useTranslation();
@@ -40,6 +42,11 @@ const PatternListSelector: React.FC<{ navigation: any }> = ({ navigation }) => {
   const [patternLists, setPatternLists] = useState<PatternList[]>([]);
   const [isLoading, setIsLoading] = useState(false);
   const [showTemplateModal, setShowTemplateModal] = useState(false);
+  const [listActionTarget, setListActionTarget] = useState<PatternList | null>(
+    null,
+  );
+  const [editingList, setEditingList] = useState<PatternList | null>(null);
+  const [usedTypeIds, setUsedTypeIds] = useState<Set<string>>(new Set());
 
   const loadLists = useCallback(async () => {
     setIsLoading(true);
@@ -65,6 +72,7 @@ const PatternListSelector: React.FC<{ navigation: any }> = ({ navigation }) => {
   };
 
   const handleDeleteList = (list: PatternList) => {
+    setListActionTarget(null);
     Alert.alert(
       t("deletePatternList"),
       t("deletePatternListConfirm", { name: list.name }),
@@ -85,6 +93,31 @@ const PatternListSelector: React.FC<{ navigation: any }> = ({ navigation }) => {
         },
       ],
     );
+  };
+
+  const handleEditList = async (list: PatternList) => {
+    setListActionTarget(null);
+    try {
+      const patterns = await loadPatterns(list.id);
+      const ids = new Set(patterns.map((p) => p.typeId));
+      setUsedTypeIds(ids);
+      setEditingList(list);
+    } catch (error) {
+      console.error("Error loading patterns for edit:", error);
+    }
+  };
+
+  const handleSaveList = async (updatedList: PatternList) => {
+    try {
+      await savePatternList(updatedList);
+      await loadLists();
+      await refreshActiveList();
+    } catch (error) {
+      console.error("Error saving pattern list:", error);
+      Alert.alert(t("error"), t("errorCreatingList"));
+    } finally {
+      setEditingList(null);
+    }
   };
 
   const handleCreateList = async (
@@ -116,7 +149,7 @@ const PatternListSelector: React.FC<{ navigation: any }> = ({ navigation }) => {
       <TouchableOpacity
         style={[styles.listCard, isActive && styles.listCardActive]}
         onPress={() => handleSelectList(item)}
-        onLongPress={() => handleDeleteList(item)}
+        onLongPress={() => setListActionTarget(item)}
       >
         <View style={styles.listCardContent}>
           <Text style={[styles.listName, isActive && styles.listNameActive]}>
@@ -169,6 +202,57 @@ const PatternListSelector: React.FC<{ navigation: any }> = ({ navigation }) => {
           onClose={() => setShowTemplateModal(false)}
           onCreateList={handleCreateList}
         />
+
+        {/* ── Edit modal ───────────────────────────────────────────────── */}
+        <PatternListTemplateModal
+          visible={editingList !== null}
+          onClose={() => setEditingList(null)}
+          onCreateList={handleCreateList}
+          editList={editingList ?? undefined}
+          usedTypeIds={usedTypeIds}
+          onSaveList={handleSaveList}
+        />
+
+        {/* ── List action bottom sheet ─────────────────────────────────── */}
+        <BottomSheet
+          visible={listActionTarget !== null}
+          onClose={() => setListActionTarget(null)}
+          title={listActionTarget?.name ?? ""}
+          palette={palette}
+          maxHeight="30%"
+          minHeight="20%"
+        >
+          <View style={styles.actionSheetOptions}>
+            <TouchableOpacity
+              style={styles.actionSheetOption}
+              onPress={() =>
+                listActionTarget && handleEditList(listActionTarget)
+              }
+            >
+              <Text style={styles.actionSheetOptionText}>
+                {t("editPatternList")}
+              </Text>
+            </TouchableOpacity>
+            <TouchableOpacity
+              style={[
+                styles.actionSheetOption,
+                styles.actionSheetOptionDestructive,
+              ]}
+              onPress={() =>
+                listActionTarget && handleDeleteList(listActionTarget)
+              }
+            >
+              <Text
+                style={[
+                  styles.actionSheetOptionText,
+                  styles.actionSheetOptionTextDestructive,
+                ]}
+              >
+                {t("deletePatternList")}
+              </Text>
+            </TouchableOpacity>
+          </View>
+        </BottomSheet>
       </PageContainer>
     </View>
   );
@@ -252,6 +336,25 @@ const getStyles = (palette: Record<PaletteColor, string>) =>
       fontSize: 14,
       color: palette[PaletteColor.SecondaryText],
       textAlign: "center",
+    },
+    actionSheetOptions: {
+      gap: 4,
+    },
+    actionSheetOption: {
+      paddingVertical: 14,
+      paddingHorizontal: 4,
+      borderBottomWidth: 1,
+      borderBottomColor: palette[PaletteColor.Border],
+    },
+    actionSheetOptionDestructive: {
+      borderBottomWidth: 0,
+    },
+    actionSheetOptionText: {
+      fontSize: 16,
+      color: palette[PaletteColor.PrimaryText],
+    },
+    actionSheetOptionTextDestructive: {
+      color: palette[PaletteColor.Error],
     },
   });
 

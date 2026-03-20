@@ -122,5 +122,9 @@
   "startingPatterns": "Starting Patterns",
   "startingPatternsHint": "These foundational patterns will be added for you — uncheck any you don't want",
   "duplicateTypeSlug": "Name already used",
-  "emptyTypeSlug": "Name cannot be empty"
+  "emptyTypeSlug": "Name cannot be empty",
+  "editPatternList": "Edit Pattern List",
+  "saveChanges": "Save",
+  "listActions": "List Actions",
+  "cannotRemoveTypeHasPatterns": "Cannot remove — type has patterns"
 }
