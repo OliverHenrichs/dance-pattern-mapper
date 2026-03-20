@@ -1,4 +1,4 @@
-# Dance Pattern Mapper
+# DPM (Dance Pattern Mapper)
 
 [![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](LICENSE)
 [![Expo SDK](https://img.shields.io/badge/Expo-~54.0-blue?logo=expo)](https://expo.dev)
