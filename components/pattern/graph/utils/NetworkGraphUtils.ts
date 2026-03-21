@@ -46,13 +46,25 @@ export function calculateGraphLayout(
 
   // Fixed step between parent and child — independent of depth so all rings are even.
   const DEPTH_SPACING = 220;
-  const MIN_ANGLE_PER_NODE = Math.PI / 8; // 22.5° minimum gap per sibling
+  // Angular spread per child: inversely proportional to child count so that
+  // fewer children fan out wider and more children pack tighter.
+  // Clamped between MIN (avoid total collapse) and MAX (avoid full-circle wrap).
+  const MIN_ANGLE_PER_NODE = Math.PI / 12; // 15° — floor for dense groups
+  const MAX_ANGLE_PER_NODE = Math.PI / 1.5; // 60° — ceiling for sparse groups
 
   /**
    * Recursively place all children of `parentId` radially outward from `parentPos`
    * along `parentAngle`, then immediately recurse into each child's subtree (DFS).
-   * This ensures every subtree is fully laid out before moving to the next sibling,
-   * so nodes at the same visual ring are always direct siblings of the same parent.
+   *
+   * A pattern is only eligible as a child of `parentId` if:
+   *   (a) it lists `parentId` as a prerequisite,
+   *   (b) it has not been positioned yet, AND
+   *   (c) ALL of its other prerequisites are already positioned.
+   *
+   * Rule (c) ensures that a node which is both a direct child and a grandchild
+   * (e.g. node→grandchild AND node→child→grandchild) is NOT placed by `node`'s
+   * pass — because `child` is not yet positioned at that point — and instead
+   * falls naturally into `child`'s pass one ring further out.
    */
   function placeChildren(
     parentId: number,
@@ -60,7 +72,10 @@ export function calculateGraphLayout(
     parentAngle: number,
   ) {
     const children = patterns.filter(
-      (p) => p.prerequisites.includes(parentId) && !positioned.has(p.id),
+      (p) =>
+        p.prerequisites.includes(parentId) &&
+        !positioned.has(p.id) &&
+        p.prerequisites.every((prereqId) => positioned.has(prereqId)),
     );
 
     // Claim all children before recursing so that sibling cross-links don't
@@ -68,8 +83,14 @@ export function calculateGraphLayout(
     children.forEach((child) => positioned.add(child.id));
 
     const numChildren = children.length;
-    const spreadAngle =
-      numChildren > 1 ? (numChildren - 1) * MIN_ANGLE_PER_NODE : 0;
+    const anglePerNode = Math.min(
+      MAX_ANGLE_PER_NODE,
+      Math.max(
+        MIN_ANGLE_PER_NODE,
+        MAX_ANGLE_PER_NODE / Math.max(numChildren, 1),
+      ),
+    );
+    const spreadAngle = numChildren > 1 ? (numChildren - 1) * anglePerNode : 0;
 
     children.forEach((child, idx) => {
       const offsetAngle =
@@ -94,6 +115,39 @@ export function calculateGraphLayout(
       foundationalAngles[index],
     );
   });
+
+  // Deferred pass: some nodes require prerequisites from multiple DFS sectors
+  // and may still be unpositioned. Retry until no more nodes can be placed.
+  let progress = true;
+  while (progress) {
+    progress = false;
+    patterns.forEach((p) => {
+      if (
+        !positioned.has(p.id) &&
+        p.prerequisites.every((prereqId) => positioned.has(prereqId))
+      ) {
+        positioned.add(p.id);
+        progress = true;
+        // Place midpoint between all positioned prerequisites, then push outward.
+        const prereqPositions = p.prerequisites.map((id) => positions.get(id)!);
+        const avgX =
+          prereqPositions.reduce((s, pos) => s + pos.x, 0) /
+          prereqPositions.length;
+        const avgY =
+          prereqPositions.reduce((s, pos) => s + pos.y, 0) /
+          prereqPositions.length;
+        // Outward direction from ellipse center
+        const dx = avgX - centerX;
+        const dy = avgY - centerY;
+        const len = Math.sqrt(dx * dx + dy * dy) || 1;
+        positions.set(p.id, {
+          x: avgX + (dx / len) * DEPTH_SPACING,
+          y: avgY + (dy / len) * DEPTH_SPACING,
+        });
+        placeChildren(p.id, positions.get(p.id)!, Math.atan2(dy, dx));
+      }
+    });
+  }
 
   addSizeSafeguards(positions);
   return { positions, ellipseCenterX: centerX, ellipseCenterY: centerY };
