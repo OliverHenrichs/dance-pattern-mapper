@@ -13,6 +13,9 @@ interface GraphLayoutResult {
   positions: Map<number, LayoutPosition>;
   svgWidth: number;
   svgHeight: number;
+  /** Ellipse center in normalized SVG coordinates (post-padding offset). */
+  ellipseCenterX: number;
+  ellipseCenterY: number;
 }
 
 interface ContentBounds {
@@ -38,29 +41,40 @@ export function useGraphLayout<T extends Pattern>(
   return useMemo(() => {
     const initialWidth = width * INITIAL_WIDTH_MULTIPLIER;
     const initialHeight = height * INITIAL_HEIGHT_MULTIPLIER;
-    // Calculate pattern positions
-    const positions = calculateGraphLayout(
+
+    const layout = calculateGraphLayout(
       patterns as any,
       initialWidth,
       initialHeight,
     );
+    const { positions } = layout;
+
     if (positions.size === 0) {
-      // Empty graph case
       return {
         positions,
         svgWidth: initialWidth,
         svgHeight: initialHeight,
+        ellipseCenterX: initialWidth / 2,
+        ellipseCenterY: initialHeight / 2,
       };
     }
+
     const bounds = calculateContentBounds(positions);
     const dimensions = calculateSvgDimensions(
       bounds,
       initialWidth,
       initialHeight,
     );
+
+    // The normalization offset shifts all positions so minX/minY land at CONTENT_PADDING/2.
+    const offsetX = -bounds.minX + CONTENT_PADDING / 2;
+    const offsetY = -bounds.minY + CONTENT_PADDING / 2;
+
     return {
-      positions: normalizePositions(bounds, positions),
+      positions: normalizePositions(offsetX, offsetY, positions),
       ...dimensions,
+      ellipseCenterX: layout.ellipseCenterX + offsetX,
+      ellipseCenterY: layout.ellipseCenterY + offsetY,
     };
   }, [patterns, width, height]);
 }
@@ -94,21 +108,17 @@ function calculateSvgDimensions(
 ): { svgWidth: number; svgHeight: number } {
   const contentWidth = bounds.maxX - bounds.minX + CONTENT_PADDING;
   const contentHeight = bounds.maxY - bounds.minY + CONTENT_PADDING;
-  // SVG should be large enough to contain all patterns with padding
   const svgWidth = Math.max(initialWidth, contentWidth);
   const svgHeight = Math.max(initialHeight, contentHeight);
   return { svgWidth, svgHeight };
 }
 
 function normalizePositions(
-  bounds: ContentBounds,
+  offsetX: number,
+  offsetY: number,
   positions: Map<number, LayoutPosition>,
 ) {
-  // Ensure positions fit within the SVG with proper padding
-  // This prevents clipping on the left and top edges
   const normalizedPositions = new Map<number, LayoutPosition>();
-  const offsetX = -bounds.minX + CONTENT_PADDING / 2;
-  const offsetY = -bounds.minY + CONTENT_PADDING / 2;
   positions.forEach((pos, id) => {
     normalizedPositions.set(id, {
       x: pos.x + offsetX,

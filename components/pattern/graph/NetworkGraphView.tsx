@@ -1,5 +1,5 @@
 import React, { useMemo } from "react";
-import { StyleSheet, Text, View } from "react-native";
+import { StyleSheet, Text, View, useWindowDimensions } from "react-native";
 import { Pattern } from "@/components/pattern/types/PatternList";
 import { PatternType } from "@/components/pattern/types/PatternType";
 import { PaletteColor } from "@/components/common/ColorPalette";
@@ -22,7 +22,10 @@ const NetworkGraphView: React.FC<NetworkGraphViewProps> = ({
   palette,
   onNodeTap,
 }) => {
-  const { positions, svgWidth, svgHeight } = useGraphLayout(patterns);
+  const { positions, svgWidth, svgHeight, ellipseCenterX, ellipseCenterY } =
+    useGraphLayout(patterns);
+  const { width: viewportWidth, height: viewportHeight } =
+    useWindowDimensions();
 
   // Create type color map if patternTypes provided
   const typeColorMap = useMemo(() => {
@@ -41,6 +44,10 @@ const NetworkGraphView: React.FC<NetworkGraphViewProps> = ({
   return createNetworkGraph(
     svgWidth,
     svgHeight,
+    ellipseCenterX,
+    ellipseCenterY,
+    viewportWidth,
+    viewportHeight,
     patterns,
     positions,
     palette,
@@ -63,12 +70,24 @@ function createEmptyNetworkGraph(palette: Record<PaletteColor, string>) {
 function createNetworkGraph(
   svgWidth: number,
   svgHeight: number,
+  ellipseCenterX: number,
+  ellipseCenterY: number,
+  viewportWidth: number,
+  viewportHeight: number,
   patterns: Pattern[],
   positions: Map<number, LayoutPosition>,
   palette: Record<PaletteColor, string>,
   onNodeTap: (pattern: Pattern) => void,
   typeColorMap?: Map<string, string>,
 ) {
+  const INITIAL_ZOOM = 0.65;
+
+  // The zoomable view centers the SVG mid-point (svgWidth/2, svgHeight/2) in the
+  // viewport by default (offset 0,0). To center the ellipse instead, we shift by
+  // the difference between the SVG mid-point and the ellipse center, scaled by zoom.
+  const initialOffsetX = (svgWidth / 2 - ellipseCenterX) * INITIAL_ZOOM;
+  const initialOffsetY = (svgHeight / 2 - ellipseCenterY) * INITIAL_ZOOM;
+
   const styles = getStyles(palette);
   return (
     <View style={styles.container}>
@@ -76,7 +95,9 @@ function createNetworkGraph(
         maxZoom={4.5}
         minZoom={0.15}
         zoomStep={0.5}
-        initialZoom={0.5}
+        initialZoom={INITIAL_ZOOM}
+        initialOffsetX={initialOffsetX}
+        initialOffsetY={initialOffsetY}
         bindToBorders={false}
       >
         <NetworkGraphSvg
