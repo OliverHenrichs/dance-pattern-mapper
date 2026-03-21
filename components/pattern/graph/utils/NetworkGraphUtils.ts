@@ -40,100 +40,60 @@ export function calculateGraphLayout(
       foundationalPatterns,
     );
 
-  const patternMap = new Map<number, Pattern>();
-  patterns.forEach((p) => patternMap.set(p.id, p));
-
-  // BFS queue entry: the pattern to place, the angle pointing away from
-  // its foundational ancestor, and the position of its direct parent.
-  interface QueueEntry {
-    pattern: Pattern;
-    /** Outward angle inherited from parent (radians). */
-    parentAngle: number;
-    parentPos: LayoutPosition;
-    /** Hop distance from the foundational node (1 = direct child). */
-    localDepth: number;
-  }
-
-  // Shared set: first foundational to claim a node wins (shortest path).
+  // Shared set: first DFS visitor to claim a node wins.
+  // This handles multi-parent nodes: only the first (shortest DFS path) placement sticks.
   const positioned = new Set<number>(foundationalPatterns.map((p) => p.id));
 
-  // Seed the BFS queues from each foundational node.
-  // We process all foundationals in parallel (one BFS level at a time)
-  // so that the shortest-path rule is respected across sectors.
-  let queue: QueueEntry[] = [];
-  foundationalPatterns.forEach((foundational, index) => {
-    const angle = foundationalAngles[index];
-    const foundationalPos = positions.get(foundational.id)!;
-    const directChildren = patterns.filter((p) =>
-      p.prerequisites.includes(foundational.id),
-    );
-    directChildren.forEach((child) => {
-      if (!positioned.has(child.id)) {
-        positioned.add(child.id);
-        queue.push({
-          pattern: child,
-          parentAngle: angle,
-          parentPos: foundationalPos,
-          localDepth: 1,
-        });
-      }
-    });
-  });
-
-  // BFS: process level by level so siblings at the same depth are spread
-  // relative to their own parent's direction.
+  // Fixed step between parent and child — independent of depth so all rings are even.
   const DEPTH_SPACING = 220;
   const MIN_ANGLE_PER_NODE = Math.PI / 8; // 22.5° minimum gap per sibling
 
-  while (queue.length > 0) {
-    const nextQueue: QueueEntry[] = [];
+  /**
+   * Recursively place all children of `parentId` radially outward from `parentPos`
+   * along `parentAngle`, then immediately recurse into each child's subtree (DFS).
+   * This ensures every subtree is fully laid out before moving to the next sibling,
+   * so nodes at the same visual ring are always direct siblings of the same parent.
+   */
+  function placeChildren(
+    parentId: number,
+    parentPos: LayoutPosition,
+    parentAngle: number,
+  ) {
+    const children = patterns.filter(
+      (p) => p.prerequisites.includes(parentId) && !positioned.has(p.id),
+    );
 
-    // Group queue entries by parent position so siblings share the same spread.
-    const byParent = new Map<string, QueueEntry[]>();
-    queue.forEach((entry) => {
-      const key = `${entry.parentPos.x},${entry.parentPos.y}`;
-      if (!byParent.has(key)) byParent.set(key, []);
-      byParent.get(key)!.push(entry);
+    // Claim all children before recursing so that sibling cross-links don't
+    // cause one sibling to be placed as a child of another sibling.
+    children.forEach((child) => positioned.add(child.id));
+
+    const numChildren = children.length;
+    const spreadAngle =
+      numChildren > 1 ? (numChildren - 1) * MIN_ANGLE_PER_NODE : 0;
+
+    children.forEach((child, idx) => {
+      const offsetAngle =
+        numChildren > 1
+          ? (idx - (numChildren - 1) / 2) * (spreadAngle / (numChildren - 1))
+          : 0;
+
+      const finalAngle = parentAngle + offsetAngle;
+      const x = parentPos.x + Math.cos(finalAngle) * DEPTH_SPACING;
+      const y = parentPos.y + Math.sin(finalAngle) * DEPTH_SPACING;
+      positions.set(child.id, { x, y });
+
+      // DFS: fully place this child's subtree before moving to next sibling.
+      placeChildren(child.id, { x, y }, finalAngle);
     });
-
-    byParent.forEach((siblings) => {
-      const numSiblings = siblings.length;
-      const spreadAngle =
-        numSiblings > 1 ? (numSiblings - 1) * MIN_ANGLE_PER_NODE : 0;
-
-      siblings.forEach((entry, idx) => {
-        const offsetAngle =
-          numSiblings > 1
-            ? (idx - (numSiblings - 1) / 2) * (spreadAngle / (numSiblings - 1))
-            : 0;
-
-        const finalAngle = entry.parentAngle + offsetAngle;
-        const distance = entry.localDepth * DEPTH_SPACING;
-
-        const x = entry.parentPos.x + Math.cos(finalAngle) * distance;
-        const y = entry.parentPos.y + Math.sin(finalAngle) * distance;
-        positions.set(entry.pattern.id, { x, y });
-
-        // Enqueue children of this node using *its* angle as the new parent angle.
-        const children = patterns.filter((p) =>
-          p.prerequisites.includes(entry.pattern.id),
-        );
-        children.forEach((child) => {
-          if (!positioned.has(child.id)) {
-            positioned.add(child.id);
-            nextQueue.push({
-              pattern: child,
-              parentAngle: finalAngle,
-              parentPos: { x, y },
-              localDepth: entry.localDepth + 1,
-            });
-          }
-        });
-      });
-    });
-
-    queue = nextQueue;
   }
+
+  foundationalPatterns.forEach((foundational, index) => {
+    placeChildren(
+      foundational.id,
+      positions.get(foundational.id)!,
+      foundationalAngles[index],
+    );
+  });
 
   addSizeSafeguards(positions);
   return { positions, ellipseCenterX: centerX, ellipseCenterY: centerY };

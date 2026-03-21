@@ -1,5 +1,5 @@
 import React, { useMemo } from "react";
-import { StyleSheet, Text, View, useWindowDimensions } from "react-native";
+import { StyleSheet, Text, View } from "react-native";
 import { Pattern } from "@/components/pattern/types/PatternList";
 import { PatternType } from "@/components/pattern/types/PatternType";
 import { PaletteColor } from "@/components/common/ColorPalette";
@@ -24,8 +24,6 @@ const NetworkGraphView: React.FC<NetworkGraphViewProps> = ({
 }) => {
   const { positions, svgWidth, svgHeight, ellipseCenterX, ellipseCenterY } =
     useGraphLayout(patterns);
-  const { width: viewportWidth, height: viewportHeight } =
-    useWindowDimensions();
 
   // Create type color map if patternTypes provided
   const typeColorMap = useMemo(() => {
@@ -46,8 +44,6 @@ const NetworkGraphView: React.FC<NetworkGraphViewProps> = ({
     svgHeight,
     ellipseCenterX,
     ellipseCenterY,
-    viewportWidth,
-    viewportHeight,
     patterns,
     positions,
     palette,
@@ -72,15 +68,13 @@ function createNetworkGraph(
   svgHeight: number,
   ellipseCenterX: number,
   ellipseCenterY: number,
-  viewportWidth: number,
-  viewportHeight: number,
   patterns: Pattern[],
   positions: Map<number, LayoutPosition>,
   palette: Record<PaletteColor, string>,
   onNodeTap: (pattern: Pattern) => void,
   typeColorMap?: Map<string, string>,
 ) {
-  const INITIAL_ZOOM = 0.65;
+  const INITIAL_ZOOM = 0.35;
 
   // The zoomable view centers the SVG mid-point (svgWidth/2, svgHeight/2) in the
   // viewport by default (offset 0,0). To center the ellipse instead, we shift by
