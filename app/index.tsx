@@ -1,6 +1,6 @@
 import "./i18n";
-import { ThemeProvider } from "@/components/common/ThemeContext";
-import DrawerNavigator from "@/components/common/DrawerNavigator";
+import { ThemeProvider } from "@/src/common/components/ThemeContext";
+import DrawerNavigator from "@/src/common/components/DrawerNavigator";
 
 export default function Index() {
   return (

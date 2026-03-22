@@ -1,13 +1,13 @@
 import {
-  Pattern,
-  PatternList,
-  VideoReference,
-} from "@/components/pattern/types/PatternList";
+  IPattern,
+  IPatternList,
+  IVideoReference,
+} from "@/src/pattern/types/IPatternList";
 import {
   generateUUID,
   PATTERN_TYPE_COLORS,
   PatternType,
-} from "@/components/pattern/types/PatternType";
+} from "@/src/pattern/types/PatternType";
 
 /**
  * Test factories for creating test data
@@ -25,8 +25,8 @@ export function createTestPatternType(
 }
 
 export function createTestPatternList(
-  overrides?: Partial<PatternList>,
-): PatternList {
+  overrides?: Partial<IPatternList>,
+): IPatternList {
   const now = Date.now();
   const defaultTypes = [
     createTestPatternType({ slug: "push", color: PATTERN_TYPE_COLORS.coral }),
@@ -45,8 +45,8 @@ export function createTestPatternList(
 
 export function createTestPattern(
   typeId: string,
-  overrides?: Partial<Pattern>,
-): Pattern {
+  overrides?: Partial<IPattern>,
+): IPattern {
   return {
     id: Math.floor(Math.random() * 10000),
     name: "Test Pattern",
@@ -62,8 +62,8 @@ export function createTestPattern(
 }
 
 export function createTestVideoReference(
-  overrides?: Partial<VideoReference>,
-): VideoReference {
+  overrides?: Partial<IVideoReference>,
+): IVideoReference {
   return {
     type: "url",
     value: "https://example.com/video.mp4",
@@ -75,11 +75,11 @@ export function createTestVideoReference(
  * Create a pattern list with patterns for testing
  */
 export function createTestPatternListWithPatterns(patternCount: number = 3): {
-  list: PatternList;
-  patterns: Pattern[];
+  list: IPatternList;
+  patterns: IPattern[];
 } {
   const list = createTestPatternList();
-  const patterns: Pattern[] = [];
+  const patterns: IPattern[] = [];
 
   for (let i = 0; i < patternCount; i++) {
     const typeIndex = i % list.patternTypes.length;

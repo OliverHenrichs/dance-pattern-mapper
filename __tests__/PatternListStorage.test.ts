@@ -10,7 +10,7 @@ import {
   savePatternList,
   savePatterns,
   setActiveListId,
-} from "@/components/pattern/data/PatternListStorage";
+} from "@/src/pattern/data/PatternListStorage";
 import {
   createTestPattern,
   createTestPatternList,

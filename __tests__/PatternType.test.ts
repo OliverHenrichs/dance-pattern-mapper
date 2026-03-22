@@ -2,7 +2,7 @@ import {
   generateUUID,
   isSlugUnique,
   normalizeSlug,
-} from "@/components/pattern/types/PatternType";
+} from "@/src/pattern/types/PatternType";
 import { createTestPatternType } from "@/utils/testFactories";
 
 describe("PatternType utilities", () => {

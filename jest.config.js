@@ -16,8 +16,8 @@ module.exports = {
     "^@/(.*)$": "<rootDir>/$1",
   },
   collectCoverageFrom: [
-    "components/pattern/data/**/*.{ts,tsx}",
-    "components/pattern/graph/utils/**/*.{ts,tsx}",
+    "src/pattern/data/**/*.{ts,tsx}",
+    "src/pattern/graph/utils/**/*.{ts,tsx}",
     "!**/*.d.ts",
     "!**/node_modules/**",
   ],

@@ -1,18 +1,18 @@
-import { generateEdges } from "@/components/pattern/graph/utils/GraphUtils";
-import { WCSPatternLevel } from "@/components/pattern/types/WCSPatternEnums";
-import { Pattern } from "@/components/pattern/types/PatternList";
+import { generateEdges } from "@/src/pattern/graph/utils/GraphUtils";
+import { PatternLevel } from "@/src/pattern/types/PatternLevel";
+import { IPattern } from "@/src/pattern/types/IPatternList";
 import {
   calculatePrerequisiteDepthMap,
   detectCircularDependencies,
-} from "@/components/pattern/graph/utils/GenericGraphUtils";
+} from "@/src/pattern/graph/utils/GenericGraphUtils";
 
-function createTestWCSPattern(overrides?: Partial<Pattern>): Pattern {
+function createTestWCSPattern(overrides?: Partial<IPattern>): IPattern {
   return {
     id: Math.floor(Math.random() * 10000),
     name: "Test Pattern",
     counts: 6,
     typeId: "TestType",
-    level: WCSPatternLevel.BEGINNER,
+    level: PatternLevel.BEGINNER,
     prerequisites: [],
     description: "Test description",
     tags: [],
