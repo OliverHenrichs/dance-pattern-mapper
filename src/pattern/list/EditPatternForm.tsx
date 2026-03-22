@@ -20,7 +20,13 @@ import * as ImagePicker from "expo-image-picker";
 import * as VideoThumbnails from "expo-video-thumbnails";
 import PatternVideos from "./PatternVideos";
 import PatternTags from "./PatternTags";
+import AddVideoModal from "./AddVideoModal";
 import { useThemeContext } from "@/src/common/components/ThemeContext";
+import {
+  extractYouTubeVideoId,
+  getYouTubeThumbnailUrl,
+  isYouTubeUrl,
+} from "@/src/common/utils/YouTubeUtils";
 import {
   getCommon2ndOrderLabel,
   getCommonBorder,
@@ -68,6 +74,7 @@ const EditPatternForm: React.FC<EditPatternFormProps> = ({
   );
   const [thumbnails, setThumbnails] = useState<string[]>([]);
   const [prereqFilter, setPrereqFilter] = useState<string>("");
+  const [showAddVideoModal, setShowAddVideoModal] = useState(false);
 
   useEffect(() => {
     const generateThumbnails = async () => {
@@ -77,6 +84,15 @@ const EditPatternForm: React.FC<EditPatternFormProps> = ({
       }
       const results: string[] = [];
       for (const ref of newPattern.videoRefs) {
+        if (ref.type === "url") {
+          if (isYouTubeUrl(ref.value)) {
+            const id = extractYouTubeVideoId(ref.value);
+            results.push(id ? getYouTubeThumbnailUrl(id) : "");
+          } else {
+            results.push("");
+          }
+          continue;
+        }
         try {
           const { uri } = await VideoThumbnails.getThumbnailAsync(ref.value, {
             time: 1000,
@@ -97,7 +113,12 @@ const EditPatternForm: React.FC<EditPatternFormProps> = ({
     setNewPattern(createDefaultPattern());
   };
 
-  const handlePickVideos = async () => {
+  const openAddVideoModal = () => {
+    if (newPattern.videoRefs && newPattern.videoRefs.length >= 3) return;
+    setShowAddVideoModal(true);
+  };
+
+  const handlePickFromLibrary = async () => {
     if (newPattern.videoRefs && newPattern.videoRefs.length >= 3) return;
     const result = await ImagePicker.launchImageLibraryAsync({
       mediaTypes: ["videos"],
@@ -109,11 +130,23 @@ const EditPatternForm: React.FC<EditPatternFormProps> = ({
         type: "local",
         value: asset.uri,
       }));
-      setNewPattern({
-        ...newPattern,
-        videoRefs: [...(newPattern.videoRefs ?? []), ...newVideos],
-      });
+      setNewPattern((prev) => ({
+        ...prev,
+        videoRefs: [...(prev.videoRefs ?? []), ...newVideos],
+      }));
     }
+  };
+
+  const handleAddUrlVideo = (url: string, startTime?: number) => {
+    const newRef: IVideoReference = {
+      type: "url",
+      value: url,
+      ...(startTime !== undefined && { startTime }),
+    };
+    setNewPattern((prev) => ({
+      ...prev,
+      videoRefs: [...(prev.videoRefs ?? []), newRef],
+    }));
   };
 
   const handleRemoveVideo = (index: number) => {
@@ -268,11 +301,19 @@ const EditPatternForm: React.FC<EditPatternFormProps> = ({
         styles={styles}
       />
       <PatternVideos
+        videoRefs={newPattern.videoRefs ?? []}
         thumbnails={thumbnails}
-        onAddVideo={handlePickVideos}
+        onAddVideo={openAddVideoModal}
         onRemoveVideo={handleRemoveVideo}
         palette={palette}
         disabled={newPattern.videoRefs && newPattern.videoRefs.length >= 3}
+      />
+      <AddVideoModal
+        visible={showAddVideoModal}
+        onClose={() => setShowAddVideoModal(false)}
+        onPickFromLibrary={handlePickFromLibrary}
+        onAddUrl={handleAddUrlVideo}
+        palette={palette}
       />
       <View style={styles.buttonRow}>
         <TouchableOpacity onPress={handleFinish} style={styles.buttonIndigo}>

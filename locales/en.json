@@ -159,5 +159,16 @@
   "unpublishConfirmMessage": "This will remove the list from the cloud. Others will no longer be able to subscribe to it.",
   "unpublishSuccessTitle": "Sharing Stopped",
   "unpublishSuccessMessage": "The list is no longer shared.",
-  "deletePatternConfirm": "Are you sure you want to delete this pattern?"
+  "deletePatternConfirm": "Are you sure you want to delete this pattern?",
+  "addVideo": "Add Video",
+  "addFromLibrary": "Pick from Library",
+  "addFromUrl": "Online Video URL",
+  "videoUrl": "https://...",
+  "startTimePlaceholder": "Start time (e.g. 1:30 or 90)",
+  "addUrl": "Add URL",
+  "onlineVideo": "Online",
+  "noThumbnail": "No preview",
+  "videoUrlRequired": "Please enter a URL",
+  "videoUrlInvalid": "URL must start with http:// or https://",
+  "or": "or"
 }

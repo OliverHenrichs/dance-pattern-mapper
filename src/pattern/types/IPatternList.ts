@@ -32,6 +32,7 @@ export interface IPattern {
 export interface IVideoReference {
   type: "url" | "local";
   value: string; // URL or local file path
+  startTime?: number; // Optional start time in seconds (URL-type videos only)
 }
 
 /**

@@ -159,5 +159,16 @@
   "unpublishConfirmMessage": "Die Liste wird aus der Cloud entfernt. Andere können sie dann nicht mehr abonnieren.",
   "unpublishSuccessTitle": "Teilen beendet",
   "unpublishSuccessMessage": "Die Liste wird nicht mehr geteilt.",
-  "deletePatternConfirm": "Bist du sicher, dass du die Figur löschen willst?"
+  "deletePatternConfirm": "Bist du sicher, dass du die Figur löschen willst?",
+  "addVideo": "Video hinzufügen",
+  "addFromLibrary": "Aus der Bibliothek",
+  "addFromUrl": "Online-Video-URL",
+  "videoUrl": "https://...",
+  "startTimePlaceholder": "Startzeit (z.B. 1:30 oder 90)",
+  "addUrl": "URL hinzufügen",
+  "onlineVideo": "Online",
+  "noThumbnail": "Keine Vorschau",
+  "videoUrlRequired": "Bitte URL eingeben",
+  "videoUrlInvalid": "URL muss mit http:// oder https:// beginnen",
+  "or": "oder"
 }
