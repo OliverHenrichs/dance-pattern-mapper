@@ -12,7 +12,6 @@ import { ExpoConfig } from "expo/config";
  * so no manual dotenv setup is required.
  */
 
-// eslint-disable-next-line @typescript-eslint/no-require-imports
 const base = (require("./app.json") as { expo: ExpoConfig }).expo;
 
 export default (): ExpoConfig => ({
@@ -31,4 +30,3 @@ export default (): ExpoConfig => ({
     firebaseAppToken: process.env.FIREBASE_APP_TOKEN,
   },
 });
-
