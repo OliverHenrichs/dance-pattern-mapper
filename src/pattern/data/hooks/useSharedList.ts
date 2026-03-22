@@ -1,6 +1,7 @@
 import { useEffect, useRef } from "react";
 import { subscribeToSharedList } from "@/src/firebase/FirebaseListService";
 import {
+  getPatternListById,
   savePatternList,
   savePatterns,
 } from "@/src/pattern/data/PatternListStorage";
@@ -29,11 +30,16 @@ export function useSharedList(
   useEffect(() => {
     if (!shareCode) return;
 
-    const unsub = subscribeToSharedList(
+    return subscribeToSharedList(
       shareCode,
       async (updated: PatternListWithPatterns) => {
         try {
-          await savePatternList(updated);
+          // Preserve the local readonly flag — it is a subscriber-side concept
+          // and is intentionally absent from the Firestore document. Without
+          // this, every sync would silently clear readonly on subscribed lists.
+          const existing = await getPatternListById(updated.id);
+          const listToSave = { ...updated, readonly: existing?.readonly };
+          await savePatternList(listToSave);
           await savePatterns(updated.id, updated.patterns);
           onUpdatedRef.current();
         } catch (err) {
@@ -44,9 +50,5 @@ export function useSharedList(
         console.warn("useSharedList: subscription error", err.message);
       },
     );
-
-    return unsub;
   }, [shareCode]);
 }
-
-

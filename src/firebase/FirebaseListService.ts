@@ -62,7 +62,7 @@ export async function publishList(
   const shareCode = list.shareCode ?? generateShareCode();
 
   const payload: SharedListDocument = {
-    list: { ...list, readonly: true, shareCode },
+    list: { ...list, shareCode, readonly: undefined },
     patterns,
     publisherVersion: Date.now(),
     publishedAt: new Date().toISOString(),

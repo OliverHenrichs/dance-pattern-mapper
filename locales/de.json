@@ -145,5 +145,7 @@
   "enterShareCode": "Freigabecode eingeben",
   "invalidShareCode": "Der Code muss genau 8 Zeichen lang sein.",
   "shareCodeNotFound": "Keine geteilte Liste für diesen Code gefunden.",
-  "sharingNotAvailable": "Cloud-Teilen ist nicht konfiguriert. Firebase-Zugangsdaten in app.json eintragen."
+  "sharingNotAvailable": "Cloud-Teilen ist nicht konfiguriert. Firebase-Zugangsdaten in app.json eintragen.",
+  "subscribeErrorOwnList": "Du bist der Herausgeber dieser Liste – sie ist bereits in deiner Bibliothek.",
+  "subscribeErrorAlreadySubscribed": "Du hast diese Liste bereits abonniert."
 }

@@ -175,10 +175,12 @@ const PatternListSelector: React.FC<{ navigation: any }> = ({ navigation }) => {
   /** Called when user confirms subscribing to a shared list. */
   const handleSubscribeConfirm = async (fetched: PatternListWithPatterns) => {
     try {
-      await savePatternList(fetched);
+      // Firestore does not store readonly — stamp it locally so the subscriber
+      // cannot edit the list and the flag survives future sync updates.
+      await savePatternList({ ...fetched, readonly: true });
       await savePatterns(fetched.id, fetched.patterns);
       await loadLists();
-      await setActiveList(fetched);
+      await setActiveList({ ...fetched, readonly: true });
       navigation.navigate("Patterns");
     } catch (e) {
       Alert.alert(t("error"), String(e));
@@ -390,6 +392,7 @@ const PatternListSelector: React.FC<{ navigation: any }> = ({ navigation }) => {
         {/* ── Subscribe modal ──────────────────────────────────────────── */}
         <SubscribeListModal
           visible={showSubscribeModal}
+          existingLists={patternLists}
           onClose={() => setShowSubscribeModal(false)}
           onSubscribe={handleSubscribeConfirm}
         />

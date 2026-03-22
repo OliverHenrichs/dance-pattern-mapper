@@ -15,9 +15,11 @@ import { useThemeContext } from "@/src/common/components/ThemeContext";
 import { fetchSharedList } from "@/src/firebase/FirebaseListService";
 import { firebaseAvailable } from "@/src/firebase/firebaseConfig";
 import { PatternListWithPatterns } from "@/src/pattern/data/types/IExportData";
+import { IPatternList } from "@/src/pattern/types/IPatternList";
 
 interface SubscribeListModalProps {
   visible: boolean;
+  existingLists: IPatternList[];
   onClose: () => void;
   /** Called with the fetched list once the user confirms subscribing. */
   onSubscribe: (list: PatternListWithPatterns) => void;
@@ -25,6 +27,7 @@ interface SubscribeListModalProps {
 
 const SubscribeListModal: React.FC<SubscribeListModalProps> = ({
   visible,
+  existingLists,
   onClose,
   onSubscribe,
 }) => {
@@ -50,9 +53,20 @@ const SubscribeListModal: React.FC<SubscribeListModalProps> = ({
       const result = await fetchSharedList(trimmed);
       if (!result) {
         setError(t("shareCodeNotFound"));
-      } else {
-        setPreview(result);
+        return;
       }
+      // Block subscribing to a list whose UUID already exists locally.
+      // Covers "you are the publisher" and "already subscribed".
+      const localMatch = existingLists.find((l) => l.id === result.id);
+      if (localMatch) {
+        setError(
+          localMatch.shareCode === trimmed
+            ? t("subscribeErrorOwnList")
+            : t("subscribeErrorAlreadySubscribed"),
+        );
+        return;
+      }
+      setPreview(result);
     } catch (e) {
       setError(e instanceof Error ? e.message : String(e));
     } finally {
@@ -316,4 +330,3 @@ const getStyles = (palette: Record<PaletteColor, string>) =>
   });
 
 export default SubscribeListModal;
-
