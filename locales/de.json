@@ -147,5 +147,9 @@
   "shareCodeNotFound": "Keine geteilte Liste für diesen Code gefunden.",
   "sharingNotAvailable": "Cloud-Teilen ist nicht konfiguriert. Firebase-Zugangsdaten in app.json eintragen.",
   "subscribeErrorOwnList": "Du bist der Herausgeber dieser Liste – sie ist bereits in deiner Bibliothek.",
-  "subscribeErrorAlreadySubscribed": "Du hast diese Liste bereits abonniert."
+  "subscribeErrorAlreadySubscribed": "Du hast diese Liste bereits abonniert.",
+  "listUnpublishedTitle": "Liste getrennt",
+  "listUnpublishedMessage": "\"{{name}}\" wird vom Herausgeber nicht mehr geteilt. Deine Kopie wurde behalten und ist jetzt vollständig bearbeitbar.",
+  "unpublishSuccessTitle": "Teilen beendet",
+  "unpublishSuccessMessage": "Die Liste wird nicht mehr geteilt."
 }

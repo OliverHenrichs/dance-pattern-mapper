@@ -61,8 +61,13 @@ export async function publishList(
   const firestore = requireDb();
   const shareCode = list.shareCode ?? generateShareCode();
 
+  // Destructure out readonly and shareCode so we rebuild them cleanly.
+  // Firestore rejects undefined values, so omitting the field entirely is
+  // safer than setting readonly: undefined.
+  const { readonly: _readonly, shareCode: _prevCode, ...listBase } = list;
+
   const payload: SharedListDocument = {
-    list: { ...list, shareCode, readonly: undefined },
+    list: { ...listBase, shareCode },
     patterns,
     publisherVersion: Date.now(),
     publishedAt: new Date().toISOString(),

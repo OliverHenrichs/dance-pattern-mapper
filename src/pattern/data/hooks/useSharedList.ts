@@ -1,4 +1,5 @@
 import { useEffect, useRef } from "react";
+import { Alert } from "react-native";
 import { subscribeToSharedList } from "@/src/firebase/FirebaseListService";
 import {
   getPatternListById,
@@ -6,6 +7,7 @@ import {
   savePatterns,
 } from "@/src/pattern/data/PatternListStorage";
 import { PatternListWithPatterns } from "@/src/pattern/data/types/IExportData";
+import i18n from "@/app/i18n";
 
 /**
  * Maintains a live Firestore subscription for a single shared list.
@@ -14,11 +16,16 @@ import { PatternListWithPatterns } from "@/src/pattern/data/types/IExportData";
  * written to local AsyncStorage, then onUpdated() is called so callers can
  * refresh their in-memory state.
  *
+ * When the publisher unpublishes (document deleted), the local copy is kept,
+ * made editable (readonly cleared), shareCode cleared, and the user is
+ * notified via an Alert so they know the list is now fully theirs.
+ *
  * The subscription is automatically torn down when shareCode changes or the
  * component unmounts.
  */
 export function useSharedList(
   shareCode: string | undefined,
+  listId: string | undefined,
   onUpdated: () => void,
 ): void {
   // Stable callback ref so the effect does not re-subscribe on every render
@@ -46,9 +53,34 @@ export function useSharedList(
           console.warn("useSharedList: failed to persist update", err);
         }
       },
-      (err) => {
-        console.warn("useSharedList: subscription error", err.message);
+      async (err) => {
+        if (err.message === "Shared list no longer exists." && listId) {
+          try {
+            const existing = await getPatternListById(listId);
+            if (existing) {
+              await savePatternList({
+                ...existing,
+                shareCode: undefined,
+                readonly: undefined,
+              });
+              onUpdatedRef.current();
+              // Only notify subscribers (readonly === true).
+              // The publisher triggered the delete intentionally and gets a
+              // confirmation directly in the ShareListModal instead.
+              if (existing.readonly) {
+                Alert.alert(
+                  i18n.t("listUnpublishedTitle"),
+                  i18n.t("listUnpublishedMessage", { name: existing.name }),
+                );
+              }
+            }
+          } catch (saveErr) {
+            console.warn("useSharedList: failed to detach list", saveErr);
+          }
+        } else {
+          console.warn("useSharedList: subscription error", err.message);
+        }
       },
     );
-  }, [shareCode]);
+  }, [shareCode, listId]);
 }

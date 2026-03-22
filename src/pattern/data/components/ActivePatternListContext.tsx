@@ -109,7 +109,11 @@ export const ActivePatternListProvider: React.FC<{
   // Live subscription: when the active list has a shareCode, keep it in sync
   // with Firestore. Updates are persisted to AsyncStorage then the state is
   // refreshed, so the user always sees the publisher's latest version.
-  useSharedList(activeList?.shareCode, loadActiveListAndPatterns);
+  useSharedList(
+    activeList?.shareCode,
+    activeList?.id,
+    loadActiveListAndPatterns,
+  );
 
   const value: ActivePatternListContextType = {
     activeList,

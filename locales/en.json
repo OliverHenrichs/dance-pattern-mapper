@@ -147,5 +147,9 @@
   "shareCodeNotFound": "No shared list found for this code.",
   "sharingNotAvailable": "Cloud sharing is not configured. Add Firebase credentials to app.json.",
   "subscribeErrorOwnList": "You are the publisher of this list — it is already in your library.",
-  "subscribeErrorAlreadySubscribed": "You are already subscribed to this list."
+  "subscribeErrorAlreadySubscribed": "You are already subscribed to this list.",
+  "listUnpublishedTitle": "List Detached",
+  "listUnpublishedMessage": "\"{{name}}\" is no longer shared by its publisher. Your copy has been kept and is now fully editable.",
+  "unpublishSuccessTitle": "Sharing Stopped",
+  "unpublishSuccessMessage": "The list is no longer shared."
 }

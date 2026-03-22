@@ -1,6 +1,7 @@
 import React, { useState } from "react";
 import {
   ActivityIndicator,
+  Alert,
   Clipboard,
   Modal,
   StyleSheet,
@@ -13,10 +14,8 @@ import { useTranslation } from "react-i18next";
 import { getPalette, PaletteColor } from "@/src/common/utils/ColorPalette";
 import { useThemeContext } from "@/src/common/components/ThemeContext";
 import { IPatternList, IPattern } from "@/src/pattern/types/IPatternList";
-import {
-  publishList,
-  unpublishList,
-} from "@/src/firebase/FirebaseListService";import { firebaseAvailable } from "@/src/firebase/firebaseConfig";
+import { publishList, unpublishList } from "@/src/firebase/FirebaseListService";
+import { firebaseAvailable } from "@/src/firebase/firebaseConfig";
 
 interface ShareListModalProps {
   visible: boolean;
@@ -69,6 +68,7 @@ const ShareListModal: React.FC<ShareListModalProps> = ({
       await unpublishList(list.shareCode);
       const { shareCode: _removed, ...rest } = list;
       onUnpublished(rest as IPatternList);
+      Alert.alert(t("unpublishSuccessTitle"), t("unpublishSuccessMessage"));
     } catch (e) {
       setError(e instanceof Error ? e.message : String(e));
     } finally {
@@ -311,5 +311,3 @@ const getStyles = (palette: Record<PaletteColor, string>) =>
   });
 
 export default ShareListModal;
-
-
