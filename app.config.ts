@@ -17,7 +17,7 @@ export default (): ExpoConfig => ({
   slug: "DancePatternMapper",
   version: "1.0.0",
   orientation: "portrait",
-  icon: "./assets/images/favicon.png",
+  icon: "./assets/images/app-icon.png",
   scheme: "dancepatternmapper",
   userInterfaceStyle: "automatic",
   newArchEnabled: true,
@@ -26,29 +26,29 @@ export default (): ExpoConfig => ({
   },
   android: {
     adaptiveIcon: {
-      backgroundColor: "#E6F4FE",
-      foregroundImage: "./assets/images/favicon.png",
-      backgroundImage: "./assets/images/favicon.png",
-      monochromeImage: "./assets/images/favicon.png",
+      foregroundImage: "./assets/images/app-icon.png",
+      backgroundColor: "#f5f3ff",
+      monochromeImage: "./assets/images/app-icon.png",
     },
     edgeToEdgeEnabled: true,
     package: "com.teholi.DancePatternMapper",
   },
   web: {
     output: "static",
-    favicon: "./assets/images/favicon.png",
+    favicon: "./assets/images/app-icon.png",
   },
   plugins: [
     "expo-router",
     [
       "expo-splash-screen",
       {
-        image: "./assets/images/favicon.png",
-        imageWidth: 200,
+        image: "./assets/images/splash-transparent.png",
+        imageWidth: 300,
         resizeMode: "contain",
-        backgroundColor: "#ffffff",
+        backgroundColor: "#f5f3ff",
         dark: {
-          backgroundColor: "#000000",
+          image: "./assets/images/splash-dark.png",
+          backgroundColor: "#18181b",
         },
       },
     ],
