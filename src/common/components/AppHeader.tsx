@@ -33,7 +33,7 @@ const AppHeader: React.FC = () => {
     <View style={styles.header}>
       <View style={styles.headerLeft}>
         <Image
-          source={require("@/assets/images/app-icon.png")}
+          source={require("@/assets/images/app-icon-in-app.png")}
           style={styles.headerIcon}
         />
       </View>
