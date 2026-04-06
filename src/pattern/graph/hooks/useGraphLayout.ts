@@ -3,7 +3,7 @@ import { useWindowDimensions } from "react-native";
 import { IPattern } from "@/src/pattern/types/IPatternList";
 import { LayoutPosition } from "../utils/GraphUtils";
 import { detectCircularDependencies as detectCircularDepsGeneric } from "../utils/GenericGraphUtils";
-import { calculateGraphLayout } from "@/src/pattern/graph/utils/NetworkGraphUtils";
+import { runForceLayout } from "@/src/pattern/graph/utils/ForceGraphUtils";
 
 const INITIAL_WIDTH_MULTIPLIER = 3;
 const INITIAL_HEIGHT_MULTIPLIER = 2;
@@ -13,9 +13,6 @@ interface GraphLayoutResult {
   positions: Map<number, LayoutPosition>;
   svgWidth: number;
   svgHeight: number;
-  /** Ellipse center in normalized SVG coordinates (post-padding offset). */
-  ellipseCenterX: number;
-  ellipseCenterY: number;
 }
 
 interface ContentBounds {
@@ -42,20 +39,16 @@ export function useGraphLayout<T extends IPattern>(
     const initialWidth = width * INITIAL_WIDTH_MULTIPLIER;
     const initialHeight = height * INITIAL_HEIGHT_MULTIPLIER;
 
-    const layout = calculateGraphLayout(
+    const positions = runForceLayout(
       patterns as any,
       initialWidth,
-      initialHeight,
     );
-    const { positions } = layout;
 
     if (positions.size === 0) {
       return {
         positions,
         svgWidth: initialWidth,
         svgHeight: initialHeight,
-        ellipseCenterX: initialWidth / 2,
-        ellipseCenterY: initialHeight / 2,
       };
     }
 
@@ -73,8 +66,6 @@ export function useGraphLayout<T extends IPattern>(
     return {
       positions: normalizePositions(offsetX, offsetY, positions),
       ...dimensions,
-      ellipseCenterX: layout.ellipseCenterX + offsetX,
-      ellipseCenterY: layout.ellipseCenterY + offsetY,
     };
   }, [patterns, width, height]);
 }

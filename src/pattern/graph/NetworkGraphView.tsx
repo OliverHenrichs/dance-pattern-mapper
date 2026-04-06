@@ -22,8 +22,7 @@ const NetworkGraphView: React.FC<NetworkGraphViewProps> = ({
   palette,
   onNodeTap,
 }) => {
-  const { positions, svgWidth, svgHeight, ellipseCenterX, ellipseCenterY } =
-    useGraphLayout(patterns);
+  const { positions, svgWidth, svgHeight } = useGraphLayout(patterns);
 
   // Create type color map if patternTypes provided
   const typeColorMap = useMemo(() => {
@@ -41,8 +40,6 @@ const NetworkGraphView: React.FC<NetworkGraphViewProps> = ({
   return createNetworkGraph(
     svgWidth,
     svgHeight,
-    ellipseCenterX,
-    ellipseCenterY,
     patterns,
     positions,
     palette,
@@ -65,8 +62,6 @@ function createEmptyNetworkGraph(palette: Record<PaletteColor, string>) {
 function createNetworkGraph(
   svgWidth: number,
   svgHeight: number,
-  ellipseCenterX: number,
-  ellipseCenterY: number,
   patterns: IPattern[],
   positions: Map<number, LayoutPosition>,
   palette: Record<PaletteColor, string>,
@@ -74,12 +69,6 @@ function createNetworkGraph(
   typeColorMap: Map<string, string>,
 ) {
   const INITIAL_ZOOM = 0.35;
-
-  // The zoomable view centers the SVG mid-point (svgWidth/2, svgHeight/2) in the
-  // viewport by default (offset 0,0). To center the ellipse instead, we shift by
-  // the difference between the SVG mid-point and the ellipse center, scaled by zoom.
-  const initialOffsetX = (svgWidth / 2 - ellipseCenterX) * INITIAL_ZOOM;
-  const initialOffsetY = (svgHeight / 2 - ellipseCenterY) * INITIAL_ZOOM;
 
   const styles = getStyles(palette);
   return (
@@ -89,8 +78,8 @@ function createNetworkGraph(
         minZoom={0.15}
         zoomStep={0.5}
         initialZoom={INITIAL_ZOOM}
-        initialOffsetX={initialOffsetX}
-        initialOffsetY={initialOffsetY}
+        initialOffsetX={0}
+        initialOffsetY={0}
         bindToBorders={false}
       >
         <NetworkGraphSvg
