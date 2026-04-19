@@ -192,5 +192,7 @@
   "noModifiersHint": "Tap + to add a modifier",
   "modifierUniversalBadge": "UNIVERSAL",
   "saveModifier": "Save",
-  "variant": "Variant"
+  "variant": "Variant",
+  "appliedToPatterns": "Applied to",
+  "notAppliedToAnyPattern": "Not applied to any pattern yet"
 }

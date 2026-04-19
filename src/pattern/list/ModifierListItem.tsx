@@ -4,11 +4,17 @@ import Icon from "react-native-vector-icons/MaterialCommunityIcons";
 import { useTranslation } from "react-i18next";
 import { getPalette, PaletteColor } from "@/src/common/utils/ColorPalette";
 import { useThemeContext } from "@/src/common/components/ThemeContext";
-import { IModifier } from "@/src/pattern/types/IPatternList";
+import { IModifier, IPattern } from "@/src/pattern/types/IPatternList";
+import { PatternType } from "@/src/pattern/types/PatternType";
 import AppDialog from "@/src/common/components/AppDialog";
+import ModifierDetails from "@/src/pattern/list/ModifierDetails";
 
 interface ModifierListItemProps {
   modifier: IModifier;
+  patterns: IPattern[];
+  patternTypes?: PatternType[];
+  isSelected: boolean;
+  onSelect: (modifier: IModifier | undefined) => void;
   isReadonly?: boolean;
   onEdit: (modifier: IModifier) => void;
   onDelete: (id: string) => void;
@@ -16,6 +22,10 @@ interface ModifierListItemProps {
 
 const ModifierListItem: React.FC<ModifierListItemProps> = ({
   modifier,
+  patterns,
+  patternTypes,
+  isSelected,
+  onSelect,
   isReadonly,
   onEdit,
   onDelete,
@@ -33,10 +43,18 @@ const ModifierListItem: React.FC<ModifierListItemProps> = ({
         ? t("modifierPositionPostfix")
         : t("modifierPositionAmends");
 
+  const handleToggleSelect = () => {
+    onSelect(isSelected ? undefined : modifier);
+  };
+
   return (
-    <View style={styles.item}>
+    <View style={[styles.item, isSelected && styles.itemSelected]}>
       <View style={styles.itemHeader}>
-        <View style={styles.itemMeta}>
+        <TouchableOpacity
+          onPress={handleToggleSelect}
+          style={styles.itemMeta}
+          accessibilityLabel={modifier.name}
+        >
           <Text style={styles.name}>{modifier.name}</Text>
           <View style={styles.badges}>
             <View style={styles.positionBadge}>
@@ -50,11 +68,14 @@ const ModifierListItem: React.FC<ModifierListItemProps> = ({
               </View>
             )}
           </View>
-        </View>
+        </TouchableOpacity>
         {!isReadonly && (
           <View style={styles.actions}>
             <TouchableOpacity
-              onPress={() => onEdit(modifier)}
+              onPress={(e) => {
+                e.stopPropagation?.();
+                onEdit(modifier);
+              }}
               style={styles.iconButton}
               accessibilityLabel={t("editModifier")}
             >
@@ -65,7 +86,10 @@ const ModifierListItem: React.FC<ModifierListItemProps> = ({
               />
             </TouchableOpacity>
             <TouchableOpacity
-              onPress={() => setShowConfirmDelete(true)}
+              onPress={(e) => {
+                e.stopPropagation?.();
+                setShowConfirmDelete(true);
+              }}
               style={styles.iconButton}
               accessibilityLabel={t("deleteModifier")}
             >
@@ -74,6 +98,16 @@ const ModifierListItem: React.FC<ModifierListItemProps> = ({
           </View>
         )}
       </View>
+
+      {isSelected && (
+        <ModifierDetails
+          modifier={modifier}
+          patterns={patterns}
+          patternTypes={patternTypes}
+          palette={palette}
+        />
+      )}
+
       <AppDialog
         visible={showConfirmDelete}
         title={t("deleteModifier")}
@@ -101,6 +135,10 @@ const getStyles = (palette: Record<PaletteColor, string>) =>
       marginBottom: 8,
       borderColor: palette[PaletteColor.Border],
       backgroundColor: palette[PaletteColor.Surface],
+    },
+    itemSelected: {
+      borderColor: palette[PaletteColor.Primary],
+      backgroundColor: palette[PaletteColor.TagBg],
     },
     itemHeader: {
       flexDirection: "row",
@@ -157,4 +195,3 @@ const getStyles = (palette: Record<PaletteColor, string>) =>
   });
 
 export default ModifierListItem;
-

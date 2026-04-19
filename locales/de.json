@@ -192,5 +192,7 @@
   "noModifiersHint": "Tippe auf +, um einen Modifikator hinzuzufügen",
   "modifierUniversalBadge": "UNIVERSAL",
   "saveModifier": "Speichern",
-  "variant": "Variante"
+  "variant": "Variante",
+  "appliedToPatterns": "Angewendet auf",
+  "notAppliedToAnyPattern": "Noch auf keine Figur angewendet"
 }

@@ -294,6 +294,8 @@ const PatternListManager = () => {
           ) : (
             <ModifierList
               modifiers={modifiers}
+              patterns={patterns}
+              patternTypes={patternTypes}
               isReadonly={isReadonly}
               onAdd={() => setIsAddingModifier(true)}
               onEdit={handleEditModifier}
