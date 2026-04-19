@@ -39,10 +39,7 @@ export function useGraphLayout<T extends IPattern>(
     const initialWidth = width * INITIAL_WIDTH_MULTIPLIER;
     const initialHeight = height * INITIAL_HEIGHT_MULTIPLIER;
 
-    const positions = runForceLayout(
-      patterns as any,
-      initialWidth,
-    );
+    const positions = runForceLayout(patterns as any, initialWidth);
 
     if (positions.size === 0) {
       return {
